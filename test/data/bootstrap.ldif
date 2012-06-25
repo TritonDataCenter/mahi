@@ -1,0 +1,57 @@
+version: 1
+
+dn: o=smartdc
+objectclass: organization
+o: smartdc
+
+dn: ou=users, o=smartdc
+objectclass: organizationalUnit
+ou: users
+
+dn: ou=groups, o=smartdc
+objectclass: organizationalUnit
+ou: groups
+
+dn: ou=config, o=smartdc
+objectclass: organizationalUnit
+ou: config
+
+dn: uuid=930896af-bf8c-48d4-885c-6573a94b1853, ou=users, o=smartdc
+login: admin
+uuid: 930896af-bf8c-48d4-885c-6573a94b1853
+userpassword: joypass123
+email: nobody@joyent.com
+cn: admin
+sn: user
+company: Joyent
+address: Joyent, Inc.
+address: 345 California Street, Suite 2000
+city: San Francisco
+state: CA
+postalCode: 94104
+country: USA
+phone: +1 415 400 0600
+objectclass: sdcPerson
+
+dn: uuid=a820621a-5007-4a2a-9636-edde809106de, ou=users, o=smartdc
+changetype: add
+login: unpermixed
+uuid: a820621a-5007-4a2a-9636-edde809106de
+userpassword: FL8xhO
+email: postdisseizor@superexist.com
+cn: Judophobism
+sn: popgun
+company: butterflylike
+address: liltingly, Inc.
+address: 6165 pyrophyllite Street
+city: benzoylation concoctive
+state: SP
+postalCode: 4967
+country: BAT
+phone: +1 891 657 5818
+objectclass: sdcPerson
+
+dn: cn=operators, ou=groups, o=smartdc
+uniquemember: uuid=930896af-bf8c-48d4-885c-6573a94b1853, ou=users, o=smartdc
+uniquemember: uuid=a820621a-5007-4a2a-9636-edde809106de, ou=users, o=smartdc
+objectclass: groupOfUniqueNames
