@@ -1,6 +1,6 @@
 {
-  "name": "boilerplateapi",
-  "description": "SmartDataCenter Boilerplate API",
+  "name": "Mahi",
+  "description": "SmartDataStore Auth Cache",
   "version": "1.0.0",
   "author": "Joyent (joyent.com)",
   "private": true,
@@ -9,10 +9,12 @@
     "node-uuid": "1.3.3",
     "filed": "0.0.5",
     "bunyan": "0.8.0",
-    "redis": "*"
+    "redis": "*",
+    "ldapjs": "0.5.0",
+    "vasync": "1.3.0"
   },
   "devDependencies": {
-    "tap": ""
+    "tap": "*"
   },
   "scripts": {
     "start": "node ./server.js"
