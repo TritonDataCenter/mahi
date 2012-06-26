@@ -219,6 +219,109 @@ test('verify remove user 1 from group', function(t) {
   });
 });
 
+test('add user1 back to group', function(t) {
+  var msg = '';
+  var ldapmodify = spawn('ldapmodify', ['-x', '-H', 'ldap://localhost:1389',
+    '-D', 'cn=root', '-w', 'secret', '-f', './test/data/addgroup.ldif']);
+
+  ldapmodify.stdout.on('data', function(data) {
+    LOG.debug('ldapmodify stdout: ', data.toString());
+  });
+
+  ldapmodify.stderr.on('data', function(data) {
+    var dataStr = data.toString();
+    LOG.error('ldapmodify stderr: ', dataStr);
+    if (msg) {
+      msg += dataStr;
+    } else {
+      msg = dataStr;
+    }
+    msg += data;
+  });
+
+  ldapmodify.on('exit', function(code) {
+    if (code != 0) {
+      var err = {
+        msg: msg,
+        code: code
+      };
+      LOG.error('couldn\'t add LDAP bootstrap data');
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
+test('pause', function(t) {
+  // pause for auth-cache to catch up
+  setTimeout(function() {t.end();}, 2000);
+});
+
+test('verify user1 has group', function(t) {
+  REDIS_CLIENT.get('/login/admin', function(err, res) {
+    var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","groups":{"operators":"operators"}}';
+    t.ifError(err);
+    t.ok(res);
+    t.equal(res, RESPONSE);
+    REDIS_CLIENT.get('/uuid/930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
+      var RESPONSE = USER_1.login;
+      t.ifError(err);
+      t.ok(res);
+      t.equal(res, RESPONSE);
+      t.end();
+    });
+  });
+});
+
+test('delete group', function(t) {
+  var msg = '';
+  var ldapdelete = spawn('ldapdelete', ['-x', '-H', 'ldap://localhost:1389', '-D',
+    'cn=root', '-w', 'secret', 'cn=operators, ou=groups, o=smartdc']);
+
+  ldapdelete.stdout.on('data', function(data) {
+    LOG.debug('ldapdelete stdout: ', data.toString());
+  });
+
+  ldapdelete.stderr.on('data', function(data) {
+    var dataStr = data.toString();
+    LOG.error('ldapdelete stderr: ', dataStr);
+    if (msg) {
+      msg += dataStr;
+    } else {
+      msg = dataStr;
+    }
+    msg += data;
+  });
+
+  ldapdelete.on('exit', function(code) {
+    if (code != 0) {
+      var err = {
+        msg: msg,
+        code: code
+      };
+      LOG.error('couldn\'t add LDAP bootstrap data');
+      t.fail(err);
+    }
+    setTimeout(function() {t.end();}, 2000);
+  });
+});
+
+test('verify group dne', function(t) {
+  REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
+    var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","groups":{}}';
+    t.ifError(err);
+    t.ok(res);
+    t.equal(res, RESPONSE);
+    REDIS_CLIENT.get('/uuid/a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
+      var RESPONSE = USER_2.login;
+      t.ifError(err);
+      t.ok(res);
+      t.equal(res, RESPONSE);
+      t.end();
+    });
+  });
+});
+
 test('add keys to user 2', function(t) {
   var msg = '';
   var ldapadd = spawn('ldapadd', ['-x', '-H', 'ldap://localhost:1389', '-D',
@@ -365,7 +468,7 @@ test('pause', function(t) {
 
 test('verify key dne', function(t) {
   REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
-    var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","groups":{"operators":"operators"},"keys":{}}';
+    var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","groups":{},"keys":{}}';
     t.ifError(err);
     t.ok(res);
     t.equal(res, RESPONSE);
