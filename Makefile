@@ -18,6 +18,17 @@
 # Tools
 #
 TAP		:= ./node_modules/.bin/tap
+TAR = tar
+UNAME := $(shell uname)
+
+ifeq ($(UNAME), SunOS)
+	TAR = gtar
+endif
+
+#
+# Env variables
+#
+PATH            := $(NODE_INSTALL)/bin:${PATH}
 
 #
 # Files
@@ -29,12 +40,24 @@ JSL_FILES_NODE   = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
 REPO_MODULES	 = src/node-dummy
-SMF_MANIFESTS_IN = smf/manifests/bapi.xml.in
+SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in
+
+#
+# Variables
+#
+
+NODE_PREBUILT_VERSION   := v0.6.19
+NODE_PREBUILT_TAG       := zone
+
 
 include ./tools/mk/Makefile.defs
 include ./tools/mk/Makefile.node.defs
 include ./tools/mk/Makefile.node_deps.defs
 include ./tools/mk/Makefile.smf.defs
+
+RELEASE_TARBALL         := mahi-pkg-$(STAMP).tar.bz2
+ROOT                    := $(shell pwd)
+TMPDIR                  := /tmp/$(STAMP)
 
 #
 # Repo-specific targets
@@ -57,3 +80,34 @@ include ./tools/mk/Makefile.node.targ
 include ./tools/mk/Makefile.node_deps.targ
 include ./tools/mk/Makefile.smf.targ
 include ./tools/mk/Makefile.targ
+
+.PHONY: setup
+setup: | $(NPM_EXEC)
+	$(NPM) install
+
+.PHONY: release
+release: setup deps docs $(SMF_MANIFESTS)
+	@echo "Building $(RELEASE_TARBALL)"
+	@mkdir -p $(TMPDIR)/root/opt/smartdc/mahi
+	@mkdir -p $(TMPDIR)/site
+	@touch $(TMPDIR)/site/.do-not-delete-me
+	@mkdir -p $(TMPDIR)/root
+	cp -r   $(ROOT)/build \
+		$(ROOT)/lib \
+		$(ROOT)/main.js \
+		$(ROOT)/node_modules \
+		$(ROOT)/package.json \
+		$(ROOT)/smf \
+		$(ROOT)/cfg \
+		$(TMPDIR)/root/opt/smartdc/mahi/
+	(cd $(TMPDIR) && $(TAR) -jcf $(ROOT)/$(RELEASE_TARBALL) root site)
+	@rm -rf $(TMPDIR)
+
+.PHONY: publish
+publish: release
+	@if [[ -z "$(BITS_DIR)" ]]; then \
+		echo "error: 'BITS_DIR' must be set for 'publish' target"; \
+		exit 1; \
+	fi
+	mkdir -p $(BITS_DIR)/mahi
+	cp $(ROOT)/$(RELEASE_TARBALL) $(BITS_DIR)/mahi/$(RELEASE_TARBALL)
