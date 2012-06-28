@@ -2,8 +2,8 @@
   "ldapCfg": {
     "url": "LDAP_URL",
     "maxConnections": LDAP_CONNS,
-    "bindDN": "BIND_DN",
-    "bindCredentials": "SECRET"
+    "bindDN": "LDAP_BIND_DN",
+    "bindCredentials": "LDAP_SECRET"
   },
   "redisCfg": {
     "host": "REDIS_HOST",
