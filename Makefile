@@ -75,12 +75,6 @@ CLEAN_FILES += $(TAP) ./node_modules/tap
 test: $(TAP)
 	TAP=1 $(TAP) test/*.test.js
 
-include ./tools/mk/Makefile.deps
-include ./tools/mk/Makefile.node_prebuilt.targ
-include ./tools/mk/Makefile.node_deps.targ
-include ./tools/mk/Makefile.smf.targ
-include ./tools/mk/Makefile.targ
-
 .PHONY: setup
 setup: | $(NPM_EXEC)
 	$(NPM) install
@@ -111,3 +105,9 @@ publish: release
 	fi
 	mkdir -p $(BITS_DIR)/mahi
 	cp $(ROOT)/$(RELEASE_TARBALL) $(BITS_DIR)/mahi/$(RELEASE_TARBALL)
+
+include ./tools/mk/Makefile.deps
+include ./tools/mk/Makefile.node_prebuilt.targ
+include ./tools/mk/Makefile.node_deps.targ
+include ./tools/mk/Makefile.smf.targ
+include ./tools/mk/Makefile.targ
