@@ -5,7 +5,6 @@ var assert = require('assert');
 var AuthCache = require('../lib/index.js');
 var ldap = require('ldapjs');
 var Logger = require('bunyan');
-var moray = require('moray-client');
 var parseDN = ldap.parseDN;
 var tap = require('tap');
 var test = require('tap').test;
@@ -18,6 +17,8 @@ var LOG = new Logger({
   level: 'trace'
 });
 
+//var LDAP_URL = 'ldaps://10.99.99.14:636';
+var LDAP_URL = 'ldap://localhost:1389';
 var LDAP_CLIENT;
 var SUFFIX = process.env.UFDS_SUFFIX || 'o=smartdc';
 var DN_FMT = 'uuid=%s, ' + SUFFIX;
@@ -67,8 +68,10 @@ var KEY = {
   fingerprint: 'db:e1:88:bb:a9:ee:ab:be:2f:9c:5b:2f:d9:01:ac:d9',
   openssh: 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEA1UeAFVU5WaJJwe+rPjN7MbostuTX5P2NOn4c07ymxnFEHSH4LJZkVrMdVQRHf3uHLaTyIpCSZfm5onx0s2DoRpLreH0GYxRNNhmsfGcav0teeC6jSzHjJnn+pLnCDVvyunSFs5/AJGU27KPU4RRF7vNaccPUdB+q4nGJ1H1/+YE= tetartoconid@valvulotomy',
   objectclass: 'sdcKey'
+};
 
-}
+// need this for ldaps
+process.env.LDAPTLS_REQCERT = 'allow';
 
 var AUTH_CACHE;
 
@@ -83,8 +86,8 @@ test('bootstrap authcache', function(t) {
   AUTH_CACHE = AuthCache.createAuthCache({
     log: LOG,
     ldapCfg: {
-      url: 'ldap://localhost:1389',
-      maxConnections: 10,
+      url: LDAP_URL,
+      maxConnections: 1,
       bindDN: 'cn=root',
       bindCredentials: 'secret'
     },
@@ -97,7 +100,7 @@ test('bootstrap authcache', function(t) {
 
 test('add ldap bootstrap data', function(t) {
   var msg = '';
-  var ldapadd = spawn('ldapadd', ['-x', '-H', 'ldap://localhost:1389', '-D',
+  var ldapadd = spawn('ldapadd', ['-x', '-H', LDAP_URL, '-D',
     'cn=root', '-w', 'secret', '-f', './test/data/bootstrap.ldif']);
 
   ldapadd.stdout.on('data', function(data) {
@@ -116,12 +119,12 @@ test('add ldap bootstrap data', function(t) {
   });
 
   ldapadd.on('exit', function(code) {
-    if (code != 0) {
+    if (code !== 0) {
       var err = {
         msg: msg,
         code: code
       };
-      LOG.error('couldn\'t add LDAP bootstrap data');
+      LOG.error('couldn\'t add LDAP bootstrap data', err);
       t.fail(err);
     }
     t.end();
@@ -167,7 +170,7 @@ test('verify user 2', function(t) {
 
 test('remove user1 from group', function(t) {
   var msg = '';
-  var ldapmodify = spawn('ldapmodify', ['-x', '-H', 'ldap://localhost:1389',
+  var ldapmodify = spawn('ldapmodify', ['-x', '-H', LDAP_URL,
     '-D', 'cn=root', '-w', 'secret', '-f', './test/data/delgroup.ldif']);
 
   ldapmodify.stdout.on('data', function(data) {
@@ -186,7 +189,7 @@ test('remove user1 from group', function(t) {
   });
 
   ldapmodify.on('exit', function(code) {
-    if (code != 0) {
+    if (code !== 0) {
       var err = {
         msg: msg,
         code: code
@@ -221,7 +224,7 @@ test('verify remove user 1 from group', function(t) {
 
 test('add user1 back to group', function(t) {
   var msg = '';
-  var ldapmodify = spawn('ldapmodify', ['-x', '-H', 'ldap://localhost:1389',
+  var ldapmodify = spawn('ldapmodify', ['-x', '-H', LDAP_URL,
     '-D', 'cn=root', '-w', 'secret', '-f', './test/data/addgroup.ldif']);
 
   ldapmodify.stdout.on('data', function(data) {
@@ -240,7 +243,7 @@ test('add user1 back to group', function(t) {
   });
 
   ldapmodify.on('exit', function(code) {
-    if (code != 0) {
+    if (code !== 0) {
       var err = {
         msg: msg,
         code: code
@@ -275,7 +278,7 @@ test('verify user1 has group', function(t) {
 
 test('delete group', function(t) {
   var msg = '';
-  var ldapdelete = spawn('ldapdelete', ['-x', '-H', 'ldap://localhost:1389', '-D',
+  var ldapdelete = spawn('ldapdelete', ['-x', '-H', LDAP_URL, '-D',
     'cn=root', '-w', 'secret', 'cn=operators, ou=groups, o=smartdc']);
 
   ldapdelete.stdout.on('data', function(data) {
@@ -294,7 +297,7 @@ test('delete group', function(t) {
   });
 
   ldapdelete.on('exit', function(code) {
-    if (code != 0) {
+    if (code !== 0) {
       var err = {
         msg: msg,
         code: code
@@ -324,7 +327,7 @@ test('verify group dne', function(t) {
 
 test('add keys to user 2', function(t) {
   var msg = '';
-  var ldapadd = spawn('ldapadd', ['-x', '-H', 'ldap://localhost:1389', '-D',
+  var ldapadd = spawn('ldapadd', ['-x', '-H', LDAP_URL, '-D',
     'cn=root', '-w', 'secret', '-f', './test/data/userkey.ldif']);
 
   ldapadd.stdout.on('data', function(data) {
@@ -343,7 +346,7 @@ test('add keys to user 2', function(t) {
   });
 
   ldapadd.on('exit', function(code) {
-    if (code != 0) {
+    if (code !== 0) {
       var err = {
         msg: msg,
         code: code
@@ -380,7 +383,7 @@ test('verify user 2 keys', function(t) {
 
 test('delete user_1', function(t) {
   var msg = '';
-  var ldapdelete = spawn('ldapdelete', ['-x', '-H', 'ldap://localhost:1389', '-D',
+  var ldapdelete = spawn('ldapdelete', ['-x', '-H', LDAP_URL, '-D',
     'cn=root', '-w', 'secret', USER_1.dn]);
 
   ldapdelete.stdout.on('data', function(data) {
@@ -399,7 +402,7 @@ test('delete user_1', function(t) {
   });
 
   ldapdelete.on('exit', function(code) {
-    if (code != 0) {
+    if (code !== 0) {
       var err = {
         msg: msg,
         code: code
@@ -430,7 +433,7 @@ test('verify user1 dne', function(t) {
 
 test('delete key', function(t) {
   var msg = '';
-  var ldapdelete = spawn('ldapdelete', ['-x', '-H', 'ldap://localhost:1389',
+  var ldapdelete = spawn('ldapdelete', ['-x', '-H', LDAP_URL,
   '-D', 'cn=root', '-w', 'secret', KEY.dn]);
 
   ldapdelete.stdout.on('data', function(data) {
@@ -449,7 +452,7 @@ test('delete key', function(t) {
   });
 
   ldapdelete.on('exit', function(code) {
-    if (code != 0) {
+    if (code !== 0) {
       var err = {
         msg: msg,
         code: code
