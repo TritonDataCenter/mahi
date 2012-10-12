@@ -15,7 +15,7 @@
   },
   "engines": {
     "node": ">=0.8"
-  }
+  },
   "devDependencies": {
     "tap": "*"
   },
