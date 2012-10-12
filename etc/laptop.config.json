@@ -1,0 +1,13 @@
+{
+  "ldapCfg": {
+    "url": "ldap://localhost:1389",
+    "bindDN": "cn=root",
+    "bindCredentials": "secret",
+    "maxConnections": 2
+  },
+  "redisCfg": {
+    "host": "localhost",
+    "port": 6379
+  },
+  "pollInterval": 10000
+}

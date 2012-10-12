@@ -87,7 +87,7 @@ test('bootstrap authcache', function(t) {
     log: LOG,
     ldapCfg: {
       url: LDAP_URL,
-      maxConnections: 1,
+      maxConnections: 2,
       bindDN: 'cn=root',
       bindCredentials: 'secret'
     },

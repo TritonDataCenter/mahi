@@ -1,8 +1,8 @@
 {
   "ldapCfg": {
     "url": "LDAP_URL",
-    "_comment": "max connections must be 1, we don't want to use pooling",
-    "maxConnections": 1,
+    "_comment": "max connections must be > 1, we want to use pooling",
+    "maxConnections": 2,
     "bindDN": "LDAP_BIND_DN",
     "bindCredentials": "LDAP_SECRET"
   },

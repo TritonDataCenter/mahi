@@ -13,7 +13,7 @@
 
     <exec_method type="method"
       name="start"
-      exec="node main.js -d -f cfg/mahi.json &amp;"
+      exec="node main.js -d -f etc/mahi.json &amp;"
       timeout_seconds="30">
       <method_context working_directory="/opt/smartdc/mahi">
         <method_credential user="root"
