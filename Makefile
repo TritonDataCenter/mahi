@@ -26,11 +26,6 @@ ifeq ($(UNAME), SunOS)
 endif
 
 #
-# Env variables
-#
-PATH            := $(NODE_INSTALL)/bin:${PATH}
-
-#
 # Files
 #
 DOC_FILES	 = index.restdown boilerplateapi.restdown
@@ -39,7 +34,6 @@ JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE   = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
-REPO_MODULES	 = src/node-dummy
 SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in
 
 #
@@ -60,6 +54,11 @@ ROOT                    := $(shell pwd)
 TMPDIR                  := /tmp/$(STAMP)
 
 #
+# Env variables
+#
+PATH            := $(NODE_INSTALL)/bin:${PATH}
+
+#
 # Repo-specific targets
 #
 .PHONY: all
@@ -70,6 +69,7 @@ $(TAP): | $(NPM_EXEC)
 	$(NPM) install
 
 CLEAN_FILES += $(TAP) ./node_modules/tap
+DISTCLEAN_FILES += node_modules
 
 .PHONY: test
 test: $(TAP)
@@ -80,7 +80,7 @@ setup: | $(NPM_EXEC)
 	$(NPM) install
 
 .PHONY: release
-release: setup deps docs $(SMF_MANIFESTS)
+release: setup docs $(SMF_MANIFESTS)
 	@echo "Building $(RELEASE_TARBALL)"
 	@mkdir -p $(TMPDIR)/root/opt/smartdc/mahi
 	@mkdir -p $(TMPDIR)/site
