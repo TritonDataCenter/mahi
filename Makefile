@@ -40,7 +40,7 @@ SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in
 # Variables
 #
 
-NODE_PREBUILT_VERSION   := v0.8.11
+NODE_PREBUILT_VERSION   := v0.8.12
 NODE_PREBUILT_TAG       := zone
 
 
