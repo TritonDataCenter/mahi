@@ -44,6 +44,7 @@ function readConfig() {
 var cfg = readConfig();
 
 cfg.log = LOG;
+cfg.redisCfg.log = LOG;
 
 var authCache = AuthCache.createAuthCache(cfg);
 

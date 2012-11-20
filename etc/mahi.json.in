@@ -8,7 +8,8 @@
   },
   "redisCfg": {
     "host": "REDIS_HOST",
-    "port": REDIS_PORT
+    "port": REDIS_PORT,
+    "options" : {}
   },
   "pollInterval": POLL_INTERVAL
 }

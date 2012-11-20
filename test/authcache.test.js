@@ -2,13 +2,13 @@
 * Copyright (c) 2012, Joyent, Inc. All rights reserved.
 */
 var assert = require('assert');
-var AuthCache = require('../lib/index.js');
+var AuthCache = require('../lib/index');
 var ldap = require('ldapjs');
 var Logger = require('bunyan');
 var parseDN = ldap.parseDN;
 var tap = require('tap');
 var test = require('tap').test;
-var redis = require('redis');
+var redis = require('../lib/redis');
 var spawn = require('child_process').spawn;
 
 var LOG = new Logger({
@@ -16,6 +16,13 @@ var LOG = new Logger({
   src: true,
   level: 'trace'
 });
+
+var REDIS_CFG = {
+        host: 'localhost',
+        port: 6379,
+        log: LOG,
+        options: {}
+};
 
 //var LDAP_URL = 'ldaps://10.99.99.14:636';
 var LDAP_URL = 'ldap://localhost:1389';
@@ -76,10 +83,13 @@ process.env.LDAPTLS_REQCERT = 'allow';
 var AUTH_CACHE;
 
 test('setup redis client', function(t) {
-  REDIS_CLIENT = redis.createClient();
-  t.ok(REDIS_CLIENT);
-  REDIS_CLIENT.flushdb();
-  t.end();
+  redis.createClient(REDIS_CFG, function(err, client) {
+    t.notOk(err);
+    REDIS_CLIENT = client;
+    t.ok(REDIS_CLIENT);
+    REDIS_CLIENT.flushdb();
+    t.end();
+  });
 });
 
 test('bootstrap authcache', function(t) {
@@ -91,7 +101,7 @@ test('bootstrap authcache', function(t) {
       bindDN: 'cn=root',
       bindCredentials: 'secret'
     },
-    redisCfg: {},
+    redisCfg: REDIS_CFG,
     pollInterval: 1000
   });
   t.ok(AUTH_CACHE);

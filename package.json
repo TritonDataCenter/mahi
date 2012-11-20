@@ -6,6 +6,9 @@
         "private": true,
         "dependencies": {
                 "assert-plus": "0.1.2",
+                "backoff": "1.2.0",
+                "xtend": "1.0.3",
+                "once": "1.1.1",
                 "bunyan": "0.16.7",
                 "ldapjs": "0.5.7",
                 "node-uuid": "1.4.0",
