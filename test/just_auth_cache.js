@@ -8,8 +8,16 @@ var LOG = new Logger({
   level: 'trace'
 });
 
+var REDIS_CFG = {
+        host: 'localhost',
+        port: 6379,
+        log: LOG,
+        options: {}
+};
+
 var REDIS_CLIENT = redis.createClient();
 REDIS_CLIENT.flushdb();
+
 AuthCache.createAuthCache({
   log: LOG,
   ldapCfg: {
@@ -18,7 +26,7 @@ AuthCache.createAuthCache({
     bindDN: 'cn=root',
     bindCredentials: 'secret'
   },
-  redisCfg: {},
+  redisCfg: REDIS_CFG,
   pollInterval: 1000
 });
 
