@@ -1,79 +1,60 @@
-# Joyent Engineering Guide
+# Mahi - Manta Authentication Service
 
-Repository: <git@git.joyent.com:eng.git>
-Browsing: <https://mo.joyent.com/eng>
-Who: Trent Mick, Dave Pacheco
-Docs: <https://mo.joyent.com/docs/eng>
-Tickets/bugs: <https://devhub.joyent.com/jira/browse/TOOLS>
+Repository: <git@git.joyent.com:mahi.git>
+Browsing: <https://mo.joyent.com/mahi>
+Who: Yunong Xiao
+Docs: <https://mo.joyent.com/docs/mahi>
+Tickets/bugs: <https://devhub.joyent.com/jira/browse/MANTA>
 
 
 # Overview
 
-This repo serves two purposes: (1) It defines the guidelines and best
-practices for Joyent engineering work (this is the primary goal), and (2) it
-also provides boilerplate for an SDC project repo, giving you a starting
-point for many of the suggestion practices defined in the guidelines. This is
-especially true for node.js-based REST API projects.
-
-Start with the guidelines: <https://head.no.de/docs/eng>
+This the manta authentication service. It pulls in user, group, and key
+information from UFDS and caches them in a local redis instance running on port
+6789.
 
 
-# Repository
+# Interface
 
-    deps/           Git submodules and/or commited 3rd-party deps should go
-                    here. See "node_modules/" for node.js deps.
-    docs/           Project docs (restdown)
-    lib/            Source files.
-    node_modules/   Node.js deps, either populated at build time or commited.
-                    See Managing Dependencies.
-    pkg/            Package lifecycle scripts
-    smf/manifests   SMF manifests
-    smf/methods     SMF method scripts
-    test/           Test suite (using node-tap)
-    tools/          Miscellaneous dev/upgrade/deployment tools and data.
-    Makefile
-    package.json    npm module info (holds the project version)
-    README.md
+The authentication keys are exposed directly via redis. Specifically these keys
+are available to consumers:
 
+    /login/:username
+    /uuid/:uuid
 
-# Development
+The username entry contains a JSON string containing attributes of the
+user's uuid, keys, and groups:
 
-To run the boilerplate API server:
+    {
+        uuid: $user's uuid from ldap,
+        keys: {
+           $fingerprint1: '$publickey1',
+           $fingerprint2: '$publickey2',
+           ...
+        },
+        groups: {
+           $group1: $group1,
+           $group2: $group2,
+           ...
+        }
+    }
 
-    git clone git@git.joyent.com:eng.git
-    cd eng
-    git submodule update --init
-    make all
-    node server.js
-
-To update the guidelines, edit "docs/index.restdown" and run `make docs`
-to update "docs/index.html".
-
-Before commiting/pushing run `make prepush` and, if possible, get a code
-review.
-
+The uuid entry is just a simple reverse index of uuid -> username.
 
 
 # Testing
 
-    make test
+Mahi tests require a virgin UFDS service. The easiest way to do this is to:
 
-If you project has setup steps necessary for testing, then describe those
-here.
-
-
-# Starting a Repo Based on eng.git
-
-Create a new repo called "some-cool-fish" in your "~/work" dir based on "eng.git":
-Note: run this inside the eng dir.
-
-    ./tools/mkrepo $HOME/work/some-cool-fish
-
-
-# Your Other Sections Here
-
-Add other sections to your README as necessary. E.g. Running a demo, adding
-development data.
-
-
+- Provision/sdc-factoryreset a COAL.
+- Disable the UFDS zone in COAL. (this prevents other services from modifying
+  the rows in the underlying moray datastore). `vmadm reboot $ufds_zone_uuid`
+- Drop the moray table in postgres to bring moray to a virgin state.
+`sdc-login manatee; sudo -u postgres psql -c 'drop database moray;'`. This will
+most likley hang, becuase moray still has a handle to postgres, so you'll want
+to bounce moray via `vmadm reboot $moray_zone_uuid`
+- Now you'll have a virgin moray, you'll want to checkout and run a local copy
+of UFDS. `node main.js -f etc/config.coal.json -vvv | bunyan`
+- Finally - you can run the tests via `make test`. Just remember to repeat these
+  steps across test invocations as the tests don't clean up.
 
