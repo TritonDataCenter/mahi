@@ -49,10 +49,8 @@ Mahi tests require a virgin UFDS service. The easiest way to do this is to:
 - Provision/sdc-factoryreset a COAL.
 - Disable the UFDS zone in COAL. (this prevents other services from modifying
   the rows in the underlying moray datastore). `vmadm reboot $ufds_zone_uuid`
-- Drop the moray table in postgres to bring moray to a virgin state.
-`sdc-login manatee; sudo -u postgres psql -c 'drop database moray;'`. This will
-most likley hang, becuase moray still has a handle to postgres, so you'll want
-to bounce moray via `vmadm reboot $moray_zone_uuid`
+- Delete the ufds buckets in moray `delbucket ufds_cn_changelog && delbucket
+  ufds_o_smartdc`
 - Now you'll have a virgin moray, you'll want to checkout and run a local copy
 of UFDS. `node main.js -f etc/config.coal.json -vvv | bunyan`
 - Finally - you can run the tests via `make test`. Just remember to repeat these
