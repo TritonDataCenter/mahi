@@ -41,6 +41,14 @@ user's uuid, keys, and groups:
 
 The uuid entry is just a simple reverse index of uuid -> username.
 
+There also exist two redis sets, "login" and "uuid", which contain the set of
+user logins and their uuids. Use these sets if you want to list for all logins
+and uuids.
+
+These repsective sets contain only the login or uuid, but not the fully
+qualified path of their keys in redis. Notably you'd still have to prefix
+"/login/" and "/uuid/" to the set entries in order to look up their values.
+
 
 # Testing
 
