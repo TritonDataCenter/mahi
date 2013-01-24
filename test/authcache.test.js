@@ -169,7 +169,17 @@ test('verify user1', function(t) {
       t.ifError(err);
       t.ok(res);
       t.equal(res, RESPONSE);
-      t.end();
+      REDIS_CLIENT.sismember('login', 'admin', function(err, res) {
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, 1);
+        REDIS_CLIENT.sismember('uuid', '930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
+          t.ifError(err);
+          t.ok(res);
+          t.equal(res, 1);
+          t.end();
+        });
+      });
     });
   });
 });
@@ -185,7 +195,17 @@ test('verify user 2', function(t) {
       t.ifError(err);
       t.ok(res);
       t.equal(res, RESPONSE);
-      t.end();
+      REDIS_CLIENT.sismember('login', 'unpermixed', function(err, res) {
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, 1);
+        REDIS_CLIENT.sismember('uuid', 'a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
+          t.ifError(err);
+          t.ok(res);
+          t.equal(res, 1);
+          t.end();
+        });
+      });
     });
   });
 });
@@ -466,7 +486,17 @@ test('verify user1 dne', function(t) {
     REDIS_CLIENT.get('/uuid/930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
       t.ifError(err);
       t.notOk(res);
-      t.end();
+      REDIS_CLIENT.sismember('login', 'admin', function(err, res) {
+        t.ifError(err);
+        t.notOk(res);
+        t.equal(res, 0);
+        REDIS_CLIENT.sismember('uuid', '930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
+          t.ifError(err);
+          t.notOk(res);
+          t.equal(res, 0);
+          t.end();
+        });
+      });
     });
   });
 });
