@@ -19,6 +19,7 @@ var LOG = new Logger({
 
 var REDIS_CFG = {
         host: 'localhost',
+        //host: '10.99.99.254',
         port: 6379,
         log: LOG,
         options: {}
