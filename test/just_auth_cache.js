@@ -31,3 +31,9 @@ AuthCache.createAuthCache({
     redisCfg: REDIS_CFG,
     pollInterval: 1000
 });
+
+
+process.on('uncaughtException', function (err) {
+        LOG.fatal({err: err}, 'uncaughtException (exiting error code 1)');
+        process.exit(1);
+});
