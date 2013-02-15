@@ -111,7 +111,8 @@ test('bootstrap authcache', function(t) {
       url: LDAP_URL,
       maxConnections: 2,
       bindDN: 'cn=root',
-      bindCredentials: 'secret'
+      bindCredentials: 'secret',
+      timeout: 500
     },
     redisCfg: REDIS_CFG,
     pollInterval: 1000

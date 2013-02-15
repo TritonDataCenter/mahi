@@ -4,7 +4,8 @@
     "_comment": "max connections must be > 1, we want to use pooling",
     "maxConnections": 2,
     "bindDN": "LDAP_BIND_DN",
-    "bindCredentials": "LDAP_SECRET"
+    "bindCredentials": "LDAP_SECRET",
+    "timeout": 5000
   },
   "redisCfg": {
     "host": "REDIS_HOST",
