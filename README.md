@@ -56,7 +56,7 @@ Mahi tests require a virgin UFDS service. The easiest way to do this is to:
 
 - Provision/sdc-factoryreset a COAL.
 - Disable the UFDS zone in COAL. (this prevents other services from modifying
-  the rows in the underlying moray datastore). `vmadm reboot $ufds_zone_uuid`
+  the rows in the underlying moray datastore). `vmadm stop $ufds_zone_uuid`
 - Delete the ufds buckets in moray `delbucket ufds_cn_changelog && delbucket
   ufds_o_smartdc`
 - Now you'll have a virgin moray, you'll want to checkout and run a local copy
