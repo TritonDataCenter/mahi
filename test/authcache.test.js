@@ -24,8 +24,8 @@ var REDIS_CFG = {
         options: {}
 };
 
-//var LDAP_URL = 'ldaps://10.99.99.14:636';
-var LDAP_URL = 'ldap://localhost:1389';
+var LDAP_URL = 'ldaps://10.99.99.14:636';
+//var LDAP_URL = 'ldap://localhost:1389';
 var LDAP_CLIENT;
 var SUFFIX = process.env.UFDS_SUFFIX || 'o=smartdc';
 var DN_FMT = 'uuid=%s, ' + SUFFIX;
