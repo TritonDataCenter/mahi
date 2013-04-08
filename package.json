@@ -9,7 +9,7 @@
                 "backoff": "1.2.0",
                 "xtend": "1.0.3",
                 "once": "1.1.1",
-                "bunyan": "0.16.7",
+                "bunyan": "0.21.1",
                 "ldapjs": "0.5.7",
                 "node-uuid": "1.4.0",
                 "optimist": "0.3.4",

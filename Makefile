@@ -15,48 +15,38 @@
 #
 
 #
-# Tools
+## Tools
 #
 TAP		:= ./node_modules/.bin/tap
-TAR = tar
-UNAME := $(shell uname)
-
-ifeq ($(UNAME), SunOS)
-	TAR = gtar
-endif
 
 #
-# Files
+## Files
 #
-DOC_FILES	 = index.restdown boilerplateapi.restdown
+#DOC_FILES	 = index.restdown boilerplateapi.restdown
 JS_FILES	:= $(shell ls *.js) $(shell find lib -name '*.js')
+JSON_FILES	 = package.json
 JSL_CONF_NODE	 = tools/jsl.node.conf
-JSL_FILES_NODE   = $(JS_FILES)
+JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
-JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
+JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
+JSSTYLE_FLAGS    = -o indent=2,doxygen,unparenthesized-return=0
+REPO_MODULES	 = src/node-dummy
 SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in
 
-#
-# Variables
-#
+NODE_PREBUILT_VERSION=v0.8.22
 
-NODE_PREBUILT_VERSION   := v0.8.14
-NODE_PREBUILT_TAG       := zone
-
+ifeq ($(shell uname -s),SunOS)
+	NODE_PREBUILT_CC_VERSION=4.6.2
+	NODE_PREBUILT_TAG=zone
+endif
 
 include ./tools/mk/Makefile.defs
-include ./tools/mk/Makefile.node_prebuilt.defs
-include ./tools/mk/Makefile.node_deps.defs
+ifeq ($(shell uname -s),SunOS)
+	include ./tools/mk/Makefile.node_prebuilt.defs
+else
+	include ./tools/mk/Makefile.node.defs
+endif
 include ./tools/mk/Makefile.smf.defs
-
-RELEASE_TARBALL         := mahi-pkg-$(STAMP).tar.bz2
-ROOT                    := $(shell pwd)
-TMPDIR                  := /tmp/$(STAMP)
-
-#
-# Env variables
-#
-PATH            := $(NODE_INSTALL)/bin:${PATH}
 
 #
 # Repo-specific targets
@@ -107,7 +97,10 @@ publish: release
 	cp $(ROOT)/$(RELEASE_TARBALL) $(BITS_DIR)/mahi/$(RELEASE_TARBALL)
 
 include ./tools/mk/Makefile.deps
-include ./tools/mk/Makefile.node_prebuilt.targ
-include ./tools/mk/Makefile.node_deps.targ
+ifeq ($(shell uname -s),SunOS)
+	include ./tools/mk/Makefile.node_prebuilt.targ
+else
+	include ./tools/mk/Makefile.node.targ
+endif
 include ./tools/mk/Makefile.smf.targ
 include ./tools/mk/Makefile.targ
