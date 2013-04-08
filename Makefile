@@ -18,6 +18,7 @@
 ## Tools
 #
 TAP		:= ./node_modules/.bin/tap
+NAME		:= mahi
 
 #
 ## Files
