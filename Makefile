@@ -47,6 +47,8 @@ else
 	include ./tools/mk/Makefile.node.defs
 endif
 include ./tools/mk/Makefile.smf.defs
+RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz2
+TMPDIR          := /tmp/$(STAMP)
 
 #
 # Repo-specific targets
@@ -76,15 +78,15 @@ release: all docs $(SMF_MANIFESTS)
 	@mkdir -p $(TMPDIR)/site
 	@touch $(TMPDIR)/site/.do-not-delete-me
 	@mkdir -p $(TMPDIR)/root
-	cp -r   $(ROOT)/build \
-		$(ROOT)/lib \
-		$(ROOT)/main.js \
-		$(ROOT)/node_modules \
-		$(ROOT)/package.json \
-		$(ROOT)/smf \
-		$(ROOT)/etc \
+	cp -r   $(TOP)/build \
+		$(TOP)/lib \
+		$(TOP)/main.js \
+		$(TOP)/node_modules \
+		$(TOP)/package.json \
+		$(TOP)/smf \
+		$(TOP)/etc \
 		$(TMPDIR)/root/opt/smartdc/mahi/
-	(cd $(TMPDIR) && $(TAR) -jcf $(ROOT)/$(RELEASE_TARBALL) root site)
+	(cd $(TMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
 	@rm -rf $(TMPDIR)
 
 .PHONY: publish
@@ -94,7 +96,7 @@ publish: release
 		exit 1; \
 	fi
 	mkdir -p $(BITS_DIR)/mahi
-	cp $(ROOT)/$(RELEASE_TARBALL) $(BITS_DIR)/mahi/$(RELEASE_TARBALL)
+	cp $(TOP)/$(RELEASE_TARBALL) $(BITS_DIR)/mahi/$(RELEASE_TARBALL)
 
 include ./tools/mk/Makefile.deps
 ifeq ($(shell uname -s),SunOS)
