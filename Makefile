@@ -70,7 +70,7 @@ setup: | $(NPM_EXEC)
 	$(NPM) install
 
 .PHONY: release
-release: setup docs $(SMF_MANIFESTS)
+release: all docs $(SMF_MANIFESTS)
 	@echo "Building $(RELEASE_TARBALL)"
 	@mkdir -p $(TMPDIR)/root/opt/smartdc/mahi
 	@mkdir -p $(TMPDIR)/site
