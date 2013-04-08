@@ -1,15 +1,16 @@
 /*
 * Copyright (c) 2012, Joyent, Inc. All rights reserved.
 */
-var assert = require('assert');
 var AuthCache = require('../lib/index');
-var ldap = require('ldapjs');
 var Logger = require('bunyan');
+var assert = require('assert');
+var exec = require('child_process').exec;
+var ldap = require('ldapjs');
 var parseDN = ldap.parseDN;
-var tap = require('tap');
-var test = require('tap').test;
 var redis = require('../lib/redis');
 var spawn = require('child_process').spawn;
+var tap = require('tap');
+var test = require('tap').test;
 
 var LOG = new Logger({
   name: 'authcache-test',
@@ -214,7 +215,7 @@ test('verify user 2', function(t) {
 
 // note this checks for MANTA-795, since bcantrill and user 2 gets added to
 // ldap in one ldap transaction
-test('verify bynar', function(t) {
+test('MANTA-795 verify bynar', function(t) {
   REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
     var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{"operators":"operators"}}';
     t.ifError(err);
@@ -554,6 +555,15 @@ test('verify key dne', function(t) {
       t.equal(res, RESPONSE);
       t.end();
     });
+  });
+});
+
+test('MANTA-1194 group with no members', function(t) {
+  exec('/usr/bin/ldapadd -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ' +
+       './test/data/manta-1194.ldif', function(err)
+  {
+    t.ifError(err);
+    t.end();
   });
 });
 
