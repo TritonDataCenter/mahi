@@ -89,7 +89,25 @@ var BCANTRILL = {
   cn: 'Bryan',
   cn: 'Cantrill',
   objectclass: 'sdcPerson'
-}
+};
+
+var JJELINEK = {
+  dn: 'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc',
+  cn: 'Jerry Jelinek',
+  company: 'Joyent',
+  email: 'jerry.jelinek@joyent.com',
+  givenname: 'Jerry',
+  login: 'jjelinek',
+  objectclass: 'sdcperson',
+  phone: '17194956686',
+  sn: 'Jelinek',
+  uuid: '390c229a-8c77-445f-b227-88e41c2bb3cf',
+  userpassword: 'M@nt@R@ys&r3Th3C00l3st!',
+  pwdchangedtime: 1366098656879,
+  approved_for_provisioning: true,
+  created_at: 1366382418140,
+  updated_at: 1366382418140
+};
 
 // need this for ldaps
 process.env.LDAPTLS_REQCERT = 'allow';
@@ -163,7 +181,7 @@ test('pause', function(t) {
 
 test('verify user1', function(t) {
   REDIS_CLIENT.get('/login/admin', function(err, res) {
-    var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","groups":{"operators":"operators"}}';
+    var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","approved_for_provisioning":null,"groups":{"operators":"operators"}}';
     t.ifError(err);
     t.ok(res);
     t.equal(res, RESPONSE);
@@ -189,7 +207,7 @@ test('verify user1', function(t) {
 
 test('verify user 2', function(t) {
   REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
-    var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","groups":{"operators":"operators"}}';
+    var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","approved_for_provisioning":null,"groups":{"operators":"operators"}}';
     t.ifError(err);
     t.ok(res);
     t.equal(res, RESPONSE);
@@ -217,7 +235,7 @@ test('verify user 2', function(t) {
 // ldap in one ldap transaction
 test('MANTA-795 verify bynar', function(t) {
   REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
-    var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{"operators":"operators"}}';
+    var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","approved_for_provisioning":null,"keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{"operators":"operators"}}';
     t.ifError(err);
     t.ok(res);
     t.equal(res, RESPONSE);
@@ -271,7 +289,7 @@ test('pause', function(t) {
 
 test('verify remove user 1 from group', function(t) {
   REDIS_CLIENT.get('/login/admin', function(err, res) {
-    var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","groups":{}}';
+    var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","approved_for_provisioning":null,"groups":{}}';
     t.ifError(err);
     t.ok(res);
     t.equal(res, RESPONSE, 'removed user1 from group');
@@ -325,7 +343,7 @@ test('pause', function(t) {
 
 test('verify user1 has group', function(t) {
   REDIS_CLIENT.get('/login/admin', function(err, res) {
-    var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","groups":{"operators":"operators"}}';
+    var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","approved_for_provisioning":null,"groups":{"operators":"operators"}}';
     t.ifError(err);
     t.ok(res);
     t.equal(res, RESPONSE);
@@ -374,7 +392,7 @@ test('delete group', function(t) {
 
 test('verify group dne', function(t) {
   REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
-    var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","groups":{}}';
+    var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","approved_for_provisioning":null,"groups":{}}';
     t.ifError(err);
     t.ok(res);
     t.equal(res, RESPONSE);
@@ -544,7 +562,7 @@ test('pause', function(t) {
 
 test('verify key dne', function(t) {
   REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
-    var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","groups":{},"keys":{}}';
+    var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","approved_for_provisioning":null,"groups":{},"keys":{}}';
     t.ifError(err);
     t.ok(res);
     t.equal(res, RESPONSE);
@@ -565,6 +583,26 @@ test('MANTA-1194 group with no members', function(t) {
     t.ifError(err);
     t.end();
   });
+});
+
+test('MANTA-1289 add user with approved_for_provisioning', function(t) {
+  REDIS_CLIENT.get('/login/jjelinek', function(err, res) {
+    var RESPONSE = '{"uuid":"390c229a-8c77-445f-b227-88e41c2bb3cf","approved_for_provisioning":"true"}';
+    t.ifError(err);
+    t.ok(res);
+    t.equal(res, RESPONSE);
+    REDIS_CLIENT.get('/uuid/390c229a-8c77-445f-b227-88e41c2bb3cf', function(err, res) {
+      var RESPONSE = JJELINEK.login;
+      t.ifError(err);
+      t.ok(res);
+      t.equal(res, RESPONSE);
+      t.end();
+    });
+  });
+});
+
+test('MANTA-1289 modify user with approved_for_provision=true', function(t) {
+  t.end();
 });
 
 tap.tearDown(function() {

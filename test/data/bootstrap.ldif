@@ -63,6 +63,24 @@ cn: Bryan
 cn: Cantrill
 objectclass: sdcPerson
 
+# jerry jelinek -- with approved_for_provisioning MANTA-1289
+
+dn: uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+cn: Jerry Jelinek
+company: Joyent
+email: jerry.jelinek@joyent.com
+givenname: Jerry
+login: jjelinek
+objectclass: sdcperson
+phone: 17194956686
+sn: Jelinek
+uuid: 390c229a-8c77-445f-b227-88e41c2bb3cf
+pwdchangedtime: 1366098656879
+userpassword: M@nt@R@ys&r3Th3C00l3st!
+approved_for_provisioning: true
+created_at: 1366382418140
+updated_at: 1366382418140
+
 
 dn: fingerprint=7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18, uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
 changetype: add
