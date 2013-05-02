@@ -145,16 +145,10 @@ test('add ldap bootstrap data', function(t) {
     var ldapadd = 'ldapadd -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/bootstrap.ldif';
     exec(ldapadd, function(err) {
         if (err) {
-            LOG.error('couldn\'t add LDAP bootstrap data', err);
-            t.fail(err);
+            t.fail('couldn\'t add LDAP bootstrap data', err);
         }
-        t.end();
+        setTimeout(function() {t.end();}, 2000);
     });
-});
-
-test('pause', function(t) {
-    // pause for auth-cache to catch up
-    setTimeout(function() {t.end();}, 2000);
 });
 
 test('verify user1', function(t) {
@@ -234,14 +228,8 @@ test('remove user1 from group', function(t) {
             LOG.error('couldn\'t remove user1 from group');
             t.fail(err);
         }
-        t.end();
-
+        setTimeout(function() {t.end();}, 2000);
     });
-});
-
-test('pause', function(t) {
-    // pause for auth-cache to catch up
-    setTimeout(function() {t.end();}, 2000);
 });
 
 test('verify remove user 1 from group', function(t) {
@@ -267,13 +255,8 @@ test('add user1 back to group', function(t) {
             LOG.error('couldn\'t add user1 from group');
             t.fail(err);
         }
-        t.end();
+        setTimeout(function() {t.end();}, 2000);
     });
-});
-
-test('pause', function(t) {
-    // pause for auth-cache to catch up
-    setTimeout(function() {t.end();}, 2000);
 });
 
 test('verify user1 has group', function(t) {
@@ -380,41 +363,13 @@ test('verify user1 dne', function(t) {
 });
 
 test('delete key', function(t) {
-    var msg = '';
-    var ldapdelete = spawn('ldapdelete', ['-x', '-H', LDAP_URL,
-        '-D', 'cn=root', '-w', 'secret', KEY.dn]);
-
-        ldapdelete.stdout.on('data', function(data) {
-            LOG.debug('ldapdelete stdout: ', data.toString());
-        });
-
-        ldapdelete.stderr.on('data', function(data) {
-            var dataStr = data.toString();
-            LOG.error('ldapdelete stderr: ', dataStr);
-            if (msg) {
-                msg += dataStr;
-            } else {
-                msg = dataStr;
-            }
-            msg += data;
-        });
-
-        ldapdelete.on('exit', function(code) {
-            if (code !== 0) {
-                var err = {
-                    msg: msg,
-                    code: code
-                };
-                LOG.error('couldn\'t add LDAP bootstrap data');
-                t.fail(err);
-            }
-            t.end();
-        });
-});
-
-test('pause', function(t) {
-    // pause for auth-cache to catch up
-    setTimeout(function() {t.end();}, 2000);
+    var ldapdelete = 'ldapdelete -x -H' + LDAP_URL + ' -D cn=root -w secret \'' +  KEY.dn + '\'';
+    exec(ldapdelete, function(err) {
+        if (err) {
+            t.fail('unable to delete key', err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
 });
 
 test('verify key dne', function(t) {
@@ -465,13 +420,8 @@ test('MANTA-1289 modify BCANTRILL with approved_for_provision=true', function(t)
             t.fail(err);
         }
 
-        t.end();
+        setTimeout(function() {t.end();}, 2000);
     });
-});
-
-test('pause', function(t) {
-    // pause for auth-cache to catch up
-    setTimeout(function() {t.end();}, 2000);
 });
 
 test('MANTA-1289 check BCANTRILL has approved_for_provision=true', function(t) {
