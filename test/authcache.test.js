@@ -145,10 +145,6 @@ test('add ldap bootstrap data', function(t) {
     var ldapadd = 'ldapadd -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/bootstrap.ldif';
     exec(ldapadd, function(err) {
         if (err) {
-            var err = {
-                msg: msg,
-                code: code
-            };
             LOG.error('couldn\'t add LDAP bootstrap data', err);
             t.fail(err);
         }
@@ -232,36 +228,15 @@ test('MANTA-795 verify bynar', function(t) {
 });
 
 test('remove user1 from group', function(t) {
-    var msg = '';
-    var ldapmodify = spawn('ldapmodify', ['-x', '-H', LDAP_URL,
-        '-D', 'cn=root', '-w', 'secret', '-f', './test/data/delgroup.ldif']);
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL +  ' -D cn=root -w secret -f ./test/data/delgroup.ldif';
+    exec(ldapmodify, function(err) {
+        if (err) {
+            LOG.error('couldn\'t remove user1 from group');
+            t.fail(err);
+        }
+        t.end();
 
-        ldapmodify.stdout.on('data', function(data) {
-            LOG.debug('ldapmodify stdout: ', data.toString());
-        });
-
-        ldapmodify.stderr.on('data', function(data) {
-            var dataStr = data.toString();
-            LOG.error('ldapmodify stderr: ', dataStr);
-            if (msg) {
-                msg += dataStr;
-            } else {
-                msg = dataStr;
-            }
-            msg += data;
-        });
-
-        ldapmodify.on('exit', function(code) {
-            if (code !== 0) {
-                var err = {
-                    msg: msg,
-                    code: code
-                };
-                LOG.error('couldn\'t add LDAP bootstrap data');
-                t.fail(err);
-            }
-            t.end();
-        });
+    });
 });
 
 test('pause', function(t) {
@@ -286,36 +261,14 @@ test('verify remove user 1 from group', function(t) {
 });
 
 test('add user1 back to group', function(t) {
-    var msg = '';
-    var ldapmodify = spawn('ldapmodify', ['-x', '-H', LDAP_URL,
-        '-D', 'cn=root', '-w', 'secret', '-f', './test/data/addgroup.ldif']);
-
-        ldapmodify.stdout.on('data', function(data) {
-            LOG.debug('ldapmodify stdout: ', data.toString());
-        });
-
-        ldapmodify.stderr.on('data', function(data) {
-            var dataStr = data.toString();
-            LOG.error('ldapmodify stderr: ', dataStr);
-            if (msg) {
-                msg += dataStr;
-            } else {
-                msg = dataStr;
-            }
-            msg += data;
-        });
-
-        ldapmodify.on('exit', function(code) {
-            if (code !== 0) {
-                var err = {
-                    msg: msg,
-                    code: code
-                };
-                LOG.error('couldn\'t add LDAP bootstrap data');
-                t.fail(err);
-            }
-            t.end();
-        });
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/addgroup.ldif';
+    exec(ldapmodify, function(err) {
+        if (err) {
+            LOG.error('couldn\'t add user1 from group');
+            t.fail(err);
+        }
+        t.end();
+    });
 });
 
 test('pause', function(t) {
@@ -340,36 +293,14 @@ test('verify user1 has group', function(t) {
 });
 
 test('delete group', function(t) {
-    var msg = '';
-    var ldapdelete = spawn('ldapdelete', ['-x', '-H', LDAP_URL, '-D',
-        'cn=root', '-w', 'secret', 'cn=operators, ou=groups, o=smartdc']);
-
-        ldapdelete.stdout.on('data', function(data) {
-            LOG.debug('ldapdelete stdout: ', data.toString());
-        });
-
-        ldapdelete.stderr.on('data', function(data) {
-            var dataStr = data.toString();
-            LOG.error('ldapdelete stderr: ', dataStr);
-            if (msg) {
-                msg += dataStr;
-            } else {
-                msg = dataStr;
-            }
-            msg += data;
-        });
-
-        ldapdelete.on('exit', function(code) {
-            if (code !== 0) {
-                var err = {
-                    msg: msg,
-                    code: code
-                };
-                LOG.error('couldn\'t add LDAP bootstrap data');
-                t.fail(err);
-            }
-            setTimeout(function() {t.end();}, 2000);
-        });
+    var ldapdelete = 'ldapdelete -x -H ' + LDAP_URL + ' -D cn=root -w secret \'cn=operators, ou=groups, o=smartdc\'';
+    exec(ldapdelete, function(err) {
+        if (err) {
+            LOG.error('couldn\'t delete group');
+            t.fail(err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
 });
 
 test('verify group dne', function(t) {
@@ -389,41 +320,13 @@ test('verify group dne', function(t) {
 });
 
 test('add keys to user 2', function(t) {
-    var msg = '';
-    var ldapadd = spawn('ldapadd', ['-x', '-H', LDAP_URL, '-D',
-        'cn=root', '-w', 'secret', '-f', './test/data/userkey.ldif']);
-
-        ldapadd.stdout.on('data', function(data) {
-            LOG.debug('ldapadd stdout: ', data.toString());
-        });
-
-        ldapadd.stderr.on('data', function(data) {
-            var dataStr = data.toString();
-            LOG.error('ldapadd stderr: ', dataStr);
-            if (msg) {
-                msg += dataStr;
-            } else {
-                msg = dataStr;
-            }
-            msg += data;
-        });
-
-        ldapadd.on('exit', function(code) {
-            if (code !== 0) {
-                var err = {
-                    msg: msg,
-                    code: code
-                };
-                LOG.error('couldn\'t add LDAP bootstrap data');
-                t.fail(err);
-            }
-            t.end();
-        });
-});
-
-test('pause', function(t) {
-    // pause for auth-cache to catch up
-    setTimeout(function() {t.end();}, 2000);
+    var ldapadd = 'ldapadd -x -H' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/userkey.ldif';
+    exec(ldapadd, function(err) {
+        if (err) {
+            t.fail('unable to add keys to user 2', err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
 });
 
 test('verify user 2 keys', function(t) {
@@ -445,41 +348,13 @@ test('verify user 2 keys', function(t) {
 });
 
 test('delete user_1', function(t) {
-    var msg = '';
-    var ldapdelete = spawn('ldapdelete', ['-x', '-H', LDAP_URL, '-D',
-        'cn=root', '-w', 'secret', USER_1.dn]);
-
-        ldapdelete.stdout.on('data', function(data) {
-            LOG.debug('ldapdelete stdout: ', data.toString());
-        });
-
-        ldapdelete.stderr.on('data', function(data) {
-            var dataStr = data.toString();
-            LOG.error('ldapdelete stderr: ', dataStr);
-            if (msg) {
-                msg += dataStr;
-            } else {
-                msg = dataStr;
-            }
-            msg += data;
-        });
-
-        ldapdelete.on('exit', function(code) {
-            if (code !== 0) {
-                var err = {
-                    msg: msg,
-                    code: code
-                };
-                LOG.error('couldn\'t add LDAP bootstrap data');
-                t.fail(err);
-            }
-            t.end();
-        });
-});
-
-test('pause', function(t) {
-    // pause for auth-cache to catch up
-    setTimeout(function() {t.end();}, 1000);
+    var ldapdelete = 'ldapdelete -x -H ' + LDAP_URL + ' -D cn=root -w secret \'' + USER_1.dn + '\'';
+    exec(ldapdelete, function(err) {
+        if (err) {
+            t.fail('unable to delete user 1', err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
 });
 
 test('verify user1 dne', function(t) {
