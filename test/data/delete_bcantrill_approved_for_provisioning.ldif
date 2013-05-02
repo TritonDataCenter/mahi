@@ -1,0 +1,4 @@
+dn: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: modify
+delete: approved_for_provisioning
+approved_for_provisioning: false
