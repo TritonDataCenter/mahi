@@ -26,8 +26,8 @@ var REDIS_CFG = {
         options: {}
 };
 
-var LDAP_URL = 'ldaps://10.99.99.14:636';
-//var LDAP_URL = 'ldap://localhost:1389';
+//var LDAP_URL = 'ldaps://10.99.99.14:636';
+var LDAP_URL = 'ldap://localhost:1389';
 var LDAP_CLIENT;
 var SUFFIX = process.env.UFDS_SUFFIX || 'o=smartdc';
 var DN_FMT = 'uuid=%s, ' + SUFFIX;
@@ -601,8 +601,30 @@ test('MANTA-1289 add user with approved_for_provisioning', function(t) {
   });
 });
 
-test('MANTA-1289 modify user with approved_for_provision=true', function(t) {
-  t.end();
+test('MANTA-1289 modify BCANTRILL with approved_for_provision=true', function(t) {
+  var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/add_bcantrill_to_approved_for_provisioning.ldif';
+  exec(ldapmodify, function(err) {
+    if (err) {
+      t.fail(err);
+    }
+
+    t.end();
+  });
+});
+
+test('pause', function(t) {
+  // pause for auth-cache to catch up
+  setTimeout(function() {t.end();}, 2000);
+});
+
+test('MANTA-1289 check BCANTRILL has approved_for_provision=true', function(t) {
+  REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
+    var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","approved_for_provisioning":"true","keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{}}';
+    t.ifError(err);
+    t.ok(res);
+    t.equal(res, RESPONSE);
+    t.end();
+  });
 });
 
 tap.tearDown(function() {
