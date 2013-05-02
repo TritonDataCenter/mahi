@@ -23,7 +23,7 @@ are available to consumers:
     /uuid/:uuid
 
 The username entry contains a JSON string containing attributes of the
-user's uuid, keys, and groups:
+user's uuid, keys, groups, and approved_for_provisioning:
 
     {
         uuid: $user's uuid from ldap,
@@ -36,7 +36,8 @@ user's uuid, keys, and groups:
            $group1: $group1,
            $group2: $group2,
            ...
-        }
+        },
+        approved_for_provisioning: false
     }
 
 The uuid entry is just a simple reverse index of uuid -> username.
@@ -58,7 +59,7 @@ Mahi tests require a virgin UFDS service. The easiest way to do this is to:
 - Disable the UFDS zone in COAL. (this prevents other services from modifying
   the rows in the underlying moray datastore). `vmadm stop $ufds_zone_uuid`
 - Delete the ufds buckets in moray `delbucket ufds_cn_changelog && delbucket
-  ufds_o_smartdc`
+  ufds_o_smartdc && svcadm restart marlin`
 - Now you'll have a virgin moray, you'll want to checkout and run a local copy
 of UFDS. `node main.js -f etc/config.coal.json -vvv | bunyan`
 - Finally - you can run the tests via `make test`. Just remember to repeat these
