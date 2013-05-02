@@ -142,36 +142,18 @@ test('bootstrap authcache', function(t) {
 });
 
 test('add ldap bootstrap data', function(t) {
-    var msg = '';
-    var ldapadd = spawn('ldapadd', ['-x', '-H', LDAP_URL, '-D',
-        'cn=root', '-w', 'secret', '-f', './test/data/bootstrap.ldif']);
-
-        ldapadd.stdout.on('data', function(data) {
-            LOG.debug('ldapadd stdout: ', data.toString());
-        });
-
-        ldapadd.stderr.on('data', function(data) {
-            var dataStr = data.toString();
-            LOG.error('ldapadd stderr: ', dataStr);
-            if (msg) {
-                msg += dataStr;
-            } else {
-                msg = dataStr;
-            }
-            msg += data;
-        });
-
-        ldapadd.on('exit', function(code) {
-            if (code !== 0) {
-                var err = {
-                    msg: msg,
-                    code: code
-                };
-                LOG.error('couldn\'t add LDAP bootstrap data', err);
-                t.fail(err);
-            }
-            t.end();
-        });
+    var ldapadd = 'ldapadd -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/bootstrap.ldif';
+    exec(ldapadd, function(err) {
+        if (err) {
+            var err = {
+                msg: msg,
+                code: code
+            };
+            LOG.error('couldn\'t add LDAP bootstrap data', err);
+            t.fail(err);
+        }
+        t.end();
+    });
 });
 
 test('pause', function(t) {
