@@ -30,7 +30,7 @@ JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
-JSSTYLE_FLAGS    = -o indent=2,doxygen,unparenthesized-return=0
+JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
 REPO_MODULES	 = src/node-dummy
 SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in
 
@@ -49,7 +49,7 @@ else
 endif
 include ./tools/mk/Makefile.smf.defs
 RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz2
-TMPDIR          := /tmp/$(STAMP)
+MTMPDIR          := /tmp/$(STAMP)
 
 #
 # Repo-specific targets
@@ -75,10 +75,10 @@ setup: | $(NPM_EXEC)
 .PHONY: release
 release: all docs $(SMF_MANIFESTS)
 	@echo "Building $(RELEASE_TARBALL)"
-	@mkdir -p $(TMPDIR)/root/opt/smartdc/mahi
-	@mkdir -p $(TMPDIR)/site
-	@touch $(TMPDIR)/site/.do-not-delete-me
-	@mkdir -p $(TMPDIR)/root
+	@mkdir -p $(MTMPDIR)/root/opt/smartdc/mahi
+	@mkdir -p $(MTMPDIR)/site
+	@touch $(MTMPDIR)/site/.do-not-delete-me
+	@mkdir -p $(MTMPDIR)/root
 	cp -r   $(TOP)/build \
 		$(TOP)/lib \
 		$(TOP)/main.js \
@@ -86,9 +86,9 @@ release: all docs $(SMF_MANIFESTS)
 		$(TOP)/package.json \
 		$(TOP)/smf \
 		$(TOP)/etc \
-		$(TMPDIR)/root/opt/smartdc/mahi/
-	(cd $(TMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
-	@rm -rf $(TMPDIR)
+		$(MTMPDIR)/root/opt/smartdc/mahi/
+	(cd $(MTMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
+	@rm -rf $(MTMPDIR)
 
 .PHONY: publish
 publish: release
