@@ -162,7 +162,7 @@ function poll(self) {
 
             // cache the cn if it's bigger, in case none of the entries match
             var changenumber = parseInt(entry.object.changenumber, 10);
-            if (changenumber > latestChangenumber) {
+            if (entry.object.changenumber > changenumber) {
                 latestChangenumber = changenumber;
             }
 
@@ -229,7 +229,7 @@ function poll(self) {
                         changenumber: entry.object.changenumber
                     }, 'pushing user approved_for_provisioning mod entry');
                     entry.parsedChanges = changes;
-                    entries.push(entry);
+                    Entries.push(entry);
                 }
             }
 
