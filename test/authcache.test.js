@@ -142,7 +142,7 @@ test('bootstrap authcache', function(t) {
 });
 
 test('add ldap bootstrap data', function(t) {
-    var ldapadd = 'ldapadd -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/bootstrap.ldif';
+    var ldapadd = 'ldapadd -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/bootstrap.ldif';
     exec(ldapadd, function(err) {
         if (err) {
             t.fail('couldn\'t add LDAP bootstrap data', err);
@@ -222,7 +222,7 @@ test('MANTA-795 verify bynar', function(t) {
 });
 
 test('remove user1 from group', function(t) {
-    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL +  ' -D cn=root -w secret -f ./test/data/delgroup.ldif';
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL +  ' -D cn=root -w secret -f ./data/delgroup.ldif';
     exec(ldapmodify, function(err) {
         if (err) {
             LOG.error('couldn\'t remove user1 from group');
@@ -249,7 +249,7 @@ test('verify remove user 1 from group', function(t) {
 });
 
 test('add user1 back to group', function(t) {
-    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/addgroup.ldif';
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/addgroup.ldif';
     exec(ldapmodify, function(err) {
         if (err) {
             LOG.error('couldn\'t add user1 from group');
@@ -303,7 +303,7 @@ test('verify group dne', function(t) {
 });
 
 test('add keys to user 2', function(t) {
-    var ldapadd = 'ldapadd -x -H' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/userkey.ldif';
+    var ldapadd = 'ldapadd -x -H' + LDAP_URL + ' -D cn=root -w secret -f ./data/userkey.ldif';
     exec(ldapadd, function(err) {
         if (err) {
             t.fail('unable to add keys to user 2', err);
@@ -389,8 +389,8 @@ test('verify key dne', function(t) {
 });
 
 test('MANTA-1194 group with no members', function(t) {
-    exec('/usr/bin/ldapadd -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ' +
-        './test/data/manta-1194.ldif', function(err)
+    exec('ldapadd -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ' +
+        './data/manta-1194.ldif', function(err)
     {
         t.ifError(err);
         t.end();
@@ -414,7 +414,7 @@ test('MANTA-1289 add user with approved_for_provisioning', function(t) {
 });
 
 test('MANTA-1289 modify BCANTRILL with approved_for_provision=true', function(t) {
-    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/add_bcantrill_to_approved_for_provisioning.ldif';
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/add_bcantrill_to_approved_for_provisioning.ldif';
     exec(ldapmodify, function(err) {
         if (err) {
             t.fail(err);
@@ -435,7 +435,7 @@ test('MANTA-1289 check BCANTRILL has approved_for_provision=true', function(t) {
 });
 
 test('MANTA-1289 modify BCANTRILL with approved_for_provision=false', function(t) {
-    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/remove_bcantrill_to_approved_for_provisioning.ldif';
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/remove_bcantrill_to_approved_for_provisioning.ldif';
     exec(ldapmodify, function(err) {
         if (err) {
             t.fail(err);
@@ -456,7 +456,7 @@ test('MANTA-1289 check BCANTRILL has approved_for_provision=false', function(t) 
 });
 
 test('MANTA-1289 delete approved_for_provision from BCANTRILL', function(t) {
-    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./test/data/delete_bcantrill_approved_for_provisioning.ldif';
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/delete_bcantrill_approved_for_provisioning.ldif';
     exec(ldapmodify, function(err) {
         if (err) {
             t.fail(err);

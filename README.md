@@ -59,9 +59,11 @@ Mahi tests require a virgin UFDS service. The easiest way to do this is to:
 - Disable the UFDS zone in COAL. (this prevents other services from modifying
   the rows in the underlying moray datastore). `vmadm stop $ufds_zone_uuid`
 - Delete the ufds buckets in moray `delbucket ufds_cn_changelog && delbucket
-  ufds_o_smartdc && svcadm restart marlin`
+  ufds_o_smartdc`
 - Now you'll have a virgin moray, you'll want to checkout and run a local copy
-of UFDS. `node main.js -f etc/config.coal.json -vvv | bunyan`
+  of UFDS. `node main.js -f etc/config.coal.json -vvv | bunyan`
+- Now set up a loal redis redis instance.  On SmartOS you can do this with a
+  `pkgin search redis`, sticking the latest version in `pkgin install
+  [redis-version]`, then `svcadm enable redis`.
 - Finally - you can run the tests via `make test`. Just remember to repeat these
   steps across test invocations as the tests don't clean up.
-

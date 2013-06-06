@@ -1,6 +1,6 @@
 {
   "ldapCfg": {
-    "url": "ldaps://10.99.99.14",
+    "url": "ldap://127.0.0.1:1389",
     "_comment": "max connections must be > 1, we want to use pooling",
     "maxConnections": 2,
     "bindDN": "cn=root",
