@@ -84,6 +84,7 @@ release: all docs $(SMF_MANIFESTS)
 		$(TOP)/main.js \
 		$(TOP)/node_modules \
 		$(TOP)/package.json \
+		$(TOP)/sapi_manifests \
 		$(TOP)/smf \
 		$(TOP)/etc \
 		$(MTMPDIR)/root/opt/smartdc/mahi/

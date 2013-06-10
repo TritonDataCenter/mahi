@@ -1,0 +1,16 @@
+{
+	"ldapCfg": {
+		"url": "{{UFDS_URL}}",
+		"_comment": "max connections must be > 1, we want to use pooling",
+		"maxConnections": 2,
+		"bindDN": "{{UFDS_ROOT_DN}}",
+		"bindCredentials": "{{UFDS_ROOT_PW}}",
+		"timeout": 5000
+	},
+	"redisCfg": {
+		"host": "localhost",
+		"port": 6379,
+		"options" : {}
+	},
+	"pollInterval": 10000
+}
