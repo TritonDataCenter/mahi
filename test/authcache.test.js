@@ -477,7 +477,7 @@ test('MANTA-1289 check BCANTRILL has approved_for_provision=false', function(t) 
 });
 
 test('MANTA-1508 replace jjelinek login name with jerry', function(t) {
-    var ldapadd = 'ldapadd -x -H' + LDAP_URL + ' -D cn=root -w secret -f ./data/change_jjelinek_login.ldif';
+    var ldapadd = 'ldapadd -x -H' + LDAP_URL + ' -D cn=root -w secret -f ./data/manta-1508.ldif';
     exec(ldapadd, function(err) {
         if (err) {
             t.fail('unable to add keys to user 2', err);
@@ -510,6 +510,14 @@ test('MANTA-1508 check jjelinek login name change propagates', function(t) {
             });
         });
     });
+});
+
+test('ensure cn doesnt increment when polling returns no records', function(t) {
+    var cn = AUTH_CACHE.changenumber;
+    setTimeout(function() {
+        t.equal(cn, AUTH_CACHE.changenumber);
+        t.end();
+    }, 5000);
 });
 
 tap.tearDown(function() {
