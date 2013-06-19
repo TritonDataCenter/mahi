@@ -480,13 +480,49 @@ test('MANTA-1508 replace jjelinek login name with jerry', function(t) {
     var ldapadd = 'ldapadd -x -H' + LDAP_URL + ' -D cn=root -w secret -f ./data/manta-1508.ldif';
     exec(ldapadd, function(err) {
         if (err) {
-            t.fail('unable to add keys to user 2', err);
+            t.fail('unable to change login', err);
         }
         setTimeout(function() {t.end();}, 2000);
     });
 });
 
 test('MANTA-1508 check jjelinek login name change propagates', function(t) {
+    REDIS_CLIENT.get('/login/jerry', function(err, res) {
+        var RESPONSE = '{"uuid":"390c229a-8c77-445f-b227-88e41c2bb3cf","approved_for_provisioning":true}';
+        t.ifError(err);
+        t.equal(res, RESPONSE);
+        REDIS_CLIENT.get('/uuid/390c229a-8c77-445f-b227-88e41c2bb3cf', function(err, res) {
+            t.ifError(err);
+            t.equal(res, 'jerry');
+            REDIS_CLIENT.get('login/jjelinek', function(err, res) {
+                t.ifError(err);
+                t.equal(null, res);
+                REDIS_CLIENT.sismember('login', 'jjelinek', function(err, res) {
+                    t.ifError(err);
+                    t.equal(0, res);
+                    REDIS_CLIENT.sismember('login', 'jerry', function(err, res) {
+                        t.ifError(err);
+                        t.equal(1, res);
+                        t.end();
+
+                    });
+                });
+            });
+        });
+    });
+});
+
+test('MANTA-1509 change jerrys login to jerry', function(t) {
+    var ldapadd = 'ldapadd -x -H' + LDAP_URL + ' -D cn=root -w secret -f ./data/manta-1508.ldif';
+    exec(ldapadd, function(err) {
+        if (err) {
+            t.fail('unable change login', err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
+
+test('MANTA-1509 check jerry login name', function(t) {
     REDIS_CLIENT.get('/login/jerry', function(err, res) {
         var RESPONSE = '{"uuid":"390c229a-8c77-445f-b227-88e41c2bb3cf","approved_for_provisioning":true}';
         t.ifError(err);
