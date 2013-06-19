@@ -151,345 +151,364 @@ test('add ldap bootstrap data', function(t) {
     });
 });
 
-//test('verify user1', function(t) {
-    //REDIS_CLIENT.get('/login/admin', function(err, res) {
-        //var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","approved_for_provisioning":false,"groups":{"operators":"operators"}}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE);
-        //REDIS_CLIENT.get('/uuid/930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
-            //var RESPONSE = USER_1.login;
-            //t.ifError(err);
-            //t.ok(res);
-            //t.equal(res, RESPONSE);
-            //REDIS_CLIENT.sismember('login', 'admin', function(err, res) {
-                //t.ifError(err);
-                //t.ok(res);
-                //t.equal(res, 1);
-                //REDIS_CLIENT.sismember('uuid', '930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
-                    //t.ifError(err);
-                    //t.ok(res);
-                    //t.equal(res, 1);
-                    //t.end();
-                //});
-            //});
-        //});
-    //});
-//});
+test('verify user1', function(t) {
+    REDIS_CLIENT.get('/login/admin', function(err, res) {
+        var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","approved_for_provisioning":false,"groups":{"operators":"operators"}}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE);
+        REDIS_CLIENT.get('/uuid/930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
+            var RESPONSE = USER_1.login;
+            t.ifError(err);
+            t.ok(res);
+            t.equal(res, RESPONSE);
+            REDIS_CLIENT.sismember('login', 'admin', function(err, res) {
+                t.ifError(err);
+                t.ok(res);
+                t.equal(res, 1);
+                REDIS_CLIENT.sismember('uuid', '930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
+                    t.ifError(err);
+                    t.ok(res);
+                    t.equal(res, 1);
+                    t.end();
+                });
+            });
+        });
+    });
+});
 
-//test('verify user 2', function(t) {
-    //REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
-        //var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","approved_for_provisioning":false,"groups":{"operators":"operators"}}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE);
-        //REDIS_CLIENT.get('/uuid/a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
-            //var RESPONSE = USER_2.login;
-            //t.ifError(err);
-            //t.ok(res);
-            //t.equal(res, RESPONSE);
-            //REDIS_CLIENT.sismember('login', 'unpermixed', function(err, res) {
-                //t.ifError(err);
-                //t.ok(res);
-                //t.equal(res, 1);
-                //REDIS_CLIENT.sismember('uuid', 'a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
-                    //t.ifError(err);
-                    //t.ok(res);
-                    //t.equal(res, 1);
-                    //t.end();
-                //});
-            //});
-        //});
-    //});
-//});
+test('verify user 2', function(t) {
+    REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
+        var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","approved_for_provisioning":false,"groups":{"operators":"operators"}}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE);
+        REDIS_CLIENT.get('/uuid/a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
+            var RESPONSE = USER_2.login;
+            t.ifError(err);
+            t.ok(res);
+            t.equal(res, RESPONSE);
+            REDIS_CLIENT.sismember('login', 'unpermixed', function(err, res) {
+                t.ifError(err);
+                t.ok(res);
+                t.equal(res, 1);
+                REDIS_CLIENT.sismember('uuid', 'a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
+                    t.ifError(err);
+                    t.ok(res);
+                    t.equal(res, 1);
+                    t.end();
+                });
+            });
+        });
+    });
+});
 
-//// note this checks for MANTA-795, since bcantrill and user 2 gets added to
-//// ldap in one ldap transaction
-//test('MANTA-795 verify bynar', function(t) {
-    //REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
-        //var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","approved_for_provisioning":false,"keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{"operators":"operators"}}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE);
-        //REDIS_CLIENT.get('/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4', function(err, res) {
-            //var RESPONSE = BCANTRILL.login;
-            //t.ifError(err);
-            //t.ok(res);
-            //t.equal(res, RESPONSE);
-            //t.end();
-        //});
-    //});
-//});
+// note this checks for MANTA-795, since bcantrill and user 2 gets added to
+// ldap in one ldap transaction
+test('MANTA-795 verify bynar', function(t) {
+    REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
+        var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","approved_for_provisioning":false,"keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{"operators":"operators"}}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE);
+        REDIS_CLIENT.get('/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4', function(err, res) {
+            var RESPONSE = BCANTRILL.login;
+            t.ifError(err);
+            t.ok(res);
+            t.equal(res, RESPONSE);
+            t.end();
+        });
+    });
+});
 
-//test('remove user1 from group', function(t) {
-    //var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL +  ' -D cn=root -w secret -f ./data/delgroup.ldif';
-    //exec(ldapmodify, function(err) {
-        //if (err) {
-            //LOG.error('couldn\'t remove user1 from group');
-            //t.fail(err);
-        //}
-        //setTimeout(function() {t.end();}, 2000);
-    //});
-//});
+test('remove user1 from group', function(t) {
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL +  ' -D cn=root -w secret -f ./data/delgroup.ldif';
+    exec(ldapmodify, function(err) {
+        if (err) {
+            LOG.error('couldn\'t remove user1 from group');
+            t.fail(err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
 
-//test('verify remove user 1 from group', function(t) {
-    //REDIS_CLIENT.get('/login/admin', function(err, res) {
-        //var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","approved_for_provisioning":false,"groups":{}}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE, 'removed user1 from group');
-        //REDIS_CLIENT.get('/uuid/930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
-            //var RESPONSE = USER_1.login;
-            //t.ifError(err);
-            //t.ok(res);
-            //t.equal(res, RESPONSE);
-            //t.end();
-        //});
-    //});
-//});
+test('verify remove user 1 from group', function(t) {
+    REDIS_CLIENT.get('/login/admin', function(err, res) {
+        var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","approved_for_provisioning":false,"groups":{}}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE, 'removed user1 from group');
+        REDIS_CLIENT.get('/uuid/930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
+            var RESPONSE = USER_1.login;
+            t.ifError(err);
+            t.ok(res);
+            t.equal(res, RESPONSE);
+            t.end();
+        });
+    });
+});
 
-//test('add user1 back to group', function(t) {
-    //var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/addgroup.ldif';
-    //exec(ldapmodify, function(err) {
-        //if (err) {
-            //LOG.error('couldn\'t add user1 from group');
-            //t.fail(err);
-        //}
-        //setTimeout(function() {t.end();}, 2000);
-    //});
-//});
+test('add user1 back to group', function(t) {
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/addgroup.ldif';
+    exec(ldapmodify, function(err) {
+        if (err) {
+            LOG.error('couldn\'t add user1 from group');
+            t.fail(err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
 
-//test('verify user1 has group', function(t) {
-    //REDIS_CLIENT.get('/login/admin', function(err, res) {
-        //var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","approved_for_provisioning":false,"groups":{"operators":"operators"}}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE);
-        //REDIS_CLIENT.get('/uuid/930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
-            //var RESPONSE = USER_1.login;
-            //t.ifError(err);
-            //t.ok(res);
-            //t.equal(res, RESPONSE);
-            //t.end();
-        //});
-    //});
-//});
+test('verify user1 has group', function(t) {
+    REDIS_CLIENT.get('/login/admin', function(err, res) {
+        var RESPONSE = '{"uuid":"930896af-bf8c-48d4-885c-6573a94b1853","approved_for_provisioning":false,"groups":{"operators":"operators"}}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE);
+        REDIS_CLIENT.get('/uuid/930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
+            var RESPONSE = USER_1.login;
+            t.ifError(err);
+            t.ok(res);
+            t.equal(res, RESPONSE);
+            t.end();
+        });
+    });
+});
 
-//test('delete group', function(t) {
-    //var ldapdelete = 'ldapdelete -x -H ' + LDAP_URL + ' -D cn=root -w secret \'cn=operators, ou=groups, o=smartdc\'';
-    //exec(ldapdelete, function(err) {
-        //if (err) {
-            //LOG.error('couldn\'t delete group');
-            //t.fail(err);
-        //}
-        //setTimeout(function() {t.end();}, 2000);
-    //});
-//});
+test('delete group', function(t) {
+    var ldapdelete = 'ldapdelete -x -H ' + LDAP_URL + ' -D cn=root -w secret \'cn=operators, ou=groups, o=smartdc\'';
+    exec(ldapdelete, function(err) {
+        if (err) {
+            LOG.error('couldn\'t delete group');
+            t.fail(err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
 
-//test('verify group dne', function(t) {
-    //REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
-        //var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","approved_for_provisioning":false,"groups":{}}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE);
-        //REDIS_CLIENT.get('/uuid/a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
-            //var RESPONSE = USER_2.login;
-            //t.ifError(err);
-            //t.ok(res);
-            //t.equal(res, RESPONSE);
-            //t.end();
-        //});
-    //});
-//});
+test('verify group dne', function(t) {
+    REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
+        var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","approved_for_provisioning":false,"groups":{}}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE);
+        REDIS_CLIENT.get('/uuid/a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
+            var RESPONSE = USER_2.login;
+            t.ifError(err);
+            t.ok(res);
+            t.equal(res, RESPONSE);
+            t.end();
+        });
+    });
+});
 
-//test('add keys to user 2', function(t) {
-    //var ldapadd = 'ldapadd -x -H' + LDAP_URL + ' -D cn=root -w secret -f ./data/userkey.ldif';
-    //exec(ldapadd, function(err) {
-        //if (err) {
-            //t.fail('unable to add keys to user 2', err);
-        //}
-        //setTimeout(function() {t.end();}, 2000);
-    //});
-//});
+test('add keys to user 2', function(t) {
+    var ldapadd = 'ldapadd -x -H' + LDAP_URL + ' -D cn=root -w secret -f ./data/userkey.ldif';
+    exec(ldapadd, function(err) {
+        if (err) {
+            t.fail('unable to add keys to user 2', err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
 
-//test('verify user 2 keys', function(t) {
-    //REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
-        //t.ifError(err);
-        //t.ok(res);
-        //var resObj = JSON.parse(res);
-        //t.equal(resObj.uuid, 'a820621a-5007-4a2a-9636-edde809106de');
-        //var expectedKey = '-----BEGIN PUBLIC KEY-----\nMIGdMA0GCSqGSIb3DQEBAQUAA4GLADCBhwKBgQDVR4AVVTlZoknB76s+M3sxuiy2\n5Nfk/Y06fhzTvKbGcUQdIfgslmRWsx1VBEd/e4ctpPIikJJl+bmifHSzYOhGkut4\nfQZjFE02Gax8Zxq/S154LqNLMeMmef6kucINW/K6dIWzn8AkZTbso9ThFEXu81px\nw9R0H6ricYnUfX/5gQIBIw==\n-----END PUBLIC KEY-----\n';
-        //t.equal(resObj.keys['db:e1:88:bb:a9:ee:ab:be:2f:9c:5b:2f:d9:01:ac:d9'], expectedKey);
-        //REDIS_CLIENT.get('/uuid/a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
-            //var RESPONSE = USER_2.login;
-            //t.ifError(err);
-            //t.ok(res);
-            //t.equal(res, RESPONSE);
-            //t.end();
-        //});
-    //});
-//});
+test('verify user 2 keys', function(t) {
+    REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
+        t.ifError(err);
+        t.ok(res);
+        var resObj = JSON.parse(res);
+        t.equal(resObj.uuid, 'a820621a-5007-4a2a-9636-edde809106de');
+        var expectedKey = '-----BEGIN PUBLIC KEY-----\nMIGdMA0GCSqGSIb3DQEBAQUAA4GLADCBhwKBgQDVR4AVVTlZoknB76s+M3sxuiy2\n5Nfk/Y06fhzTvKbGcUQdIfgslmRWsx1VBEd/e4ctpPIikJJl+bmifHSzYOhGkut4\nfQZjFE02Gax8Zxq/S154LqNLMeMmef6kucINW/K6dIWzn8AkZTbso9ThFEXu81px\nw9R0H6ricYnUfX/5gQIBIw==\n-----END PUBLIC KEY-----\n';
+        t.equal(resObj.keys['db:e1:88:bb:a9:ee:ab:be:2f:9c:5b:2f:d9:01:ac:d9'], expectedKey);
+        REDIS_CLIENT.get('/uuid/a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
+            var RESPONSE = USER_2.login;
+            t.ifError(err);
+            t.ok(res);
+            t.equal(res, RESPONSE);
+            t.end();
+        });
+    });
+});
 
-//test('delete user_1', function(t) {
-    //var ldapdelete = 'ldapdelete -x -H ' + LDAP_URL + ' -D cn=root -w secret \'' + USER_1.dn + '\'';
-    //exec(ldapdelete, function(err) {
-        //if (err) {
-            //t.fail('unable to delete user 1', err);
-        //}
-        //setTimeout(function() {t.end();}, 2000);
-    //});
-//});
+test('delete user_1', function(t) {
+    var ldapdelete = 'ldapdelete -x -H ' + LDAP_URL + ' -D cn=root -w secret \'' + USER_1.dn + '\'';
+    exec(ldapdelete, function(err) {
+        if (err) {
+            t.fail('unable to delete user 1', err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
 
-//test('verify user1 dne', function(t) {
-    //REDIS_CLIENT.get('/login/admin', function(err, res) {
-        //t.ifError(err);
-        //t.notOk(res);
-        //REDIS_CLIENT.get('/uuid/930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
-            //t.ifError(err);
-            //t.notOk(res);
-            //REDIS_CLIENT.sismember('login', 'admin', function(err, res) {
-                //t.ifError(err);
-                //t.notOk(res);
-                //t.equal(res, 0);
-                //REDIS_CLIENT.sismember('uuid', '930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
-                    //t.ifError(err);
-                    //t.notOk(res);
-                    //t.equal(res, 0);
-                    //t.end();
-                //});
-            //});
-        //});
-    //});
-//});
+test('verify user1 dne', function(t) {
+    REDIS_CLIENT.get('/login/admin', function(err, res) {
+        t.ifError(err);
+        t.notOk(res);
+        REDIS_CLIENT.get('/uuid/930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
+            t.ifError(err);
+            t.notOk(res);
+            REDIS_CLIENT.sismember('login', 'admin', function(err, res) {
+                t.ifError(err);
+                t.notOk(res);
+                t.equal(res, 0);
+                REDIS_CLIENT.sismember('uuid', '930896af-bf8c-48d4-885c-6573a94b1853', function(err, res) {
+                    t.ifError(err);
+                    t.notOk(res);
+                    t.equal(res, 0);
+                    t.end();
+                });
+            });
+        });
+    });
+});
 
-//test('delete key', function(t) {
-    //var ldapdelete = 'ldapdelete -x -H' + LDAP_URL + ' -D cn=root -w secret \'' +  KEY.dn + '\'';
-    //exec(ldapdelete, function(err) {
-        //if (err) {
-            //t.fail('unable to delete key', err);
-        //}
-        //setTimeout(function() {t.end();}, 2000);
-    //});
-//});
+test('delete key', function(t) {
+    var ldapdelete = 'ldapdelete -x -H' + LDAP_URL + ' -D cn=root -w secret \'' +  KEY.dn + '\'';
+    exec(ldapdelete, function(err) {
+        if (err) {
+            t.fail('unable to delete key', err);
+        }
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
 
-//test('verify key dne', function(t) {
-    //REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
-        //var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","approved_for_provisioning":false,"groups":{},"keys":{}}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE);
-        //REDIS_CLIENT.get('/uuid/a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
-            //var RESPONSE = USER_2.login;
-            //t.ifError(err);
-            //t.ok(res);
-            //t.equal(res, RESPONSE);
-            //t.end();
-        //});
-    //});
-//});
+test('verify key dne', function(t) {
+    REDIS_CLIENT.get('/login/unpermixed', function(err, res) {
+        var RESPONSE = '{"uuid":"a820621a-5007-4a2a-9636-edde809106de","approved_for_provisioning":false,"groups":{},"keys":{}}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE);
+        REDIS_CLIENT.get('/uuid/a820621a-5007-4a2a-9636-edde809106de', function(err, res) {
+            var RESPONSE = USER_2.login;
+            t.ifError(err);
+            t.ok(res);
+            t.equal(res, RESPONSE);
+            t.end();
+        });
+    });
+});
 
-//test('MANTA-1194 group with no members', function(t) {
-    //exec('ldapadd -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ' +
-        //'./data/manta-1194.ldif', function(err)
-    //{
-        //t.ifError(err);
-        //t.end();
-    //});
-//});
+test('MANTA-1194 group with no members', function(t) {
+    exec('ldapadd -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ' +
+        './data/manta-1194.ldif', function(err)
+    {
+        t.ifError(err);
+        t.end();
+    });
+});
 
-//test('MANTA-1289 add user with approved_for_provisioning', function(t) {
-    //REDIS_CLIENT.get('/login/jjelinek', function(err, res) {
-        //var RESPONSE = '{"uuid":"390c229a-8c77-445f-b227-88e41c2bb3cf","approved_for_provisioning":true}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE);
-        //REDIS_CLIENT.get('/uuid/390c229a-8c77-445f-b227-88e41c2bb3cf', function(err, res) {
-            //var RESPONSE = JJELINEK.login;
-            //t.ifError(err);
-            //t.ok(res);
-            //t.equal(res, RESPONSE);
-            //t.end();
-        //});
-    //});
-//});
+test('MANTA-1289 add user with approved_for_provisioning', function(t) {
+    REDIS_CLIENT.get('/login/jjelinek', function(err, res) {
+        var RESPONSE = '{"uuid":"390c229a-8c77-445f-b227-88e41c2bb3cf","approved_for_provisioning":true}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE);
+        REDIS_CLIENT.get('/uuid/390c229a-8c77-445f-b227-88e41c2bb3cf', function(err, res) {
+            var RESPONSE = JJELINEK.login;
+            t.ifError(err);
+            t.ok(res);
+            t.equal(res, RESPONSE);
+            t.end();
+        });
+    });
+});
 
-//test('MANTA-1289 modify BCANTRILL with approved_for_provision=true', function(t) {
-    //var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/add_bcantrill_to_approved_for_provisioning.ldif';
-    //exec(ldapmodify, function(err) {
-        //if (err) {
-            //t.fail(err);
-        //}
+test('MANTA-1289 modify BCANTRILL with approved_for_provision=true', function(t) {
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/add_bcantrill_to_approved_for_provisioning.ldif';
+    exec(ldapmodify, function(err) {
+        if (err) {
+            t.fail(err);
+        }
 
-        //setTimeout(function() {t.end();}, 2000);
-    //});
-//});
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
 
-//test('MANTA-1289 check BCANTRILL has approved_for_provision=true', function(t) {
-    //REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
-        //var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","approved_for_provisioning":true,"keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{}}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE);
-        //t.end();
-    //});
-//});
+test('MANTA-1289 check BCANTRILL has approved_for_provision=true', function(t) {
+    REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
+        var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","approved_for_provisioning":true,"keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{}}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE);
+        t.end();
+    });
+});
 
-//test('MANTA-1289 modify BCANTRILL with approved_for_provision=false', function(t) {
-    //var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/remove_bcantrill_to_approved_for_provisioning.ldif';
-    //exec(ldapmodify, function(err) {
-        //if (err) {
-            //t.fail(err);
-        //}
+test('MANTA-1289 modify BCANTRILL with approved_for_provision=false', function(t) {
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/remove_bcantrill_to_approved_for_provisioning.ldif';
+    exec(ldapmodify, function(err) {
+        if (err) {
+            t.fail(err);
+        }
 
-        //setTimeout(function() {t.end();}, 2000);
-    //});
-//});
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
 
-//test('MANTA-1289 check BCANTRILL has approved_for_provision=false', function(t) {
-    //REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
-        //var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","approved_for_provisioning":false,"keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{}}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE);
-        //t.end();
-    //});
-//});
+test('MANTA-1289 check BCANTRILL has approved_for_provision=false', function(t) {
+    REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
+        var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","approved_for_provisioning":false,"keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{}}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE);
+        t.end();
+    });
+});
 
-//test('MANTA-1289 delete approved_for_provision from BCANTRILL', function(t) {
-    //var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/delete_bcantrill_approved_for_provisioning.ldif';
-    //exec(ldapmodify, function(err) {
-        //if (err) {
-            //t.fail(err);
-        //}
+test('MANTA-1289 delete approved_for_provision from BCANTRILL', function(t) {
+    var ldapmodify = 'ldapmodify -x -H ' + LDAP_URL + ' -D cn=root -w secret -f ./data/delete_bcantrill_approved_for_provisioning.ldif';
+    exec(ldapmodify, function(err) {
+        if (err) {
+            t.fail(err);
+        }
 
-        //setTimeout(function() {t.end();}, 2000);
-    //});
-//});
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
 
-//test('MANTA-1289 check BCANTRILL has approved_for_provision=false', function(t) {
-    //REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
-        //var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","approved_for_provisioning":false,"keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{}}';
-        //t.ifError(err);
-        //t.ok(res);
-        //t.equal(res, RESPONSE);
-        //t.end();
-    //});
-//});
+test('MANTA-1289 check BCANTRILL has approved_for_provision=false', function(t) {
+    REDIS_CLIENT.get('/login/bcantrill', function(err, res) {
+        var RESPONSE = '{"uuid":"1a940615-65e9-4856-95f9-f4c530e86ca4","approved_for_provisioning":false,"keys":{"7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18":"-----BEGIN PUBLIC KEY-----\\nMIIBIDANBgkqhkiG9w0BAQEFAAOCAQ0AMIIBCAKCAQEA34XP/UMdCuB/jOQg3VU4\\nXBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwl\\npLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5R\\nU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi72\\n1ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG\\n8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpn\\ngwIBIw==\\n-----END PUBLIC KEY-----\\n"},"groups":{}}';
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res, RESPONSE);
+        t.end();
+    });
+});
 
-test('MANTA-1508 replace jjelinek login name with jerrry', function(t) {
+test('MANTA-1508 replace jjelinek login name with jerry', function(t) {
     var ldapadd = 'ldapadd -x -H' + LDAP_URL + ' -D cn=root -w secret -f ./data/change_jjelinek_login.ldif';
     exec(ldapadd, function(err) {
         if (err) {
             t.fail('unable to add keys to user 2', err);
         }
-        setTimeout(function() {t.end();}, 6000);
+        setTimeout(function() {t.end();}, 2000);
     });
 });
 
 test('MANTA-1508 check jjelinek login name change propagates', function(t) {
     REDIS_CLIENT.get('/login/jerry', function(err, res) {
-        console.log(res);
-        t.end();
+        var RESPONSE = '{"uuid":"390c229a-8c77-445f-b227-88e41c2bb3cf","approved_for_provisioning":true}';
+        t.ifError(err);
+        t.equal(res, RESPONSE);
+        REDIS_CLIENT.get('/uuid/390c229a-8c77-445f-b227-88e41c2bb3cf', function(err, res) {
+            t.ifError(err);
+            t.equal(res, 'jerry');
+            REDIS_CLIENT.get('login/jjelinek', function(err, res) {
+                t.ifError(err);
+                t.equal(null, res);
+                REDIS_CLIENT.sismember('login', 'jjelinek', function(err, res) {
+                    t.ifError(err);
+                    t.equal(0, res);
+                    REDIS_CLIENT.sismember('login', 'jerry', function(err, res) {
+                        t.ifError(err);
+                        t.equal(1, res);
+                        t.end();
+
+                    });
+                });
+            });
+        });
     });
 });
 
