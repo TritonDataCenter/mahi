@@ -1,4 +1,5 @@
 #!/bin/bash
+export PATH=/opt/smartdc/mahi/build/node/bin:/opt/smartdc/mahi/node_modules/.bin:/opt/smartdc/configurator/bin:/opt/local/bin:$PATH
 
 set -o errexit
 
