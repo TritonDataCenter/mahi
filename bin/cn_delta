@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -o errexit
+
+UFDS_URL=$(json -f /opt/smartdc/mahi/etc/mahi.json ldapCfg.url)
+UFDS_ROOT_DN=$(json -f /opt/smartdc/mahi/etc/mahi.json ldapCfg.bindDN)
+UFDS_ROOT_PW=$(json -f /opt/smartdc/mahi/etc/mahi.json ldapCfg.bindCredentials)
+
+ldap_cn=$(/opt/smartdc/mahi/node_modules/.bin/ldapjs-search --url $UFDS_URL \
+        --binddn $UFDS_ROOT_DN --password $UFDS_ROOT_PW \
+        --base cn=changelogcount 'objectclass=*' | json count)
+redis_cn=$(/opt/local/bin/redis-cli get changenumber)
+
+if ! [[ "$ldap_cn" =~ ^[0-9]+$ ]] ; then
+   exec >&2; echo "error: ldap_cn inot a number"; exit 1
+fi
+if ! [[ "$redis_cn" =~ ^[0-9]+$ ]] ; then
+   exec >&2; echo "error: redis_cn inot a number"; exit 1
+fi
+
+diff=$(expr $ldap_cn - $redis_cn)
+
+echo $diff
