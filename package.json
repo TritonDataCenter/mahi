@@ -10,7 +10,7 @@
         "xtend": "1.0.3",
         "once": "1.1.1",
         "bunyan": "0.21.1",
-        "ldapjs": "0.5.7",
+        "ldapjs": "0.6.3",
         "node-uuid": "1.4.0",
         "optimist": "0.3.4",
         "redis": "0.8.2",
