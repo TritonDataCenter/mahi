@@ -1,0 +1,6 @@
+# jerry jelinek -- replace login with jerry
+
+dn: uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+replace: login
+login: jerry
