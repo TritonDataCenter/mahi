@@ -80,6 +80,7 @@ release: all docs $(SMF_MANIFESTS)
 	@touch $(MTMPDIR)/site/.do-not-delete-me
 	@mkdir -p $(MTMPDIR)/root
 	cp -r   $(TOP)/build \
+		$(TOP)/bin \
 		$(TOP)/lib \
 		$(TOP)/main.js \
 		$(TOP)/node_modules \
