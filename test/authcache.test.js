@@ -556,6 +556,46 @@ test('ensure cn doesnt increment when polling returns no records', function(t) {
     }, 5000);
 });
 
+test('MANTA-1565 assert no virgin flag', function(t) {
+    REDIS_CLIENT.get('virgin', function(err, res) {
+        t.ifError(err);
+        t.notOk(res);
+        t.end();
+    });
+});
+
+test('MANTA-1565 re-set virgin flag', function(t) {
+    REDIS_CLIENT.set('virgin', 'true', function(err, res) {
+        t.ifError(err);
+        setTimeout(function() {t.end();}, 2000);
+    });
+});
+
+test('MANTA-1565 start a new authcache', function(t) {
+    AUTH_CACHE = AuthCache.createAuthCache({
+        log: LOG,
+        ldapCfg: {
+            url: LDAP_URL,
+            maxConnections: 2,
+            bindDN: 'cn=root',
+            bindCredentials: 'secret',
+            timeout: 500
+        },
+        redisCfg: REDIS_CFG,
+        pollInterval: 500
+    });
+    t.ok(AUTH_CACHE);
+    setTimeout(function() {t.end();}, 2000);
+});
+
+test('MANTA-1565 assert no virgin flag', function(t) {
+    REDIS_CLIENT.get('virgin', function(err, res) {
+        t.ifError(err);
+        t.notOk(res);
+        t.end();
+    });
+});
+
 tap.tearDown(function() {
     process.exit(tap.output.results.fail);
 });
