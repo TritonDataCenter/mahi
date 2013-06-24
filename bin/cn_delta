@@ -9,7 +9,7 @@ UFDS_ROOT_PW=$(json -f /opt/smartdc/mahi/etc/mahi.json ldapCfg.bindCredentials)
 
 ldap_cn=$(/opt/smartdc/mahi/node_modules/.bin/ldapjs-search --url $UFDS_URL \
         --binddn $UFDS_ROOT_DN --password $UFDS_ROOT_PW \
-        --base cn=changelogcount 'objectclass=*' | json count)
+        --base cn=latestchangenumber 'objectclass=*' | json count)
 redis_cn=$(/opt/local/bin/redis-cli get changenumber)
 
 if ! [[ "$ldap_cn" =~ ^[0-9]+$ ]] ; then
