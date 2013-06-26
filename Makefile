@@ -55,7 +55,7 @@ MTMPDIR          := /tmp/$(STAMP)
 # Repo-specific targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) | $(TAP) $(REPO_DEPS)
+all: $(SMF_MANIFESTS) | $(TAP) $(REPO_DEPS) scripts
 	$(NPM) rebuild
 
 $(TAP): | $(NPM_EXEC)
@@ -76,10 +76,12 @@ setup: | $(NPM_EXEC)
 release: all docs $(SMF_MANIFESTS)
 	@echo "Building $(RELEASE_TARBALL)"
 	@mkdir -p $(MTMPDIR)/root/opt/smartdc/mahi
+	@mkdir -p $(MTMPDIR)/root/opt/smartdc/boot
 	@mkdir -p $(MTMPDIR)/site
 	@touch $(MTMPDIR)/site/.do-not-delete-me
 	@mkdir -p $(MTMPDIR)/root
 	cp -r   $(TOP)/build \
+		$(TOP)/boot \
 		$(TOP)/bin \
 		$(TOP)/lib \
 		$(TOP)/main.js \
@@ -89,6 +91,11 @@ release: all docs $(SMF_MANIFESTS)
 		$(TOP)/smf \
 		$(TOP)/etc \
 		$(MTMPDIR)/root/opt/smartdc/mahi/
+	mv $(MTMPDIR)/root/opt/smartdc/mahi/build/scripts \
+	    $(MTMPDIR)/root/opt/smartdc/mahi/boot
+	ln -s /opt/smartdc/mahi/boot/configure.sh \
+	    $(MTMPDIR)/root/opt/smartdc/boot/configure.sh
+	chmod 755 $(MTMPDIR)/root/opt/smartdc/mahi/boot/configure.sh
 	(cd $(MTMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
 	@rm -rf $(MTMPDIR)
 
