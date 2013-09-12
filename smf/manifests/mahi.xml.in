@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
 <service_bundle type="manifest" name="mahi">
-  <service name="sds/application/mahi" type="service" version="1">
+  <service name="manta/application/mahi" type="service" version="1">
 
     <dependency name="network" grouping="require_all" restart_on="error" type="service">
       <service_fmri value="svc:/network/physical" />
