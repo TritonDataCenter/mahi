@@ -37,8 +37,9 @@ SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in
 NODE_PREBUILT_VERSION=v0.8.22
 
 ifeq ($(shell uname -s),SunOS)
-	NODE_PREBUILT_CC_VERSION=4.6.2
 	NODE_PREBUILT_TAG=zone
+	# Allow building on a SmartOS image other than smartos-1.6.3.
+	NODE_PREBUILT_IMAGE=01b2c898-945f-11e1-a523-af1afbe22822
 endif
 
 include ./tools/mk/Makefile.defs
@@ -71,6 +72,11 @@ test: $(TAP)
 .PHONY: setup
 setup: | $(NPM_EXEC)
 	$(NPM) install
+
+.PHONY: scripts
+scripts: deps/manta-scripts/.git
+	mkdir -p $(BUILD)/scripts
+	cp deps/manta-scripts/*.sh $(BUILD)/scripts
 
 .PHONY: release
 release: all docs $(SMF_MANIFESTS)
