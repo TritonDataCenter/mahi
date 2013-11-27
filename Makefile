@@ -50,7 +50,7 @@ else
 endif
 include ./tools/mk/Makefile.smf.defs
 RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz2
-MTMPDIR          := /tmp/$(STAMP)
+RELSTAGEDIR          := /tmp/$(STAMP)
 
 #
 # Repo-specific targets
@@ -81,11 +81,11 @@ scripts: deps/manta-scripts/.git
 .PHONY: release
 release: all docs $(SMF_MANIFESTS)
 	@echo "Building $(RELEASE_TARBALL)"
-	@mkdir -p $(MTMPDIR)/root/opt/smartdc/mahi
-	@mkdir -p $(MTMPDIR)/root/opt/smartdc/boot
-	@mkdir -p $(MTMPDIR)/site
-	@touch $(MTMPDIR)/site/.do-not-delete-me
-	@mkdir -p $(MTMPDIR)/root
+	@mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/mahi
+	@mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/boot
+	@mkdir -p $(RELSTAGEDIR)/site
+	@touch $(RELSTAGEDIR)/site/.do-not-delete-me
+	@mkdir -p $(RELSTAGEDIR)/root
 	cp -r   $(TOP)/build \
 		$(TOP)/boot \
 		$(TOP)/bin \
@@ -96,14 +96,14 @@ release: all docs $(SMF_MANIFESTS)
 		$(TOP)/sapi_manifests \
 		$(TOP)/smf \
 		$(TOP)/etc \
-		$(MTMPDIR)/root/opt/smartdc/mahi/
-	mv $(MTMPDIR)/root/opt/smartdc/mahi/build/scripts \
-	    $(MTMPDIR)/root/opt/smartdc/mahi/boot
+		$(RELSTAGEDIR)/root/opt/smartdc/mahi/
+	mv $(RELSTAGEDIR)/root/opt/smartdc/mahi/build/scripts \
+	    $(RELSTAGEDIR)/root/opt/smartdc/mahi/boot
 	ln -s /opt/smartdc/mahi/boot/configure.sh \
-	    $(MTMPDIR)/root/opt/smartdc/boot/configure.sh
-	chmod 755 $(MTMPDIR)/root/opt/smartdc/mahi/boot/configure.sh
-	(cd $(MTMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
-	@rm -rf $(MTMPDIR)
+	    $(RELSTAGEDIR)/root/opt/smartdc/boot/configure.sh
+	chmod 755 $(RELSTAGEDIR)/root/opt/smartdc/mahi/boot/configure.sh
+	(cd $(RELSTAGEDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
+	@rm -rf $(RELSTAGEDIR)
 
 .PHONY: publish
 publish: release
