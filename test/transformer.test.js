@@ -83,17 +83,14 @@ test('groupofuniquenames', function (t) {
             var value = JSON.stringify({'groups':{'operators':true}});
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.equal(2, res.queue.length);
                 t.deepEqual(res.queue[1], [
                     'set',
                     key,
                     value
                 ]);
-                res.exec(function (execErr) {
-                    t.ifError(execErr);
+                res.exec(function () {
                     self.redis.get(key, function (redisErr, redisRes){
-                        t.ifError(redisErr);
                         t.strictEqual(value, redisRes);
                         cb();
                     });
@@ -145,7 +142,6 @@ test('groupofuniquenames', function (t) {
             var value2 = JSON.stringify({'groups':{'admins':true}});
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.equal(3, res.queue.length);
                 t.deepEqual(res.queue[1], [
                     'set',
@@ -157,13 +153,10 @@ test('groupofuniquenames', function (t) {
                     key2,
                     value2
                 ]);
-                res.exec(function (execErr) {
-                    t.ifError(execErr);
+                res.exec(function () {
                     self.redis.get(key1, function (redisErr, redisRes) {
-                        t.ifError(redisErr);
                         t.strictEqual(value1, redisRes);
                         self.redis.get(key2, function (redisErr2, redisRes2) {
-                            t.ifError(redisErr2);
                             t.strictEqual(value2, redisRes2);
                             cb();
                         });
@@ -200,10 +193,8 @@ test('groupofuniquenames', function (t) {
             };
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.equal(1, res.queue.length); // only one element: 'MULTI'
-                res.exec(function (execErr) {
-                    t.ifError(execErr);
+                res.exec(function () {
                     cb();
                 });
             });
@@ -264,8 +255,7 @@ test('groupofuniquenames', function (t) {
 
             self.transformer.transform(args, function (err, res) {
                 t.strictEqual(3, res.queue.length);
-                res.exec(function (execErr) {
-                    t.ifError(execErr);
+                res.exec(function () {
                     var barrier = vasync.barrier();
                     barrier.start('1');
                     barrier.start('2');
@@ -274,19 +264,16 @@ test('groupofuniquenames', function (t) {
                         cb();
                     });
                     self.redis.get(key1, function (redisErr, redisRes) {
-                        t.ifError(redisErr);
                         t.ok(JSON.parse(redisRes).groups.operators);
                         t.ok(JSON.parse(redisRes).groups.admins);
                         barrier.done('1');
                     });
                     self.redis.get(key2, function (redisErr, redisRes) {
-                        t.ifError(redisErr);
                         t.ok(JSON.parse(redisRes).groups.operators);
                         t.ok(JSON.parse(redisRes).groups.admins);
                         barrier.done('2');
                     });
                     self.redis.get(key3, function (redisErr, redisRes) {
-                        t.ifError(redisErr);
                         t.ok(JSON.parse(redisRes).groups.operators);
                         barrier.done('3');
                     });
@@ -335,11 +322,11 @@ test('groupofuniquenames', function (t) {
             var key1 = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
             var key2 = '/uuid/930896af-bf8c-48d4-885c-6573a94b1853';
             var key3 = '/uuid/a820621a-5007-4a2a-9636-edde809106de';
+            var key4 = '/uuid/f445c6e2-61e9-11e3-a740-03049cda7ff9';
             var value = JSON.stringify({groups: {'admins': true}});
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
-                t.equal(4, res.queue.length);
+                t.equal(5, res.queue.length);
                 t.deepEqual(res.queue[1],[
                     'set',
                     key1,
@@ -350,29 +337,30 @@ test('groupofuniquenames', function (t) {
                     key2,
                     value
                 ]);
-                res.exec(function (execErr) {
-                    t.ifError(execErr);
+                res.exec(function () {
                     var barrier = vasync.barrier();
                     barrier.start('1');
                     barrier.start('2');
                     barrier.start('3');
+                    barrier.start('4');
                     barrier.on('drain', function () {
                         cb();
                     });
                     self.redis.get(key1, function (redisErr, redisRes) {
-                        t.ifError(redisErr);
                         t.strictEqual(redisRes, value);
                         barrier.done('1');
                     });
                     self.redis.get(key2, function (redisErr, redisRes) {
-                        t.ifError(redisErr);
                         t.strictEqual(redisRes, value);
                         barrier.done('2');
                     });
                     self.redis.get(key3, function (redisErr, redisRes) {
-                        t.ifError(redisErr);
                         t.strictEqual(redisRes, JSON.stringify({groups: {}}));
                         barrier.done('3');
+                    });
+                    self.redis.get(key4, function (redisErr, redisRes) {
+                        t.strictEqual(redisRes, JSON.stringify({groups: {}}));
+                        barrier.done('4');
                     });
                 });
             });
@@ -447,10 +435,8 @@ test('sdcaccountgroup', function (t) {
             };
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.strictEqual(5, res.queue.length);
-                res.exec(function (err) {
-                    t.ifError(err);
+                res.exec(function () {
                     var barrier = vasync.barrier();
                     barrier.start('group');
                     barrier.start('uuid');
@@ -626,13 +612,209 @@ test('sdcaccountgroup', function (t) {
             });
         },
         function addMemberRole(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=28, cn=changelog',
+              'controls': [],
+              'targetdn': 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                'ou=users, o=smartdc',
+              'changetype': 'modify',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:06.296Z',
+              'changes': [
+                {
+                  'operation': 'add',
+                  'modification': {
+                    'type': 'memberrole',
+                    'vals': [
+                      'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                        'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                    ]
+                  }
+                }
+              ],
+              'entry': JSON.stringify({
+                  'account': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  'cn': [
+                    'devread'
+                  ],
+                  'memberrole': [
+                    'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                        'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ],
+                  'objectclass': [
+                    'sdcaccountgroup'
+                  ],
+                  'uuid': [
+                    '5d0049f4-67b3-11e3-8059-273f883b3fb6'
+                  ],
+                  '_owner': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  '_parent': [
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ]
+              }),
+              'changenumber': '28'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+            var role = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var key = '/uuid/' + uuid;
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(2, res.queue.length);
+                res.exec(function () {
+                    self.redis.get(key, function (err, res) {
+                        t.ok(JSON.parse(res).roles.indexOf(role) > -1);
+                        cb();
+                    });
+                });
+            });
         },
-        function delMemberRole(_, cb) {
-            cb();
+        function delRoleMember(_, cb) {
+            var entry = {
+              'dn': 'changenumber=29, cn=changelog',
+              'controls': [],
+              'targetdn': 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                'ou=users, o=smartdc',
+              'changetype': 'modify',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:06.310Z',
+              'changes': [
+                {
+                  'operation': 'delete',
+                  'modification': {
+                    'type': 'memberrole',
+                    'vals': [
+                      'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                      'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                      'ou=users, o=smartdc'
+                    ]
+                  }
+                }
+              ],
+              'entry': JSON.stringify({
+                      'account': [
+                        '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                      ],
+                      'cn': [
+                        'devread'
+                      ],
+                      'objectclass': [
+                        'sdcaccountgroup'
+                      ],
+                      'uuid': [
+                        '5d0049f4-67b3-11e3-8059-273f883b3fb6'
+                      ],
+                      '_owner': [
+                        '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                      ],
+                      '_parent': [
+                        'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                      ]
+              }),
+              'changenumber': '29'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+            var role = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var key = '/uuid/' + uuid;
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(2, res.queue.length);
+                res.exec(function () {
+                    self.redis.get(key, function (err, res) {
+                        t.strictEqual(JSON.parse(res).roles.indexOf(role), -1);
+                        cb();
+                    });
+                });
+            });
         },
         function delAccountGroup(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=32, cn=changelog',
+              'controls': [],
+              'targetdn': 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc',
+              'changetype': 'delete',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:06.584Z',
+              'changes': {
+                'account': [
+                  '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                ],
+                'cn': [
+                  'devread'
+                ],
+                'objectclass': [
+                  'sdcaccountgroup'
+                ],
+                'uuid': [
+                  '5d0049f4-67b3-11e3-8059-273f883b3fb6'
+                ],
+                '_owner': [
+                  '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                ],
+                '_parent': [
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc'
+                ],
+                'memberrole': []
+              },
+              'changenumber': '32'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+            var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
+            var name = 'devread';
+            var key = '/uuid/' + uuid;
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(4, res.queue.length);
+                res.exec(function () {
+                    var barrier = vasync.barrier();
+                    barrier.start('uuid');
+                    barrier.start('group');
+                    barrier.start('set');
+                    barrier.on('drain', function () {
+                        cb();
+                    });
+                    self.redis.get(key, function (err, res) {
+                        t.strictEqual(res, null);
+                        barrier.done('uuid');
+                    });
+                    self.redis.get(sprintf('/group/%s/%s', account, name),
+                        function (err, res) {
+                        t.strictEqual(res, null);
+                        barrier.done('group');
+                    });
+                    self.redis.sismember('/set/groups/' + account, uuid,
+                        function (err, res) {
+
+                        t.strictEqual(0, res);
+                        barrier.done('set');
+                    });
+                });
+            });
         }
     ]}, function () {
         t.end();
@@ -644,31 +826,677 @@ test('sdcaccountrole', function (t) {
     var self = this;
     vasync.pipeline({funcs: [
         function putRole(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=16, cn=changelog',
+              'controls': [],
+              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                'ou=users, o=smartdc',
+              'changetype': 'add',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:05.608Z',
+              'changes': {
+                'account': [
+                  '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                ],
+                'objectclass': [
+                  'sdcaccountrole'
+                ],
+                'policydocument': [
+                  'Can read foo and bar when ip=10.0.0.0/8',
+                  'Can read red and blue when ip=10.0.0.0/16'
+                ],
+                'role': [
+                  'developer_read'
+                ],
+                'uniquemember': [
+                  'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc'
+                ],
+                'uuid': [
+                  'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+                ],
+                '_owner': [
+                  '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                ],
+                '_parent': [
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc'
+                ]
+              },
+              'changenumber': '16'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+
+            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
+            var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
+            var name = 'developer_read';
+
+            var expected = {
+                type: 'role',
+                name: 'developer_read',
+                policies: [
+                  'Can read foo and bar when ip=10.0.0.0/8',
+                  'Can read red and blue when ip=10.0.0.0/16'
+                ],
+                account: account
+            };
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(5, res.queue.length);
+                res.exec(function () {
+                    var barrier = vasync.barrier();
+                    barrier.start('uuid');
+                    barrier.start('user');
+                    barrier.start('set');
+                    barrier.start('role');
+                    barrier.on('drain', function () {
+                        cb();
+                    });
+                    self.redis.get('/uuid/' + uuid, function (err, res) {
+                        t.deepEqual(JSON.parse(res), expected);
+                        barrier.done('uuid');
+                    });
+                    self.redis.get(sprintf('/uuid/' + user),
+                        function (err, res) {
+                        t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
+                        barrier.done('user');
+                    });
+                    self.redis.sismember('/set/roles/' + account, uuid,
+                        function (err, res) {
+                        t.strictEqual(1, res);
+                        barrier.done('set');
+                    });
+                    self.redis.get(sprintf('/role/%s/%s', account, name),
+                        function (err, res) {
+                        t.strictEqual(uuid, res);
+                        barrier.done('role');
+                    });
+                });
+            });
+
         },
         function renameRole(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=20, cn=changelog',
+              'controls': [],
+              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                'ou=users, o=smartdc',
+              'changetype': 'modify',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:05.921Z',
+              'changes': [
+                {
+                  'operation': 'replace',
+                  'modification': {
+                    'type': 'role',
+                    'vals': [
+                      'roletoreplace'
+                    ]
+                  }
+                }
+              ],
+              'entry': JSON.stringify({
+                  'account': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  'objectclass': [
+                    'sdcaccountrole'
+                  ],
+                  'policydocument': [
+                    'Can read foo and bar when ip=10.0.0.0/8',
+                    'Can read red and blue when ip=10.0.0.0/16'
+                  ],
+                  'role': [
+                    'roletoreplace'
+                  ],
+                  'uuid': [
+                    'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+                  ],
+                  '_owner': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  '_parent': [
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+                  ]
+              }),
+              'changenumber': '20'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
+            var oldname = 'developer_read';
+            var name = 'roletoreplace';
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(4, res.queue.length);
+                res.exec(function () {
+                    var barrier = vasync.barrier();
+                    barrier.start('oldname');
+                    barrier.start('newname');
+                    barrier.start('uuid');
+                    barrier.on('drain', function () {
+                        cb();
+                    });
+                    self.redis.get(sprintf('/role/%s/%s', account, name),
+                        function (err, res) {
+
+                        t.strictEqual(uuid, res);
+                        barrier.done('newname');
+                    });
+                    self.redis.get(sprintf('/role/%s/%s', account, oldname),
+                        function (err, res) {
+
+                        t.strictEqual(null, res);
+                        barrier.done('oldname');
+                    });
+                    self.redis.get('/uuid/' + uuid, function (err, res) {
+                        t.strictEqual(JSON.parse(res).name, name);
+                        barrier.done('uuid');
+                    });
+                });
+            });
         },
         function addMember(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=17, cn=changelog',
+              'controls': [],
+              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc',
+              'changetype': 'modify',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:05.691Z',
+              'changes': [
+                {
+                  'operation': 'add',
+                  'modification': {
+                    'type': 'uniquemember',
+                    'vals': [
+                      'uuid=cfcc7924-6823-11e3-a835-43e6162a87c8, ' +
+                      'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                      'ou=users, o=smartdc'
+                    ]
+                  }
+                }
+              ],
+              'entry': JSON.stringify({
+                  'account': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  'objectclass': [
+                    'sdcaccountrole'
+                  ],
+                  'policydocument': [
+                    'Can read foo and bar when ip=10.0.0.0/8',
+                    'Can read red and blue when ip=10.0.0.0/16'
+                  ],
+                  'role': [
+                    'developer_read'
+                  ],
+                  'uniquemember': [
+                    'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                        'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc',
+                    'uuid=cfcc7924-6823-11e3-a835-43e6162a87c8, ' +
+                        'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ],
+                  'uuid': [
+                    'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+                  ],
+                  '_owner': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  '_parent': [
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ]
+              }),
+              'changenumber': '17'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var user = 'cfcc7924-6823-11e3-a835-43e6162a87c8';
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(res.queue.length, 2);
+                res.exec(function () {
+                    self.redis.get('/uuid/' + user, function (err, res) {
+                        t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
+                        cb();
+                    });
+                });
+            });
         },
         function delMember(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=19, cn=changelog',
+              'controls': [],
+              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc',
+              'changetype': 'modify',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:05.855Z',
+              'changes': [
+                {
+                  'operation': 'delete',
+                  'modification': {
+                    'type': 'uniquemember',
+                    'vals': [
+                      'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                          'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                          'ou=users, o=smartdc'
+                    ]
+                  }
+                }
+              ],
+              'entry': JSON.stringify({
+                  'account': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  'objectclass': [
+                    'sdcaccountrole'
+                  ],
+                  'policydocument': [
+                    'Can read foo and bar when ip=10.0.0.0/8',
+                    'Can read red and blue when ip=10.0.0.0/16'
+                  ],
+                  'role': [
+                    'developer_read'
+                  ],
+                  'uuid': [
+                    'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+                  ],
+                  '_owner': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  '_parent': [
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ]
+              }),
+              'changenumber': '19'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(res.queue.length, 2);
+                res.exec(function () {
+                    self.redis.get('/uuid/' + user, function (err, res) {
+                        t.ok(JSON.parse(res).roles.indexOf(uuid) === -1);
+                        cb();
+                    });
+                });
+            });
         },
         function addPolicy(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=21, cn=changelog',
+              'controls': [],
+              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc',
+              'changetype': 'modify',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:06.004Z',
+              'changes': [
+                {
+                  'operation': 'add',
+                  'modification': {
+                    'type': 'policydocument',
+                    'vals': [
+                      'Can read x and y when ip=10.0.0.0/32'
+                    ]
+                  }
+                }
+              ],
+              'entry': JSON.stringify({
+                  'account': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  'objectclass': [
+                    'sdcaccountrole'
+                  ],
+                  'policydocument': [
+                    'Can read foo and bar when ip=10.0.0.0/8',
+                    'Can read red and blue when ip=10.0.0.0/16',
+                    'Can read x and y when ip=10.0.0.0/32'
+                  ],
+                  'role': [
+                    'roletoreplace'
+                  ],
+                  'uuid': [
+                    'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+                  ],
+                  '_owner': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  '_parent': [
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ]
+              }),
+              'changenumber': '21'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var policy = 'Can read x and y when ip=10.0.0.0/32';
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(res.queue.length, 2);
+                res.exec(function () {
+                    self.redis.get('/uuid/' + uuid, function (err, res) {
+                        t.ok(JSON.parse(res).policies.indexOf(policy) > -1);
+                        cb();
+                    });
+                });
+            });
         },
         function delPolicy(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=22, cn=changelog',
+              'controls': [],
+              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc',
+              'changetype': 'modify',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:06.017Z',
+              'changes': [
+                {
+                  'operation': 'delete',
+                  'modification': {
+                    'type': 'policydocument',
+                    'vals': [
+                      'Can read x and y when ip=10.0.0.0/32'
+                    ]
+                  }
+                }
+              ],
+              'entry': JSON.stringify({
+                  'account': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  'objectclass': [
+                    'sdcaccountrole'
+                  ],
+                  'policydocument': [
+                    'Can read foo and bar when ip=10.0.0.0/8',
+                    'Can read red and blue when ip=10.0.0.0/16'
+                  ],
+                  'role': [
+                    'roletoreplace'
+                  ],
+                  'uuid': [
+                    'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+                  ],
+                  '_owner': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  '_parent': [
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ]
+              }),
+              'changenumber': '22'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var policy = 'Can read x and y when ip=10.0.0.0/32';
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(res.queue.length, 2);
+                res.exec(function () {
+                    self.redis.get('/uuid/' + uuid, function (err, res) {
+                        t.ok(JSON.parse(res).policies.indexOf(policy) === -1);
+                        cb();
+                    });
+                });
+            });
         },
         function addMemberGroup(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=30, cn=changelog',
+              'controls': [],
+              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc',
+              'changetype': 'modify',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:06.399Z',
+              'changes': [
+                {
+                  'operation': 'add',
+                  'modification': {
+                    'type': 'membergroup',
+                    'vals': [
+                      'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+                          'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                          'ou=users, o=smartdc'
+                    ]
+                  }
+                }
+              ],
+              'entry': JSON.stringify({
+                  'account': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  'objectclass': [
+                    'sdcaccountrole'
+                  ],
+                  'policydocument': [
+                    'Can read x and y when ip=10.0.0.0/24'
+                  ],
+                  'role': [
+                    'roletoreplace'
+                  ],
+                  'uuid': [
+                    'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+                  ],
+                  '_owner': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  '_parent': [
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ],
+                  'membergroup': [
+                    'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+                        'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ]
+              }),
+              'changenumber': '30'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var group = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(res.queue.length, 2);
+                res.exec(function () {
+                    self.redis.get('/uuid/' + group, function (err, res) {
+                        t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
+                        cb();
+                    });
+                });
+            });
         },
         function delMemberGroup(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=31, cn=changelog',
+              'controls': [],
+              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc',
+              'changetype': 'modify',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:06.492Z',
+              'changes': [
+                {
+                  'operation': 'delete',
+                  'modification': {
+                    'type': 'membergroup',
+                    'vals': [
+                      'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+                          'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                          'ou=users, o=smartdc'
+                    ]
+                  }
+                }
+              ],
+              'entry': JSON.stringify({
+                  'account': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  'objectclass': [
+                    'sdcaccountrole'
+                  ],
+                  'policydocument': [
+                    'Can read x and y when ip=10.0.0.0/24'
+                  ],
+                  'role': [
+                    'roletoreplace'
+                  ],
+                  'uuid': [
+                    'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+                  ],
+                  '_owner': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  '_parent': [
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ]
+              }),
+              'changenumber': '31'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var group = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(res.queue.length, 2);
+                res.exec(function () {
+                    self.redis.get('/uuid/' + group, function (err, res) {
+                        t.ok(JSON.parse(res).roles.indexOf(uuid) ===  -1);
+                        cb();
+                    });
+                });
+            });
         },
         function delRole(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=33, cn=changelog',
+              'controls': [],
+              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc',
+              'changetype': 'delete',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:06.600Z',
+              'changes': {
+                'account': [
+                  '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                ],
+                'objectclass': [
+                  'sdcaccountrole'
+                ],
+                'policydocument': [
+                  'Can read x and y when ip=10.0.0.0/24'
+                ],
+                'role': [
+                  'roletoreplace'
+                ],
+                'uuid': [
+                  'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+                ],
+                '_owner': [
+                  '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                ],
+                '_parent': [
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc'
+                ]
+              },
+              'changenumber': '33'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+            var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
+            var name = 'roletoreplace';
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(res.queue.length, 4);
+                res.exec(function () {
+                    var barrier = vasync.barrier();
+                    barrier.start('uuid');
+                    barrier.start('set');
+                    barrier.start('role');
+                    barrier.on('drain', function () {
+                        cb();
+                    });
+                    self.redis.get('/uuid/' + uuid, function (err, res) {
+                        t.strictEqual(null, res);
+                        barrier.done('uuid');
+                    });
+                    self.redis.sismember('/set/roles/' + account, uuid,
+                        function (err, res) {
+
+                        t.strictEqual(0, res);
+                        barrier.done('set');
+                    });
+                    self.redis.get(sprintf('/role/%s/%s', account, name),
+                        function (err, res) {
+                        t.strictEqual(null, res);
+                        barrier.done('role');
+                    });
+                });
+            });
         }
     ]}, function () {
         t.end();
@@ -751,10 +1579,8 @@ test('sdcaccountuser', function (t) {
             };
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.strictEqual(4, res.queue.length);
-                res.exec(function (err) {
-                    t.ifError(err);
+                res.exec(function () {
                     var barrier = vasync.barrier();
                     barrier.start('user');
                     barrier.start('uuid');
@@ -811,14 +1637,186 @@ test('sdcaccountuser', function (t) {
                     ]
                   }
                 }
-              ]
+              ],
+              'entry': JSON.stringify({
+                  'email': [
+                    'subuser@example.com'
+                  ],
+                  'objectclass': [
+                    'sdcperson',
+                    'sdcaccountuser'
+                  ],
+                  'userpassword': [
+                    '9f27f013145a04e4cb07dad33600c327ca6db04c'
+                  ],
+                  'uuid': [
+                    '3ffc7b4c-66a6-11e3-af09-8752d24e4669'
+                  ],
+                  '_owner': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  'pwdchangedtime': [
+                    '1387414685290'
+                  ],
+                  'created_at': [
+                    '1387414685290'
+                  ],
+                  'updated_at': [
+                    '1387414685519'
+                  ],
+                  'approved_for_provisioning': [
+                    'false'
+                  ],
+                  '_salt': [
+                    'f0c4f54e6ed13c8b6a5caf30a273fc59ee72860'
+                  ],
+                  '_parent': [
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                  ],
+                  'account': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                  ],
+                  'login': [
+                    '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser3'
+                  ]
+                })
             };
 
-            cb();
-            // TODO stopped here
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+
+            var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
+            var uuid = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
+            var login = '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser3';
+            var oldlogin = '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser';
+            var key = '/uuid/' + uuid;
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(4, res.queue.length);
+                res.exec(function () {
+                    var barrier = vasync.barrier();
+                    barrier.start('newname');
+                    barrier.start('oldname');
+                    barrier.start('uuid');
+                    barrier.on('drain', function () {
+                        cb();
+                    });
+                    self.redis.get(sprintf('/user/%s/%s', account, login),
+                        function (err, res) {
+
+                        t.deepEqual(uuid, res);
+                        barrier.done('newname');
+                    });
+                    self.redis.get(sprintf('/user/%s/%s', account, oldlogin),
+                        function (err, res) {
+
+                        t.strictEqual(null, res);
+                        barrier.done('oldname');
+                    });
+                    self.redis.get(key, function (err, res) {
+                        t.deepEqual(JSON.parse(res).login, login);
+                        barrier.done('uuid');
+                    });
+                });
+            });
+
         },
         function delUser(_, cb) {
-            cb();
+            var entry = {
+              'dn': 'changenumber=34, cn=changelog',
+              'controls': [],
+              'targetdn': 'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                'ou=users, o=smartdc',
+              'changetype': 'delete',
+              'objectclass': 'changeLogEntry',
+              'changetime': '2013-12-19T00:58:06.650Z',
+              'changes': {
+                'email': [
+                  'subuser@example.com'
+                ],
+                'objectclass': [
+                  'sdcperson',
+                  'sdcaccountuser'
+                ],
+                'userpassword': [
+                  '9f27f013145a04e4cb07dad33600c327ca6db04c'
+                ],
+                'uuid': [
+                  '3ffc7b4c-66a6-11e3-af09-8752d24e4669'
+                ],
+                '_owner': [
+                  '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                ],
+                'pwdchangedtime': [
+                  '1387414685290'
+                ],
+                'created_at': [
+                  '1387414685290'
+                ],
+                'updated_at': [
+                  '1387414685519'
+                ],
+                'approved_for_provisioning': [
+                  'false'
+                ],
+                '_salt': [
+                  'f0c4f54e6ed13c8b6a5caf30a273fc59ee72860'
+                ],
+                '_parent': [
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc'
+                ],
+                'account': [
+                  '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                ],
+                'login': [
+                  '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser3'
+                ]
+              },
+              'changenumber': '34'
+            };
+            var args = {
+                batch: self.redis.multi(),
+                entry: entry,
+                changes: entry.changes
+            };
+
+            var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
+            var uuid = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
+            var login = '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser3';
+            var key = '/uuid/' + uuid;
+
+            self.transformer.transform(args, function (err, res) {
+                t.strictEqual(4, res.queue.length);
+                res.exec(function () {
+                    var barrier = vasync.barrier();
+                    barrier.start('uuid');
+                    barrier.start('set');
+                    barrier.start('user');
+                    barrier.on('drain', function () {
+                        cb();
+                    });
+
+                    self.redis.get(key, function (err, res) {
+                        t.strictEqual(null, res);
+                        barrier.done('uuid');
+                    });
+                    self.redis.get(sprintf('/user/%s/%s', account, login),
+                        function (err, res) {
+                        t.strictEqual(null, res);
+                        barrier.done('user');
+                    });
+                    self.redis.sismember('/set/users/' + account, uuid,
+                        function (err, res) {
+                        t.strictEqual(0, res);
+                        barrier.done('set');
+                    });
+                });
+            });
         }
     ]}, function () {
         t.end();
@@ -880,10 +1878,8 @@ test('sdckey', function (t) {
             };
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.strictEqual(2, res.queue.length);
-                res.exec(function (err) {
-                    t.ifError(err);
+                res.exec(function () {
                     self.redis.get(key, function (err, res) {
                         t.deepEqual(value, JSON.parse(res));
                         cb();
@@ -935,10 +1931,8 @@ test('sdckey', function (t) {
 
             var key = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.strictEqual(2, res.queue.length);
-                res.exec(function (err) {
-                    t.ifError(err);
+                res.exec(function () {
                     self.redis.get(key, function (err, res) {
                         t.equal(JSON.parse(res).keys.fp, undefined);
                         cb();
@@ -1025,10 +2019,8 @@ test('sdcperson', function (t) {
             };
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.strictEqual(4, res.queue.length);
-                res.exec(function (err) {
-                    t.ifError(err);
+                res.exec(function () {
                     var barrier = vasync.barrier();
                     barrier.start('account');
                     barrier.start('uuid');
@@ -1142,11 +2134,9 @@ test('sdcperson', function (t) {
             };
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 // irrelevant change, there should be nothing to do
                 t.strictEqual(1, res.queue.length);
-                res.exec(function (err) {
-                    t.ifError(err);
+                res.exec(function () {
                     self.redis.get(key, function (err, res) {
                         t.deepEqual(value, JSON.parse(res));
                         cb();
@@ -1245,10 +2235,8 @@ test('sdcperson', function (t) {
                 approved_for_provisioning: true
             };
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.strictEqual(2, res.queue.length);
-                res.exec(function (err) {
-                    t.ifError(err);
+                res.exec(function () {
                     self.redis.get(key, function (err, res) {
                         t.deepEqual(value, JSON.parse(res));
                         cb();
@@ -1347,10 +2335,8 @@ test('sdcperson', function (t) {
                 approved_for_provisioning: false
             };
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.strictEqual(2, res.queue.length);
-                res.exec(function (err) {
-                    t.ifError(err);
+                res.exec(function () {
                     self.redis.get(key, function (err, res) {
                         t.deepEqual(value, JSON.parse(res));
                         cb();
@@ -1451,10 +2437,8 @@ test('sdcperson', function (t) {
             };
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.strictEqual(4, res.queue.length);
-                res.exec(function (err) {
-                    t.ifError(err);
+                res.exec(function () {
                     var barrier = vasync.barrier();
                     barrier.start('uuid');
                     barrier.start('del');
@@ -1549,10 +2533,8 @@ test('sdcperson', function (t) {
             var key = '/uuid/' + uuid;
 
             self.transformer.transform(args, function (err, res) {
-                t.ifError(err);
                 t.strictEqual(7, res.queue.length);
-                res.exec(function (err) {
-                    t.ifError(err);
+                res.exec(function () {
                     var barrier = vasync.barrier();
                     barrier.start('uuid');
                     barrier.start('account');
@@ -1596,151 +2578,3 @@ test('sdcperson', function (t) {
         t.end();
     });
 });
-
-
-// sdcaccountgroup add/delete
-// sdcaccountgroup modify
-// -- add/delete/replace uniquemember
-// sdcaccountrole add/delete
-// sdcaccountrole modify
-// -- add/delete/replace uniquemember
-// -- add/delete/replace policydocument
-/*
-// sdcaccountuser add
-{
-  "dn": "changenumber=8, cn=changelog",
-  "controls": [],
-  "targetdn": "uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc",
-  "changetype": "add",
-  "objectclass": "changeLogEntry",
-  "changetime": "2013-12-16T23:18:20.680Z",
-  "changes": {
-    "email": [
-      "subuser@example.com"
-    ],
-    "objectclass": [
-      "sdcperson",
-      "sdcaccountuser"
-    ],
-    "userpassword": [
-      "354fa25cd7ba5bce360b00422e08f94c93876833"
-    ],
-    "uuid": [
-      "3ffc7b4c-66a6-11e3-af09-8752d24e4669"
-    ],
-    "_owner": [
-      "390c229a-8c77-445f-b227-88e41c2bb3cf"
-    ],
-    "pwdchangedtime": [
-      "1387235900650"
-    ],
-    "created_at": [
-      "1387235900650"
-    ],
-    "updated_at": [
-      "1387235900650"
-    ],
-    "approved_for_provisioning": [
-      "false"
-    ],
-    "_salt": [
-      "4034329d7f714d7ada4dff6fd011365b3af06081"
-    ],
-    "_parent": [
-      "uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc"
-    ],
-    "account": [
-      "390c229a-8c77-445f-b227-88e41c2bb3cf"
-    ],
-    "login": [
-      "390c229a-8c77-445f-b227-88e41c2bb3cf/subuser"
-    ]
-  },
-  "changenumber": "8"
-}
-
-// sdcaccountuser modify
-{
-  "dn": "changenumber=9, cn=changelog",
-  "controls": [],
-  "targetdn": "uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc",
-  "changetype": "modify",
-  "objectclass": "changeLogEntry",
-  "changetime": "2013-12-17T00:10:45.281Z",
-  "changes": [
-    {
-      "operation": "replace",
-      "modification": {
-        "type": "login",
-        "vals": [
-          "subuser2"
-        ]
-      }
-    },
-    {
-      "operation": "replace",
-      "modification": {
-        "type": "updated_at",
-        "vals": [
-          "1387239045280"
-        ]
-      }
-    }
-  ],
-  "entry": "{\"email\":[\"subuser@example.com\"],\"objectclass\":[\"sdcperson\",\"sdcaccountuser\"],\"userpassword\":[\"2d9ad93571b46907f05ea6e6b881cdd91e032cf6\"],\"uuid\":[\"3ffc7b4c-66a6-11e3-af09-8752d24e4669\"],\"_owner\":[\"390c229a-8c77-445f-b227-88e41c2bb3cf\"],\"pwdchangedtime\":[\"1387239045174\"],\"created_at\":[\"1387239045174\"],\"updated_at\":[\"1387239045280\"],\"approved_for_provisioning\":[\"false\"],\"_salt\":[\"5a6fff60b2accdeacb313d5c3782227c70f1c1e3\"],\"_parent\":[\"uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc\"],\"account\":[\"390c229a-8c77-445f-b227-88e41c2bb3cf\"],\"login\":[\"390c229a-8c77-445f-b227-88e41c2bb3cf/subuser2\"]}",
-  "changenumber": "9"
-}
-
-// sdcaccountuser delete
-{
-  "dn": "changenumber=10, cn=changelog",
-  "controls": [],
-  "targetdn": "uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc",
-  "changetype": "delete",
-  "objectclass": "changeLogEntry",
-  "changetime": "2013-12-17T00:10:45.351Z",
-  "changes": {
-    "email": [
-      "subuser@example.com"
-    ],
-    "objectclass": [
-      "sdcperson",
-      "sdcaccountuser"
-    ],
-    "userpassword": [
-      "2d9ad93571b46907f05ea6e6b881cdd91e032cf6"
-    ],
-    "uuid": [
-      "3ffc7b4c-66a6-11e3-af09-8752d24e4669"
-    ],
-    "_owner": [
-      "390c229a-8c77-445f-b227-88e41c2bb3cf"
-    ],
-    "pwdchangedtime": [
-      "1387239045174"
-    ],
-    "created_at": [
-      "1387239045174"
-    ],
-    "updated_at": [
-      "1387239045280"
-    ],
-    "approved_for_provisioning": [
-      "false"
-    ],
-    "_salt": [
-      "5a6fff60b2accdeacb313d5c3782227c70f1c1e3"
-    ],
-    "_parent": [
-      "uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc"
-    ],
-    "account": [
-      "390c229a-8c77-445f-b227-88e41c2bb3cf"
-    ],
-    "login": [
-      "390c229a-8c77-445f-b227-88e41c2bb3cf/subuser2"
-    ]
-  },
-  "changenumber": "10"
-}
-*/
