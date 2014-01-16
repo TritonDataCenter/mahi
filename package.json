@@ -1,5 +1,5 @@
 {
-    "name": "Mahi",
+    "name": "mahi",
     "description": "Manta Auth Cache",
     "version": "1.1.0",
     "author": "Joyent (joyent.com)",
@@ -7,15 +7,16 @@
     "dependencies": {
         "assert-plus": "0.1.5",
         "backoff": "1.2.0",
-        "xtend": "1.0.3",
-        "once": "1.1.1",
         "bunyan": "0.21.1",
+        "fast": "0.3.5",
         "ldapjs": "0.6.3",
         "node-uuid": "1.4.0",
+        "once": "1.1.1",
         "optimist": "0.3.4",
         "redis": "0.8.2",
         "restify": "1.4.2",
-        "vasync": "1.4.0"
+        "vasync": "1.4.0",
+        "xtend": "1.0.3"
     },
     "engines": {
         "node": ">=0.8"
