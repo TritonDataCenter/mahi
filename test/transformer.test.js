@@ -3,7 +3,7 @@
  * Requires a redis instance
  */
 
-var transformer = require('../lib/transformer.js');
+var transformer = require('../lib/poller/transformer.js');
 var nodeunit = require('nodeunit-plus');
 var vasync = require('vasync');
 var sprintf = require('util').format;
