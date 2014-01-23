@@ -23,6 +23,7 @@
         "node": ">=0.8"
     },
     "devDependencies": {
+        "nodeunit": "0.8.3",
         "nodeunit-plus": "0.0.1"
     },
     "scripts": {

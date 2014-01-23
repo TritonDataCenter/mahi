@@ -17,7 +17,7 @@
 #
 ## Tools
 #
-TAP		:= ./node_modules/.bin/tap
+NODEUNIT		:= ./node_modules/.bin/nodeunit
 NAME		:= mahi
 
 #
@@ -34,7 +34,7 @@ JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
 REPO_MODULES	 = src/node-dummy
 SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in
 
-NODE_PREBUILT_VERSION=v0.8.22
+NODE_PREBUILT_VERSION=v0.8.26
 
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zone
@@ -56,18 +56,18 @@ RELSTAGEDIR          := /tmp/$(STAMP)
 # Repo-specific targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) | $(TAP) $(REPO_DEPS) scripts
+all: $(SMF_MANIFESTS) | $(NODEUNIT) $(REPO_DEPS) scripts
 	$(NPM) rebuild
 
-$(TAP): | $(NPM_EXEC)
+$(NODEUNIT): | $(NPM_EXEC)
 	$(NPM) install
 
-CLEAN_FILES += $(TAP) ./node_modules/tap
+CLEAN_FILES += $(NODEUNIT) ./node_modules/nodeunit
 DISTCLEAN_FILES += node_modules
 
 .PHONY: test
-test: $(TAP)
-	TAP=1 $(TAP) test/*.test.js
+test: $(NODEUNIT)
+	$(NODEUNIT) test/*.test.js
 
 .PHONY: setup
 setup: | $(NPM_EXEC)
