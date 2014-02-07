@@ -3,6 +3,7 @@
  * Requires a redis instance
  */
 
+var aperture = require('aperture');
 var transformer = require('../lib/poller/transformer.js');
 var nodeunit = require('nodeunit-plus');
 var vasync = require('vasync');
@@ -10,16 +11,6 @@ var sprintf = require('util').format;
 var before = nodeunit.before;
 var after = nodeunit.after;
 var test = nodeunit.test;
-
-test('getDNValue', function (t) {
-    var dn = 'uuid=foo, ou=users, o=smartdc';
-    t.equal(transformer.getDNValue(dn, 0), 'foo');
-    t.equal(transformer.getDNValue(dn, 1), 'users');
-    t.equal(transformer.getDNValue(dn, 2), 'smartdc');
-    t.end();
-});
-
-
 
 before(function (cb) {
     this.log = nodeunit.createLogger('transformer', process.stderr);
@@ -31,7 +22,17 @@ before(function (cb) {
 
     this.transformer = new transformer.Transformer({
         redis: this.redis,
-        log: this.log
+        log: this.log,
+        typeTable: {
+            'ip': 'ip'
+        }
+    });
+
+    this.parser = aperture.createParser({
+        types: aperture.types,
+        typeTable: {
+            'ip': 'ip'
+        }
     });
 
     cb();
@@ -376,25 +377,20 @@ test('sdcaccountgroup', function (t) {
     vasync.pipeline({funcs: [
         function putAccountGroup(_, cb) {
             var entry = {
-              'dn': 'changenumber=24, cn=changelog',
+              'dn': 'changenumber=16, cn=changelog',
               'controls': [],
               'targetdn': 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
-                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                'ou=users, o=smartdc',
+                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                  'ou=users, o=smartdc',
               'changetype': 'add',
               'objectclass': 'changeLogEntry',
-              'changetime': '2013-12-19T00:58:06.125Z',
+              'changetime': '2014-02-06T21:36:42.050Z',
               'changes': {
                 'account': [
                   '390c229a-8c77-445f-b227-88e41c2bb3cf'
                 ],
                 'cn': [
                   'devread'
-                ],
-                'memberrole': [
-                  'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
-                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                    'ou=users, o=smartdc'
                 ],
                 'objectclass': [
                   'sdcaccountgroup'
@@ -415,7 +411,7 @@ test('sdcaccountgroup', function (t) {
                   'ou=users, o=smartdc'
                 ]
               },
-              'changenumber': '24'
+              'changenumber': '16'
             };
 
             var args = {
@@ -430,8 +426,8 @@ test('sdcaccountgroup', function (t) {
             var value = {
                 type: 'group',
                 name: name,
-                account: account,
-                roles: ['b4301b32-66b4-11e3-ac31-6b349ce5dc45']
+                uuid: uuid,
+                account: account
             };
 
             self.transformer.transform(args, function (err, res) {
@@ -822,37 +818,32 @@ test('sdcaccountgroup', function (t) {
 });
 
 
-test('sdcaccountrole', function (t) {
+test('sdcaccountpolicy', function (t) {
     var self = this;
     vasync.pipeline({funcs: [
         function putRole(_, cb) {
             var entry = {
-              'dn': 'changenumber=16, cn=changelog',
+              'dn': 'changenumber=20, cn=changelog',
               'controls': [],
-              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+              'targetdn': 'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                 'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                 'ou=users, o=smartdc',
               'changetype': 'add',
               'objectclass': 'changeLogEntry',
-              'changetime': '2013-12-19T00:58:05.608Z',
+              'changetime': '2014-02-06T21:36:42.353Z',
               'changes': {
                 'account': [
                   '390c229a-8c77-445f-b227-88e41c2bb3cf'
                 ],
-                'objectclass': [
-                  'sdcaccountrole'
-                ],
-                'policydocument': [
-                  'Can read foo and bar when ip=10.0.0.0/8',
-                  'Can read red and blue when ip=10.0.0.0/16'
-                ],
-                'role': [
+                'name': [
                   'developer_read'
                 ],
-                'uniquemember': [
-                  'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
-                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                  'ou=users, o=smartdc'
+                'objectclass': [
+                  'sdcaccountpolicy'
+                ],
+                'policydocument': [
+                  'Can read foo and bar when ip = 10.0.0.0/8',
+                  'Can read red and blue when ip = 10.0.0.0/16'
                 ],
                 'uuid': [
                   'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
@@ -865,8 +856,9 @@ test('sdcaccountrole', function (t) {
                   'ou=users, o=smartdc'
                 ]
               },
-              'changenumber': '16'
+              'changenumber': '20'
             };
+
             var args = {
                 batch: self.redis.multi(),
                 entry: entry,
@@ -875,25 +867,28 @@ test('sdcaccountrole', function (t) {
 
             var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
             var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
-            var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
             var name = 'developer_read';
+            var policy1 = ['Can read foo and bar when ip = 10.0.0.0/8',
+                self.parser.parse('Can read foo and bar when ip = 10.0.0.0/8')];
+            var policy2 = ['Can read red and blue when ip = 10.0.0.0/16',
+                self.parser.parse(
+                    'Can read red and blue when ip = 10.0.0.0/16')];
 
             var expected = {
                 type: 'role',
+                uuid: uuid,
                 name: 'developer_read',
                 policies: [
-                  'Can read foo and bar when ip=10.0.0.0/8',
-                  'Can read red and blue when ip=10.0.0.0/16'
+                    policy1, policy2
                 ],
                 account: account
             };
 
             self.transformer.transform(args, function (err, res) {
-                t.strictEqual(5, res.queue.length);
+                t.strictEqual(4, res.queue.length);
                 res.exec(function () {
                     var barrier = vasync.barrier();
                     barrier.start('uuid');
-                    barrier.start('user');
                     barrier.start('set');
                     barrier.start('role');
                     barrier.on('drain', function () {
@@ -902,11 +897,6 @@ test('sdcaccountrole', function (t) {
                     self.redis.get('/uuid/' + uuid, function (err, res) {
                         t.deepEqual(JSON.parse(res), expected);
                         barrier.done('uuid');
-                    });
-                    self.redis.get(sprintf('/uuid/' + user),
-                        function (err, res) {
-                        t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
-                        barrier.done('user');
                     });
                     self.redis.sismember('/set/roles/' + account, uuid,
                         function (err, res) {
@@ -924,21 +914,21 @@ test('sdcaccountrole', function (t) {
         },
         function renameRole(_, cb) {
             var entry = {
-              'dn': 'changenumber=20, cn=changelog',
+              'dn': 'changenumber=29, cn=changelog',
               'controls': [],
-              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+              'targetdn': 'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                 'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                 'ou=users, o=smartdc',
               'changetype': 'modify',
               'objectclass': 'changeLogEntry',
-              'changetime': '2013-12-19T00:58:05.921Z',
+              'changetime': '2014-02-07T18:07:21.401Z',
               'changes': [
                 {
                   'operation': 'replace',
                   'modification': {
-                    'type': 'role',
+                    'type': 'name',
                     'vals': [
-                      'roletoreplace'
+                      'newname'
                     ]
                   }
                 }
@@ -947,15 +937,15 @@ test('sdcaccountrole', function (t) {
                   'account': [
                     '390c229a-8c77-445f-b227-88e41c2bb3cf'
                   ],
+                  'name': [
+                    'newname'
+                  ],
                   'objectclass': [
-                    'sdcaccountrole'
+                    'sdcaccountpolicy'
                   ],
                   'policydocument': [
-                    'Can read foo and bar when ip=10.0.0.0/8',
-                    'Can read red and blue when ip=10.0.0.0/16'
-                  ],
-                  'role': [
-                    'roletoreplace'
+                    'Can read foo and bar when ip = 10.0.0.0/8',
+                    'Can read red and blue when ip = 10.0.0.0/16'
                   ],
                   'uuid': [
                     'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
@@ -967,9 +957,10 @@ test('sdcaccountrole', function (t) {
                     'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                     'ou=users, o=smartdc'
                   ]
-              }),
-              'changenumber': '20'
+                }),
+              'changenumber': '29'
             };
+
             var args = {
                 batch: self.redis.multi(),
                 entry: entry,
@@ -978,7 +969,7 @@ test('sdcaccountrole', function (t) {
             var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
             var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
             var oldname = 'developer_read';
-            var name = 'roletoreplace';
+            var name = 'newname';
 
             self.transformer.transform(args, function (err, res) {
                 t.strictEqual(4, res.queue.length);
@@ -1009,167 +1000,23 @@ test('sdcaccountrole', function (t) {
                 });
             });
         },
-        function addMember(_, cb) {
-            var entry = {
-              'dn': 'changenumber=17, cn=changelog',
-              'controls': [],
-              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
-                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                  'ou=users, o=smartdc',
-              'changetype': 'modify',
-              'objectclass': 'changeLogEntry',
-              'changetime': '2013-12-19T00:58:05.691Z',
-              'changes': [
-                {
-                  'operation': 'add',
-                  'modification': {
-                    'type': 'uniquemember',
-                    'vals': [
-                      'uuid=cfcc7924-6823-11e3-a835-43e6162a87c8, ' +
-                      'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                      'ou=users, o=smartdc'
-                    ]
-                  }
-                }
-              ],
-              'entry': JSON.stringify({
-                  'account': [
-                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
-                  ],
-                  'objectclass': [
-                    'sdcaccountrole'
-                  ],
-                  'policydocument': [
-                    'Can read foo and bar when ip=10.0.0.0/8',
-                    'Can read red and blue when ip=10.0.0.0/16'
-                  ],
-                  'role': [
-                    'developer_read'
-                  ],
-                  'uniquemember': [
-                    'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
-                        'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                        'ou=users, o=smartdc',
-                    'uuid=cfcc7924-6823-11e3-a835-43e6162a87c8, ' +
-                        'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                        'ou=users, o=smartdc'
-                  ],
-                  'uuid': [
-                    'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
-                  ],
-                  '_owner': [
-                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
-                  ],
-                  '_parent': [
-                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                        'ou=users, o=smartdc'
-                  ]
-              }),
-              'changenumber': '17'
-            };
-            var args = {
-                batch: self.redis.multi(),
-                entry: entry,
-                changes: entry.changes
-            };
-            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
-            var user = 'cfcc7924-6823-11e3-a835-43e6162a87c8';
-
-            self.transformer.transform(args, function (err, res) {
-                t.strictEqual(res.queue.length, 2);
-                res.exec(function () {
-                    self.redis.get('/uuid/' + user, function (err, res) {
-                        t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
-                        cb();
-                    });
-                });
-            });
-        },
-        function delMember(_, cb) {
-            var entry = {
-              'dn': 'changenumber=19, cn=changelog',
-              'controls': [],
-              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
-                  'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                  'ou=users, o=smartdc',
-              'changetype': 'modify',
-              'objectclass': 'changeLogEntry',
-              'changetime': '2013-12-19T00:58:05.855Z',
-              'changes': [
-                {
-                  'operation': 'delete',
-                  'modification': {
-                    'type': 'uniquemember',
-                    'vals': [
-                      'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
-                          'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                          'ou=users, o=smartdc'
-                    ]
-                  }
-                }
-              ],
-              'entry': JSON.stringify({
-                  'account': [
-                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
-                  ],
-                  'objectclass': [
-                    'sdcaccountrole'
-                  ],
-                  'policydocument': [
-                    'Can read foo and bar when ip=10.0.0.0/8',
-                    'Can read red and blue when ip=10.0.0.0/16'
-                  ],
-                  'role': [
-                    'developer_read'
-                  ],
-                  'uuid': [
-                    'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
-                  ],
-                  '_owner': [
-                    '390c229a-8c77-445f-b227-88e41c2bb3cf'
-                  ],
-                  '_parent': [
-                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                        'ou=users, o=smartdc'
-                  ]
-              }),
-              'changenumber': '19'
-            };
-            var args = {
-                batch: self.redis.multi(),
-                entry: entry,
-                changes: entry.changes
-            };
-            var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
-            var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
-
-            self.transformer.transform(args, function (err, res) {
-                t.strictEqual(res.queue.length, 2);
-                res.exec(function () {
-                    self.redis.get('/uuid/' + user, function (err, res) {
-                        t.ok(JSON.parse(res).roles.indexOf(uuid) === -1);
-                        cb();
-                    });
-                });
-            });
-        },
         function addPolicy(_, cb) {
             var entry = {
-              'dn': 'changenumber=21, cn=changelog',
+              'dn': 'changenumber=27, cn=changelog',
               'controls': [],
-              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+              'targetdn': 'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                   'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                   'ou=users, o=smartdc',
               'changetype': 'modify',
               'objectclass': 'changeLogEntry',
-              'changetime': '2013-12-19T00:58:06.004Z',
+              'changetime': '2014-02-07T18:16:42.246Z',
               'changes': [
                 {
                   'operation': 'add',
                   'modification': {
                     'type': 'policydocument',
                     'vals': [
-                      'Can read x and y when ip=10.0.0.0/32'
+                      'Can read x and y when ip = 10.0.0.0/32'
                     ]
                   }
                 }
@@ -1178,16 +1025,16 @@ test('sdcaccountrole', function (t) {
                   'account': [
                     '390c229a-8c77-445f-b227-88e41c2bb3cf'
                   ],
+                  'name': [
+                    'newname'
+                  ],
                   'objectclass': [
-                    'sdcaccountrole'
+                    'sdcaccountpolicy'
                   ],
                   'policydocument': [
-                    'Can read foo and bar when ip=10.0.0.0/8',
-                    'Can read red and blue when ip=10.0.0.0/16',
-                    'Can read x and y when ip=10.0.0.0/32'
-                  ],
-                  'role': [
-                    'roletoreplace'
+                    'Can read foo and bar when ip = 10.0.0.0/8',
+                    'Can read red and blue when ip = 10.0.0.0/16',
+                    'Can read x and y when ip = 10.0.0.0/32'
                   ],
                   'uuid': [
                     'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
@@ -1197,24 +1044,27 @@ test('sdcaccountrole', function (t) {
                   ],
                   '_parent': [
                     'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                        'ou=users, o=smartdc'
+                    'ou=users, o=smartdc'
                   ]
-              }),
-              'changenumber': '21'
+                }),
+              'changenumber': '27'
             };
+
             var args = {
                 batch: self.redis.multi(),
                 entry: entry,
                 changes: entry.changes
             };
             var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
-            var policy = 'Can read x and y when ip=10.0.0.0/32';
+            var policy = 'Can read x and y when ip = 10.0.0.0/32';
 
             self.transformer.transform(args, function (err, res) {
                 t.strictEqual(res.queue.length, 2);
                 res.exec(function () {
                     self.redis.get('/uuid/' + uuid, function (err, res) {
-                        t.ok(JSON.parse(res).policies.indexOf(policy) > -1);
+                        t.ok(JSON.parse(res).policies.some(function (p) {
+                            return (p[0] === policy);
+                        }));
                         cb();
                     });
                 });
@@ -1222,21 +1072,21 @@ test('sdcaccountrole', function (t) {
         },
         function delPolicy(_, cb) {
             var entry = {
-              'dn': 'changenumber=22, cn=changelog',
+              'dn': 'changenumber=28, cn=changelog',
               'controls': [],
-              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+              'targetdn': 'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                   'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                   'ou=users, o=smartdc',
               'changetype': 'modify',
               'objectclass': 'changeLogEntry',
-              'changetime': '2013-12-19T00:58:06.017Z',
+              'changetime': '2014-02-07T18:16:42.315Z',
               'changes': [
                 {
                   'operation': 'delete',
                   'modification': {
                     'type': 'policydocument',
                     'vals': [
-                      'Can read x and y when ip=10.0.0.0/32'
+                      'Can read x and y when ip = 10.0.0.0/32'
                     ]
                   }
                 }
@@ -1245,15 +1095,15 @@ test('sdcaccountrole', function (t) {
                   'account': [
                     '390c229a-8c77-445f-b227-88e41c2bb3cf'
                   ],
+                  'name': [
+                    'newname'
+                  ],
                   'objectclass': [
-                    'sdcaccountrole'
+                    'sdcaccountpolicy'
                   ],
                   'policydocument': [
-                    'Can read foo and bar when ip=10.0.0.0/8',
-                    'Can read red and blue when ip=10.0.0.0/16'
-                  ],
-                  'role': [
-                    'roletoreplace'
+                    'Can read foo and bar when ip = 10.0.0.0/8',
+                    'Can read red and blue when ip = 10.0.0.0/16'
                   ],
                   'uuid': [
                     'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
@@ -1265,8 +1115,8 @@ test('sdcaccountrole', function (t) {
                     'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                         'ou=users, o=smartdc'
                   ]
-              }),
-              'changenumber': '22'
+                }),
+              'changenumber': '28'
             };
             var args = {
                 batch: self.redis.multi(),
@@ -1274,13 +1124,15 @@ test('sdcaccountrole', function (t) {
                 changes: entry.changes
             };
             var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
-            var policy = 'Can read x and y when ip=10.0.0.0/32';
+            var policy = 'Can read x and y when ip = 10.0.0.0/32';
 
             self.transformer.transform(args, function (err, res) {
                 t.strictEqual(res.queue.length, 2);
                 res.exec(function () {
                     self.redis.get('/uuid/' + uuid, function (err, res) {
-                        t.ok(JSON.parse(res).policies.indexOf(policy) === -1);
+                        t.notOk(JSON.parse(res).policies.some(function (p) {
+                            return (p[0] === policy);
+                        }));
                         cb();
                     });
                 });
@@ -1288,14 +1140,14 @@ test('sdcaccountrole', function (t) {
         },
         function addMemberGroup(_, cb) {
             var entry = {
-              'dn': 'changenumber=30, cn=changelog',
+              'dn': 'changenumber=23, cn=changelog',
               'controls': [],
-              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+              'targetdn': 'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                   'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                   'ou=users, o=smartdc',
               'changetype': 'modify',
               'objectclass': 'changeLogEntry',
-              'changetime': '2013-12-19T00:58:06.399Z',
+              'changetime': '2014-02-07T18:16:42.050Z',
               'changes': [
                 {
                   'operation': 'add',
@@ -1313,14 +1165,15 @@ test('sdcaccountrole', function (t) {
                   'account': [
                     '390c229a-8c77-445f-b227-88e41c2bb3cf'
                   ],
+                  'name': [
+                    'developer_read'
+                  ],
                   'objectclass': [
-                    'sdcaccountrole'
+                    'sdcaccountpolicy'
                   ],
                   'policydocument': [
-                    'Can read x and y when ip=10.0.0.0/24'
-                  ],
-                  'role': [
-                    'roletoreplace'
+                    'Can read foo and bar when ip = 10.0.0.0/8',
+                    'Can read red and blue when ip = 10.0.0.0/16'
                   ],
                   'uuid': [
                     'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
@@ -1330,15 +1183,15 @@ test('sdcaccountrole', function (t) {
                   ],
                   '_parent': [
                     'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                        'ou=users, o=smartdc'
+                    'ou=users, o=smartdc'
                   ],
                   'membergroup': [
                     'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
                         'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                         'ou=users, o=smartdc'
                   ]
-              }),
-              'changenumber': '30'
+                }),
+              'changenumber': '23'
             };
             var args = {
                 batch: self.redis.multi(),
@@ -1360,14 +1213,14 @@ test('sdcaccountrole', function (t) {
         },
         function delMemberGroup(_, cb) {
             var entry = {
-              'dn': 'changenumber=31, cn=changelog',
+              'dn': 'changenumber=24, cn=changelog',
               'controls': [],
-              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+              'targetdn': 'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                   'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                   'ou=users, o=smartdc',
               'changetype': 'modify',
               'objectclass': 'changeLogEntry',
-              'changetime': '2013-12-19T00:58:06.492Z',
+              'changetime': '2014-02-07T18:16:42.076Z',
               'changes': [
                 {
                   'operation': 'delete',
@@ -1385,14 +1238,15 @@ test('sdcaccountrole', function (t) {
                   'account': [
                     '390c229a-8c77-445f-b227-88e41c2bb3cf'
                   ],
+                  'name': [
+                    'developer_read'
+                  ],
                   'objectclass': [
-                    'sdcaccountrole'
+                    'sdcaccountpolicy'
                   ],
                   'policydocument': [
-                    'Can read x and y when ip=10.0.0.0/24'
-                  ],
-                  'role': [
-                    'roletoreplace'
+                    'Can read foo and bar when ip = 10.0.0.0/8',
+                    'Can read red and blue when ip = 10.0.0.0/16'
                   ],
                   'uuid': [
                     'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
@@ -1404,9 +1258,10 @@ test('sdcaccountrole', function (t) {
                     'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                         'ou=users, o=smartdc'
                   ]
-              }),
-              'changenumber': '31'
+                }),
+              'changenumber': '24'
             };
+
             var args = {
                 batch: self.redis.multi(),
                 entry: entry,
@@ -1427,26 +1282,26 @@ test('sdcaccountrole', function (t) {
         },
         function delRole(_, cb) {
             var entry = {
-              'dn': 'changenumber=33, cn=changelog',
+              'dn': 'changenumber=30, cn=changelog',
               'controls': [],
-              'targetdn': 'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+              'targetdn': 'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                   'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                   'ou=users, o=smartdc',
               'changetype': 'delete',
               'objectclass': 'changeLogEntry',
-              'changetime': '2013-12-19T00:58:06.600Z',
+              'changetime': '2014-02-07T18:16:42.402Z',
               'changes': {
                 'account': [
                   '390c229a-8c77-445f-b227-88e41c2bb3cf'
                 ],
+                'name': [
+                  'newname'
+                ],
                 'objectclass': [
-                  'sdcaccountrole'
+                  'sdcaccountpolicy'
                 ],
                 'policydocument': [
-                  'Can read x and y when ip=10.0.0.0/24'
-                ],
-                'role': [
-                  'roletoreplace'
+                  'Can read x and y when ip = 10.0.0.0/24'
                 ],
                 'uuid': [
                   'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
@@ -1456,11 +1311,12 @@ test('sdcaccountrole', function (t) {
                 ],
                 '_parent': [
                   'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
-                  'ou=users, o=smartdc'
+                      'ou=users, o=smartdc'
                 ]
               },
-              'changenumber': '33'
+              'changenumber': '30'
             };
+
             var args = {
                 batch: self.redis.multi(),
                 entry: entry,
@@ -1468,7 +1324,7 @@ test('sdcaccountrole', function (t) {
             };
             var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
             var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
-            var name = 'roletoreplace';
+            var name = 'newname';
 
             self.transformer.transform(args, function (err, res) {
                 t.strictEqual(res.queue.length, 4);
@@ -1555,6 +1411,9 @@ test('sdcaccountuser', function (t) {
                 'account': [
                   '390c229a-8c77-445f-b227-88e41c2bb3cf'
                 ],
+                'alias': [
+                    'subuser'
+                ],
                 'login': [
                   '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser'
                 ]
@@ -1570,10 +1429,11 @@ test('sdcaccountuser', function (t) {
 
             var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
             var uuid = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
-            var login = '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser';
+            var login = 'subuser';
             var key = '/uuid/' + uuid;
             var value = {
                 type: 'user',
+                uuid: uuid,
                 account: account,
                 login: login
             };
@@ -1677,6 +1537,9 @@ test('sdcaccountuser', function (t) {
                   'account': [
                     '390c229a-8c77-445f-b227-88e41c2bb3cf'
                   ],
+                  'alias': [
+                    'subuser3'
+                  ],
                   'login': [
                     '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser3'
                   ]
@@ -1691,8 +1554,8 @@ test('sdcaccountuser', function (t) {
 
             var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
             var uuid = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
-            var login = '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser3';
-            var oldlogin = '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser';
+            var login = 'subuser3';
+            var oldlogin = 'subuser';
             var key = '/uuid/' + uuid;
 
             self.transformer.transform(args, function (err, res) {
@@ -1772,6 +1635,9 @@ test('sdcaccountuser', function (t) {
                 ],
                 'account': [
                   '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                ],
+                'alias': [
+                  'subuser3'
                 ],
                 'login': [
                   '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser3'
@@ -2014,6 +1880,7 @@ test('sdcperson', function (t) {
             var key = '/uuid/' + uuid;
             var value = {
                 type: 'account',
+                uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
                 login: 'bcantrill',
                 approved_for_provisioning: false
             };
@@ -2129,6 +1996,7 @@ test('sdcperson', function (t) {
             var key = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
             var value = {
                 type: 'account',
+                uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
                 login: 'bcantrill',
                 approved_for_provisioning: false
             };
@@ -2231,6 +2099,7 @@ test('sdcperson', function (t) {
             var key = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
             var value = {
                 type: 'account',
+                uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
                 login: 'bcantrill',
                 approved_for_provisioning: true
             };
@@ -2331,6 +2200,7 @@ test('sdcperson', function (t) {
             var key = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
             var value = {
                 type: 'account',
+                uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
                 login: 'bcantrill',
                 approved_for_provisioning: false
             };
@@ -2432,6 +2302,7 @@ test('sdcperson', function (t) {
             var key = '/uuid/' + uuid;
             var value = {
                 type: 'account',
+                uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
                 login: 'bmc',
                 approved_for_provisioning: false
             };
