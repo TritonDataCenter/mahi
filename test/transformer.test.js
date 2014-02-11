@@ -1,13 +1,15 @@
 /*
  * Test suite for transformer.js
- * Requires a redis instance
  */
 
-var aperture = require('aperture');
 var transformer = require('../lib/poller/transformer.js');
-var nodeunit = require('nodeunit-plus');
-var vasync = require('vasync');
+
+var aperture = require('aperture');
+var redis = require('fakeredis');
 var sprintf = require('util').format;
+var vasync = require('vasync');
+
+var nodeunit = require('nodeunit-plus');
 var before = nodeunit.before;
 var after = nodeunit.after;
 var test = nodeunit.test;
@@ -15,7 +17,7 @@ var test = nodeunit.test;
 before(function (cb) {
     this.log = nodeunit.createLogger('transformer', process.stderr);
 
-    this.redis = require('redis').createClient({
+    this.redis = redis.createClient({
         host: 'localhost',
         port: 6379
     });
