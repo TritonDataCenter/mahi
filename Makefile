@@ -17,7 +17,7 @@
 #
 ## Tools
 #
-NODEUNIT		:= ./node_modules/.bin/nodeunit
+NODEUNIT	:= ./node_modules/.bin/nodeunit
 NAME		:= mahi
 
 #
@@ -34,13 +34,13 @@ JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
 REPO_MODULES	 = src/node-dummy
 SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in
 
-NODE_PREBUILT_VERSION=v0.8.26
 
-ifeq ($(shell uname -s),SunOS)
-	NODE_PREBUILT_TAG=zone
-	# Allow building on a SmartOS image other than smartos-1.6.3.
-	NODE_PREBUILT_IMAGE=01b2c898-945f-11e1-a523-af1afbe22822
-endif
+#
+# Variables
+#
+NAME 			= mahi
+NODE_PREBUILT_TAG       = zone
+NODE_PREBUILT_VERSION	:= v0.10.25
 
 include ./tools/mk/Makefile.defs
 ifeq ($(shell uname -s),SunOS)
@@ -50,7 +50,7 @@ else
 endif
 include ./tools/mk/Makefile.smf.defs
 RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz2
-RELSTAGEDIR          := /tmp/$(STAMP)
+RELSTAGEDIR     := /tmp/$(STAMP)
 
 #
 # Repo-specific targets

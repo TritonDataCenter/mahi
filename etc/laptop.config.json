@@ -1,15 +1,15 @@
 {
-  "ldapCfg": {
-    "url": "ldap://127.0.0.1:1389",
-    "_comment": "max connections must be > 1, we want to use pooling",
-    "maxConnections": 2,
-    "bindDN": "cn=root",
-    "bindCredentials": "secret"
-  },
-  "redisCfg": {
-    "host": "localhost",
-    "port": 6379,
-    "options" : {}
-  },
-  "pollInterval": 14000
+    "ufds": {
+        "url": "ldap://127.0.0.1:1389",
+        "_comment": "max connections must be 1, we do not want to use pooling",
+        "maxConnections": 1,
+        "bindDN": "cn=root",
+        "bindCredentials": "secret"
+    },
+    "redis": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "options" : {}
+    },
+    "pollInterval": 14000
 }
