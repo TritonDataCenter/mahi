@@ -67,7 +67,7 @@ DISTCLEAN_FILES += node_modules
 
 .PHONY: test
 test: $(NODEUNIT)
-	$(NODEUNIT) test/*.test.js
+	find test -name '*.test.js' | xargs -n 1 $(NODEUNIT)
 
 .PHONY: setup
 setup: | $(NPM_EXEC)

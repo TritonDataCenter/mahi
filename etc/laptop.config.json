@@ -4,12 +4,12 @@
         "_comment": "max connections must be 1, we do not want to use pooling",
         "maxConnections": 1,
         "bindDN": "cn=root",
-        "bindCredentials": "secret"
+        "bindCredentials": "secret",
+        "interval": 14000
     },
     "redis": {
         "host": "127.0.0.1",
         "port": 6379,
         "options" : {}
-    },
-    "pollInterval": 14000
+    }
 }
