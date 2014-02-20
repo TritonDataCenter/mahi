@@ -510,7 +510,7 @@ test('delete', function (t) {
             barrier.start('account');
             barrier.start('set');
             barrier.start('subusers');
-            barrier.start('subgroups');
+            barrier.start('policies');
             barrier.start('subroles');
             barrier.on('drain', function () {
                 t.done();
@@ -536,10 +536,10 @@ test('delete', function (t) {
                 t.strictEqual(0, res);
                 barrier.done('subroles');
             });
-            REDIS.scard('/set/groups/' + uuid,
+            REDIS.scard('/set/policies/' + uuid,
                 function (err, res) {
                 t.strictEqual(0, res);
-                barrier.done('subgroups');
+                barrier.done('policies');
             });
         });
     });

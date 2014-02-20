@@ -2,7 +2,7 @@
 
 Repository: <git@git.joyent.com:mahi.git>
 Browsing: <https://mo.joyent.com/mahi>
-Who: Yunong Xiao
+Who: Fred Kuo
 Docs: <https://mo.joyent.com/docs/mahi>
 Tickets/bugs: <https://devhub.joyent.com/jira/browse/MANTA>
 
@@ -49,6 +49,60 @@ and uuids.
 These repsective sets contain only the login or uuid, but not the fully
 qualified path of their keys in redis. Notably you'd still have to prefix
 "/login/" and "/uuid/" to the set entries in order to look up their values.
+
+
+# Redis Schema
+
+All data is stored in keys of the form `/uuid/<uuid>`. There are also mappings
+for login or name to uuid, and sets that contain full lists of uuids.
+
+    /uuid/<accountUUID> ->
+    {
+        type: "account",
+        uuid: <uuid>,
+        keys: {keyfp: key},
+        groups: [str],
+        login: <login>,
+        approved_for_provisioning: bool
+    }
+
+    /uuid/<userUUID> ->
+    {
+        type: "user",
+        uuid: <uuid>,
+        account: <parentAccountUUID>,
+        keys: {keyfp: key},
+        roles: [roleUUID],
+        login: <login>,
+    }
+
+    /uuid/<policyUUID> ->
+    {
+        type: "policy",
+        uuid: <uuid>,
+        name: <name>,
+        rules: [ [text, parsed], ..., [text, parsed] ],
+        account: <parentAccountUUID>
+    }
+
+    /uuid/<roleUUID> ->
+    {
+        type: "role",
+        uuid: <uuid>,
+        name: <name>,
+        account: <parentAccountUUID>,
+        policies: [policyUUID]
+    }
+
+    /account/<accountLogin> -> accountUUID
+    /user/<accountUUID>/<userLogin> -> userUUID
+    /role/<accountUUID>/<roleName> -> roleUUID
+    /policy/<accountUUID>/<policyName> -> policyUUID
+
+    /set/accounts -> set of accountUUIDs
+    /set/users/<account> -> set of userUUIDs
+    /set/roles/<account> -> set of roleUUIDSs
+    /set/policies/<account> -> set of policyUUIDs
 
 
 # Testing

@@ -67,7 +67,7 @@ test('add', function (t) {
     var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
     var key = '/uuid/' + uuid;
     var value = {
-        type: 'group',
+        type: 'role',
         name: name,
         uuid: uuid,
         account: account
@@ -77,7 +77,7 @@ test('add', function (t) {
         t.strictEqual(5, res.queue.length);
         res.exec(function () {
             var barrier = vasync.barrier();
-            barrier.start('group');
+            barrier.start('role');
             barrier.start('uuid');
             barrier.start('set');
             barrier.start('user');
@@ -88,13 +88,13 @@ test('add', function (t) {
                 t.deepEqual(value, JSON.parse(res));
                 barrier.done('uuid');
             });
-            REDIS.get(sprintf('/group/%s/%s', account, name),
+            REDIS.get(sprintf('/role/%s/%s', account, name),
                 function (err, res) {
 
                 t.strictEqual(res, uuid);
-                barrier.done('group');
+                barrier.done('role');
             });
-            REDIS.sismember('/set/groups/' + account, uuid,
+            REDIS.sismember('/set/roles/' + account, uuid,
                 function (err, res) {
 
                 t.strictEqual(1, res);
@@ -103,7 +103,7 @@ test('add', function (t) {
             REDIS.get('/uuid/3ffc7b4c-66a6-11e3-af09-8752d24e4669',
                 function (err, res) {
 
-                t.ok(JSON.parse(res).groups.indexOf(uuid) >= 0);
+                t.ok(JSON.parse(res).roles.indexOf(uuid) >= 0);
                 barrier.done('user');
             });
         });
@@ -181,7 +181,7 @@ test('modify - add member', function (t) {
     transform.modify(args, function (err, res) {
         t.strictEqual(2, res.queue.length);
         REDIS.get(key, function (err, res) {
-            t.ok(JSON.parse(res).groups.indexOf(uuid) > -1);
+            t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
             t.done();
         });
     });
@@ -254,14 +254,14 @@ test('modify - delete member', function (t) {
         t.strictEqual(2, res.queue.length);
         res.exec(function () {
             REDIS.get(key, function (err, res) {
-                t.strictEqual(JSON.parse(res).groups.indexOf(uuid), -1);
+                t.strictEqual(JSON.parse(res).roles.indexOf(uuid), -1);
                 t.done();
             });
         });
     });
 });
 
-test('modify - add role', function (t) {
+test('modify - add policy', function (t) {
     var entry = {
         'dn': 'changenumber=28, cn=changelog',
         'controls': [],
@@ -328,14 +328,14 @@ test('modify - add role', function (t) {
         t.strictEqual(2, res.queue.length);
         res.exec(function () {
             REDIS.get(key, function (err, res) {
-                t.ok(JSON.parse(res).roles.indexOf(role) > -1);
+                t.ok(JSON.parse(res).policies.indexOf(role) > -1);
                 t.done();
             });
         });
     });
 });
 
-test('modify - delete role', function (t) {
+test('modify - delete policy', function (t) {
     var entry = {
         'dn': 'changenumber=29, cn=changelog',
         'controls': [],
@@ -396,7 +396,7 @@ test('modify - delete role', function (t) {
         t.strictEqual(2, res.queue.length);
         res.exec(function () {
             REDIS.get(key, function (err, res) {
-                t.strictEqual(JSON.parse(res).roles.indexOf(role), -1);
+                t.strictEqual(JSON.parse(res).policies.indexOf(role), -1);
                 t.done();
             });
         });
@@ -464,12 +464,12 @@ test('delete', function (t) {
                 t.strictEqual(res, null);
                 barrier.done('uuid');
             });
-            REDIS.get(sprintf('/group/%s/%s', account, name),
+            REDIS.get(sprintf('/roles/%s/%s', account, name),
                 function (err, res) {
                 t.strictEqual(res, null);
                 barrier.done('group');
             });
-            REDIS.sismember('/set/groups/' + account, uuid,
+            REDIS.sismember('/set/roles/' + account, uuid,
                 function (err, res) {
 
                 t.strictEqual(0, res);

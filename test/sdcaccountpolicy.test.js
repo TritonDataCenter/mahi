@@ -79,10 +79,10 @@ test('add', function (t) {
             'Can read red and blue when ip = 10.0.0.0/16')];
 
     var expected = {
-        type: 'role',
+        type: 'policy',
         uuid: uuid,
         name: 'developer_read',
-        policies: [
+        rules: [
             policy1, policy2
         ],
         account: account
@@ -94,7 +94,7 @@ test('add', function (t) {
             var barrier = vasync.barrier();
             barrier.start('uuid');
             barrier.start('set');
-            barrier.start('role');
+            barrier.start('policy');
             barrier.on('drain', function () {
                 t.done();
             });
@@ -102,15 +102,15 @@ test('add', function (t) {
                 t.deepEqual(JSON.parse(res), expected);
                 barrier.done('uuid');
             });
-            REDIS.sismember('/set/roles/' + account, uuid,
+            REDIS.sismember('/set/policies/' + account, uuid,
                 function (err, res) {
                 t.strictEqual(1, res);
                 barrier.done('set');
             });
-            REDIS.get(sprintf('/role/%s/%s', account, name),
+            REDIS.get(sprintf('/policy/%s/%s', account, name),
                 function (err, res) {
                 t.strictEqual(uuid, res);
-                barrier.done('role');
+                barrier.done('policy');
             });
         });
     });
@@ -189,13 +189,13 @@ test('modify - rename', function (t) {
             barrier.on('drain', function () {
                 t.done();
             });
-            REDIS.get(sprintf('/role/%s/%s', account, name),
+            REDIS.get(sprintf('/policy/%s/%s', account, name),
                 function (err, res) {
 
                 t.strictEqual(uuid, res);
                 barrier.done('newname');
             });
-            REDIS.get(sprintf('/role/%s/%s', account, oldname),
+            REDIS.get(sprintf('/policy/%s/%s', account, oldname),
                 function (err, res) {
 
                 t.strictEqual(null, res);
@@ -269,14 +269,14 @@ test('modify - add policy', function (t) {
     };
 
     var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
-    var policy = 'Can read x and y when ip = 10.0.0.0/32';
+    var rule = 'Can read x and y when ip = 10.0.0.0/32';
 
     transform.modify(args, function (err, res) {
         t.strictEqual(res.queue.length, 2);
         res.exec(function () {
             REDIS.get('/uuid/' + uuid, function (err, res) {
-                t.ok(JSON.parse(res).policies.some(function (p) {
-                    return (p[0] === policy);
+                t.ok(JSON.parse(res).rules.some(function (r) {
+                    return (r[0] === rule);
                 }));
                 t.done();
             });
@@ -343,14 +343,14 @@ test('modify - delete policy', function (t) {
     };
 
     var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
-    var policy = 'Can read x and y when ip = 10.0.0.0/32';
+    var rule = 'Can read x and y when ip = 10.0.0.0/32';
 
     transform.modify(args, function (err, res) {
         t.strictEqual(res.queue.length, 2);
         res.exec(function () {
             REDIS.get('/uuid/' + uuid, function (err, res) {
-                t.notOk(JSON.parse(res).policies.some(function (p) {
-                    return (p[0] === policy);
+                t.notOk(JSON.parse(res).rules.some(function (r) {
+                    return (r[0] === rule);
                 }));
                 t.done();
             });
@@ -428,7 +428,7 @@ test('modify - add group', function (t) {
         t.strictEqual(res.queue.length, 2);
         res.exec(function () {
             REDIS.get('/uuid/' + group, function (err, res) {
-                t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
+                t.ok(JSON.parse(res).policies.indexOf(uuid) > -1);
                 t.done();
             });
         });
@@ -502,7 +502,7 @@ test('modify - delete group', function (t) {
         t.strictEqual(res.queue.length, 2);
         res.exec(function () {
             REDIS.get('/uuid/' + group, function (err, res) {
-                t.ok(JSON.parse(res).roles.indexOf(uuid) ===  -1);
+                t.ok(JSON.parse(res).policies.indexOf(uuid) ===  -1);
                 t.done();
             });
         });
@@ -562,7 +562,7 @@ test('delete', function (t) {
             var barrier = vasync.barrier();
             barrier.start('uuid');
             barrier.start('set');
-            barrier.start('role');
+            barrier.start('policy');
             barrier.on('drain', function () {
                 t.done();
             });
@@ -570,16 +570,16 @@ test('delete', function (t) {
                 t.strictEqual(null, res);
                 barrier.done('uuid');
             });
-            REDIS.sismember('/set/roles/' + account, uuid,
+            REDIS.sismember('/set/policies/' + account, uuid,
                 function (err, res) {
 
                 t.strictEqual(0, res);
                 barrier.done('set');
             });
-            REDIS.get(sprintf('/role/%s/%s', account, name),
+            REDIS.get(sprintf('/policy/%s/%s', account, name),
                 function (err, res) {
                 t.strictEqual(null, res);
-                barrier.done('role');
+                barrier.done('policy');
             });
         });
     });
