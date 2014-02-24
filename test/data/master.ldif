@@ -1,0 +1,323 @@
+version: 1
+
+dn: o=smartdc
+changetype: add
+objectclass: organization
+o: smartdc
+
+dn: ou=users, o=smartdc
+changetype: add
+objectclass: organizationalUnit
+ou: users
+
+dn: ou=groups, o=smartdc
+changetype: add
+objectclass: organizationalUnit
+ou: groups
+
+dn: ou=config, o=smartdc
+changetype: add
+objectclass: organizationalUnit
+ou: config
+
+# sdcperson add
+dn: uuid=930896af-bf8c-48d4-885c-6573a94b1853, ou=users, o=smartdc
+changetype: add
+login: admin
+uuid: 930896af-bf8c-48d4-885c-6573a94b1853
+userpassword: joypass123
+email: nobody@joyent.com
+cn: admin
+sn: user
+company: Joyent
+address: Joyent, Inc.
+address: 345 California Street, Suite 2000
+city: San Francisco
+state: CA
+postalCode: 94104
+country: USA
+phone: +1 415 400 0600
+objectclass: sdcPerson
+
+dn: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: add
+uuid: 1a940615-65e9-4856-95f9-f4c530e86ca4
+login: bcantrill
+email: bcantrill@acm.org
+userpassword: M@nt@R@ys&r3Th3C00l3st!
+cn: Bryan
+cn: Cantrill
+objectclass: sdcPerson
+
+dn: uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: add
+cn: Jerry Jelinek
+company: Joyent
+email: jerry.jelinek@joyent.com
+givenname: Jerry
+login: jjelinek
+objectclass: sdcperson
+phone: 17194956686
+sn: Jelinek
+uuid: 390c229a-8c77-445f-b227-88e41c2bb3cf
+pwdchangedtime: 1366098656879
+userpassword: M@nt@R@ys&r3Th3C00l3st!
+approved_for_provisioning: true
+created_at: 1366382418140
+updated_at: 1366382418140
+
+# sdcaccountuser add
+dn: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: add
+login: subuser
+email: subuser@example.com
+uuid: 3ffc7b4c-66a6-11e3-af09-8752d24e4669
+userpassword: secret123
+objectclass: sdcperson
+
+
+# groupofuniquenames add
+dn: cn=operators, ou=groups, o=smartdc
+changetype: add
+objectclass: groupofuniquenames
+uniquemember: uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+
+
+# groupofuniquenames modify - add uniquemember
+dn: cn=operators, ou=groups, o=smartdc
+changetype: modify
+add: uniquemember
+uniquemember: uuid=930896af-bf8c-48d4-885c-6573a94b1853, ou=users, o=smartdc
+
+# groupofuniquenames modify - del uniquemember
+dn: cn=operators, ou=groups, o=smartdc
+changetype: modify
+add: uniquemember
+uniquemember: uuid=930896af-bf8c-48d4-885c-6573a94b1853, ou=users, o=smartdc
+
+# groupofuniquenames modify - replace uniquemember
+dn: cn=operators, ou=groups, o=smartdc
+changetype: modify
+replace: uniquemember
+uniquemember: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+
+# groupofuniquenames modify - del uniquemember
+dn: cn=operators, ou=groups, o=smartdc
+changetype: modify
+add: uniquemember
+uniquemember: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+
+# groupofuniquenames delete
+dn: cn=operators, ou=groups, o=smartdc
+changetype: delete
+
+
+# sdcaccountuser modify - replace login
+dn: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+replace: login
+login: subuser3
+
+# sdckey add
+dn: fingerprint=7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18, uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: add
+name: foo
+openssh: ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA34XP/UMdCuB/jOQg3VU4XBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwlpLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5RU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi721ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpngw== bcantrill@Bryan-Cantrill-MacBook-Pro.local
+objectclass: sdcKey
+
+# sdcaccountuser modify - add login
+#dn: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+#changetype: modify
+#add: login
+#login: subuser2
+
+# sdcaccountuser modify - delete login
+#dn: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+#changetype: modify
+#delete: login
+
+
+# sdcaccountrole add
+dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: add
+name: devread
+uuid: 5d0049f4-67b3-11e3-8059-273f883b3fb6
+account: 390c229a-8c77-445f-b227-88e41c2bb3cf
+uniquemember: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+objectclass: sdcaccountrole
+
+# sdcaccountrole modify - delete uniquemember
+dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+delete: uniquemember
+uniquemember: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+
+# sdcaccountrole modify - add uniquemember
+dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+add: uniquemember
+uniquemember: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+
+# sdcaccountrole modify - delete uniquemember
+dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+delete: uniquemember
+uniquemember: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+
+
+# sdcaccountpolicy add
+dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: add
+name: developer_read
+rule: Can read foo and bar when ip = 10.0.0.0/8
+rule: Can read red and blue when ip = 10.0.0.0/16
+account: 390c229a-8c77-445f-b227-88e41c2bb3cf
+uuid: b4301b32-66b4-11e3-ac31-6b349ce5dc45
+objectclass: sdcaccountpolicy
+
+
+# sdcaccountrole modify - add memberpolicy
+dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+add: memberpolicy
+memberpolicy: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+
+# sdcaccountrole modify - del memberpolicy
+dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+delete: memberpolicy
+memberpolicy: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+
+# sdcaccountpolicy modify - add memberrole
+dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+add: memberrole
+memberrole: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+
+# sdcaccountpolicy modify - del memberrole
+dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+delete: memberrole
+memberrole: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+
+# sdcaccountrole delete
+dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: delete
+
+
+# sdcaccountpolicy modify - replace name 
+dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+replace: name
+name: newname
+
+# sdcaccountpolicy modify - delete policy
+#dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+#changetype: modify
+#delete: policy
+
+# sdcaccountpolicy modify - add policy
+#dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+#changetype: modify
+#add: policy
+#policy: policytoadd
+
+# sdcaccountpolicy modify - add rule
+dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+add: rule
+rule: Can read x and y when ip = 10.0.0.0/32
+
+# sdcaccountpolicy modify - del rule
+dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+delete: rule
+rule: Can read x and y when ip = 10.0.0.0/32
+
+# sdcaccountpolicy modify - replace rule
+dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: modify
+replace: rule
+rule: Can read x and y when ip = 10.0.0.0/24
+
+
+# sdcaccountpolicy delete
+dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: delete
+
+# sdckey delete
+dn: fingerprint=7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18, uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: delete
+
+# sdcaccountuser delete
+dn: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: delete
+
+# sdckey add
+dn: fingerprint=7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18, uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: add
+name: foo
+openssh: ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA34XP/UMdCuB/jOQg3VU4XBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwlpLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5RU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi721ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpngw== bcantrill@Bryan-Cantrill-MacBook-Pro.local
+objectclass: sdcKey
+
+# sdckey modify
+dn: fingerprint=7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18, uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: modify
+replace: name
+name: newkeyname
+
+# sdckey delete
+dn: fingerprint=7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18, uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: delete
+
+
+
+# sdcperson delete
+dn: uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+changetype: delete
+
+# sdcperson modify - add approved
+dn: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: modify
+add: approved_for_provisioning
+approved_for_provisioning: true
+
+# sdcperson modify - replace approved
+dn: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: modify
+replace: approved_for_provisioning
+approved_for_provisioning: false
+
+# sdcperson modify - delete approved
+dn: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: modify
+delete: approved_for_provisioning
+approved_for_provisioning: false
+
+# sdcperson modify - add login
+#dn: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+#changetype: modify
+#add: login
+#login: bmc
+
+# sdcperson modify - delete login
+#dn: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+#changetype: modify
+#add: login
+#login: bmc
+
+# sdcperson modify - replace login
+dn: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: modify
+replace: login
+login: bmc
+
+# sdcperson modify - modify irrelevant
+dn: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: modify
+replace: company
+company: Joy3nt
+
+# sdcperson delete
+dn: uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ou=users, o=smartdc
+changetype: delete

@@ -7,10 +7,8 @@ var once = require('once');
 var redis = require('redis');
 redis.debug_mode = process.env.REDIS_DEBUG ? true : undefined;
 
-var shuffle = require('./utils').shuffle;
 
-
-///--- Internal Functions
+// --- Internal Functions
 
 function connect(opts, cb) {
     assert.object(opts, 'options');
@@ -59,7 +57,7 @@ function connect(opts, cb) {
 
 
 
-///--- API
+// --- API
 
 function createClient(opts, cb) {
     assert.object(opts, 'options');
@@ -86,7 +84,7 @@ function createClient(opts, cb) {
         retry.removeAllListeners('backoff');
         log.debug('redis client acquired after %d attempts',
             retry.getResults().length);
-            cb(err, client);
+        cb(err, client);
     });
 
     retry.setStrategy(new backoff.ExponentialStrategy({
@@ -109,11 +107,12 @@ function createClient(opts, cb) {
             delay: delay
         }, 'redis: connection attempted');
     });
+    retry.start();
 }
 
 
 
-///--- Exports
+// --- Exports
 
 module.exports = {
     createClient: createClient

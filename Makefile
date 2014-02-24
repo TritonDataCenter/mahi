@@ -17,7 +17,7 @@
 #
 ## Tools
 #
-TAP		:= ./node_modules/.bin/tap
+NODEUNIT	:= ./node_modules/.bin/nodeunit
 NAME		:= mahi
 
 #
@@ -34,13 +34,13 @@ JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
 REPO_MODULES	 = src/node-dummy
 SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in
 
-NODE_PREBUILT_VERSION=v0.8.22
 
-ifeq ($(shell uname -s),SunOS)
-	NODE_PREBUILT_TAG=zone
-	# Allow building on a SmartOS image other than sdc-smartos/1.6.3.
-	NODE_PREBUILT_IMAGE=fd2cc906-8938-11e3-beab-4359c665ac99
-endif
+#
+# Variables
+#
+NAME 			= mahi
+NODE_PREBUILT_TAG       = zone
+NODE_PREBUILT_VERSION	:= v0.10.25
 
 include ./tools/mk/Makefile.defs
 ifeq ($(shell uname -s),SunOS)
@@ -50,24 +50,24 @@ else
 endif
 include ./tools/mk/Makefile.smf.defs
 RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz2
-RELSTAGEDIR          := /tmp/$(STAMP)
+RELSTAGEDIR     := /tmp/$(STAMP)
 
 #
 # Repo-specific targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) | $(TAP) $(REPO_DEPS) scripts
+all: $(SMF_MANIFESTS) | $(NODEUNIT) $(REPO_DEPS) scripts
 	$(NPM) rebuild
 
-$(TAP): | $(NPM_EXEC)
+$(NODEUNIT): | $(NPM_EXEC)
 	$(NPM) install
 
-CLEAN_FILES += $(TAP) ./node_modules/tap
+CLEAN_FILES += $(NODEUNIT) ./node_modules/nodeunit
 DISTCLEAN_FILES += node_modules
 
 .PHONY: test
-test: $(TAP)
-	TAP=1 $(TAP) test/*.test.js
+test: $(NODEUNIT)
+	find test -name '*.test.js' | xargs -n 1 $(NODEUNIT)
 
 .PHONY: setup
 setup: | $(NPM_EXEC)
