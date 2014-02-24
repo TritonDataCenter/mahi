@@ -137,28 +137,28 @@ objectclass: sdcKey
 #delete: login
 
 
-# sdcaccountgroup add
+# sdcaccountrole add
 dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: add
-cn: devread
+name: devread
 uuid: 5d0049f4-67b3-11e3-8059-273f883b3fb6
 account: 390c229a-8c77-445f-b227-88e41c2bb3cf
 uniquemember: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
-objectclass: sdcaccountgroup
+objectclass: sdcaccountrole
 
-# sdcaccountgroup modify - delete uniquemember
+# sdcaccountrole modify - delete uniquemember
 dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: modify
 delete: uniquemember
 uniquemember: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 
-# sdcaccountgroup modify - add uniquemember
+# sdcaccountrole modify - add uniquemember
 dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: modify
 add: uniquemember
 uniquemember: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 
-# sdcaccountgroup modify - delete uniquemember
+# sdcaccountrole modify - delete uniquemember
 dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: modify
 delete: uniquemember
@@ -169,38 +169,38 @@ uniquemember: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=390c229a-8c77-445f
 dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: add
 name: developer_read
-policydocument: Can read foo and bar when ip = 10.0.0.0/8
-policydocument: Can read red and blue when ip = 10.0.0.0/16
+rule: Can read foo and bar when ip = 10.0.0.0/8
+rule: Can read red and blue when ip = 10.0.0.0/16
 account: 390c229a-8c77-445f-b227-88e41c2bb3cf
 uuid: b4301b32-66b4-11e3-ac31-6b349ce5dc45
 objectclass: sdcaccountpolicy
 
 
-# sdcaccountgroup modify - add memberpolicy
+# sdcaccountrole modify - add memberpolicy
 dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: modify
 add: memberpolicy
 memberpolicy: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 
-# sdcaccountgroup modify - del memberpolicy
+# sdcaccountrole modify - del memberpolicy
 dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: modify
 delete: memberpolicy
 memberpolicy: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 
-# sdcaccountpolicy modify - add membergroup
+# sdcaccountpolicy modify - add memberrole
 dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: modify
-add: membergroup
-membergroup: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+add: memberrole
+memberrole: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 
-# sdcaccountpolicy modify - del membergroup
+# sdcaccountpolicy modify - del memberrole
 dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: modify
-delete: membergroup
-membergroup: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
+delete: memberrole
+memberrole: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 
-# sdcaccountgroup delete
+# sdcaccountrole delete
 dn: group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: delete
 
@@ -222,23 +222,23 @@ name: newname
 #add: policy
 #policy: policytoadd
 
-# sdcaccountpolicy modify - add policydocument
+# sdcaccountpolicy modify - add rule
 dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: modify
-add: policydocument
-policydocument: Can read x and y when ip = 10.0.0.0/32
+add: rule
+rule: Can read x and y when ip = 10.0.0.0/32
 
-# sdcaccountpolicy modify - del policydocument
+# sdcaccountpolicy modify - del rule
 dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: modify
-delete: policydocument
-policydocument: Can read x and y when ip = 10.0.0.0/32
+delete: rule
+rule: Can read x and y when ip = 10.0.0.0/32
 
-# sdcaccountpolicy modify - replace policydocument
+# sdcaccountpolicy modify - replace rule
 dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc
 changetype: modify
-replace: policydocument
-policydocument: Can read x and y when ip = 10.0.0.0/24
+replace: rule
+rule: Can read x and y when ip = 10.0.0.0/24
 
 
 # sdcaccountpolicy delete

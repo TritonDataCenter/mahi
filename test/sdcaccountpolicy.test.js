@@ -43,7 +43,7 @@ test('add', function (t) {
         'objectclass': [
           'sdcaccountpolicy'
         ],
-        'policydocument': [
+        'rule': [
           'Can read foo and bar when ip = 10.0.0.0/8',
           'Can read red and blue when ip = 10.0.0.0/16'
         ],
@@ -147,7 +147,7 @@ test('modify - rename', function (t) {
             'objectclass': [
                 'sdcaccountpolicy'
             ],
-            'policydocument': [
+            'rule': [
                 'Can read foo and bar when ip = 10.0.0.0/8',
                 'Can read red and blue when ip = 10.0.0.0/16'
             ],
@@ -223,7 +223,7 @@ test('modify - add policy', function (t) {
             {
                 'operation': 'add',
                 'modification': {
-                    'type': 'policydocument',
+                    'type': 'rule',
                     'vals': [
                         'Can read x and y when ip = 10.0.0.0/32'
                     ]
@@ -240,7 +240,7 @@ test('modify - add policy', function (t) {
             'objectclass': [
                 'sdcaccountpolicy'
             ],
-            'policydocument': [
+            'rule': [
                 'Can read foo and bar when ip = 10.0.0.0/8',
                 'Can read red and blue when ip = 10.0.0.0/16',
                 'Can read x and y when ip = 10.0.0.0/32'
@@ -298,7 +298,7 @@ test('modify - delete policy', function (t) {
             {
                 'operation': 'delete',
                 'modification': {
-                    'type': 'policydocument',
+                    'type': 'rule',
                     'vals': [
                         'Can read x and y when ip = 10.0.0.0/32'
                     ]
@@ -315,7 +315,7 @@ test('modify - delete policy', function (t) {
             'objectclass': [
                 'sdcaccountpolicy'
             ],
-            'policydocument': [
+            'rule': [
                 'Can read foo and bar when ip = 10.0.0.0/8',
                 'Can read red and blue when ip = 10.0.0.0/16'
             ],
@@ -372,7 +372,7 @@ test('modify - add group', function (t) {
             {
                 'operation': 'add',
                 'modification': {
-                    'type': 'membergroup',
+                    'type': 'memberrole',
                     'vals': [
                     'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
                         'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
@@ -391,7 +391,7 @@ test('modify - add group', function (t) {
             'objectclass': [
                 'sdcaccountpolicy'
             ],
-            'policydocument': [
+            'rule': [
                 'Can read foo and bar when ip = 10.0.0.0/8',
                 'Can read red and blue when ip = 10.0.0.0/16'
             ],
@@ -405,7 +405,7 @@ test('modify - add group', function (t) {
                 'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                     'ou=users, o=smartdc'
             ],
-            'membergroup': [
+            'memberrole': [
                 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
                     'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                     'ou=users, o=smartdc'
@@ -450,7 +450,7 @@ test('modify - delete group', function (t) {
             {
             'operation': 'delete',
                 'modification': {
-                    'type': 'membergroup',
+                    'type': 'memberrole',
                     'vals': [
                         'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
                             'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
@@ -469,7 +469,7 @@ test('modify - delete group', function (t) {
             'objectclass': [
                 'sdcaccountpolicy'
             ],
-            'policydocument': [
+            'rule': [
                 'Can read foo and bar when ip = 10.0.0.0/8',
                 'Can read red and blue when ip = 10.0.0.0/16'
             ],
@@ -529,7 +529,7 @@ test('delete', function (t) {
             'objectclass': [
                 'sdcaccountpolicy'
             ],
-            'policydocument': [
+            'rule': [
                 'can read x and y when ip = 10.0.0.0/24'
             ],
             'uuid': [

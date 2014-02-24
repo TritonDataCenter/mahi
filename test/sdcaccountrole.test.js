@@ -1,6 +1,6 @@
 // Copyright (c) 2014, Joyent, Inc. All rights reserved.
 
-var transform = require('../lib/replicator/transforms/sdcaccountgroup.js');
+var transform = require('../lib/replicator/transforms/sdcaccountrole.js');
 
 var redis = require('fakeredis');
 var REDIS;
@@ -18,23 +18,23 @@ test('setup', function (t) {
 
 test('add', function (t) {
     var entry = {
-        'dn': 'changenumber=16, cn=changelog',
+        'dn': 'changenumber=17, cn=changelog',
         'controls': [],
         'targetdn': 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
             'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
             'ou=users, o=smartdc',
         'changetype': 'add',
         'objectclass': 'changeLogEntry',
-        'changetime': '2014-02-06T21:36:42.050Z',
+        'changetime': '2014-02-24T17:22:18.474Z',
         'changes': {
             'account': [
                 '390c229a-8c77-445f-b227-88e41c2bb3cf'
             ],
-            'cn': [
+            'name': [
                 'devread'
             ],
             'objectclass': [
-                'sdcaccountgroup'
+                'sdcaccountrole'
             ],
             'uniquemember': [
                 'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
@@ -52,7 +52,7 @@ test('add', function (t) {
                     'ou=users, o=smartdc'
             ]
         },
-        'changenumber': '16'
+        'changenumber': '17'
     };
 
     var args = {
@@ -137,7 +137,7 @@ test('modify - add member', function (t) {
             'account': [
                 '390c229a-8c77-445f-b227-88e41c2bb3cf'
             ],
-            'cn': [
+            'name': [
                 'devread'
             ],
             'memberrole': [
@@ -146,7 +146,7 @@ test('modify - add member', function (t) {
                     'ou=users, o=smartdc'
             ],
             'objectclass': [
-                'sdcaccountgroup'
+                'sdcaccountrole'
             ],
             'uuid': [
                 '5d0049f4-67b3-11e3-8059-273f883b3fb6'
@@ -214,7 +214,7 @@ test('modify - delete member', function (t) {
             'account': [
                 '390c229a-8c77-445f-b227-88e41c2bb3cf'
             ],
-            'cn': [
+            'name': [
                 'devread'
             ],
             'memberrole': [
@@ -223,7 +223,7 @@ test('modify - delete member', function (t) {
                     'ou=users, o=smartdc'
             ],
             'objectclass': [
-                'sdcaccountgroup'
+                'sdcaccountrole'
             ],
             'uuid': [
                 '5d0049f4-67b3-11e3-8059-273f883b3fb6'
@@ -288,7 +288,7 @@ test('modify - add policy', function (t) {
             'account': [
                 '390c229a-8c77-445f-b227-88e41c2bb3cf'
             ],
-            'cn': [
+            'name': [
                 'devread'
             ],
             'memberrole': [
@@ -297,7 +297,7 @@ test('modify - add policy', function (t) {
                     'ou=users, o=smartdc'
             ],
             'objectclass': [
-                'sdcaccountgroup'
+                'sdcaccountrole'
             ],
             'uuid': [
                 '5d0049f4-67b3-11e3-8059-273f883b3fb6'
@@ -362,11 +362,11 @@ test('modify - delete policy', function (t) {
             'account': [
                 '390c229a-8c77-445f-b227-88e41c2bb3cf'
             ],
-            'cn': [
+            'name': [
                 'devread'
             ],
             'objectclass': [
-                'sdcaccountgroup'
+                'sdcaccountrole'
             ],
             'uuid': [
                 '5d0049f4-67b3-11e3-8059-273f883b3fb6'
@@ -417,11 +417,11 @@ test('delete', function (t) {
             'account': [
                 '390c229a-8c77-445f-b227-88e41c2bb3cf'
             ],
-            'cn': [
+            'name': [
                 'devread'
             ],
             'objectclass': [
-                'sdcaccountgroup'
+                'sdcaccountrole'
             ],
             'uuid': [
                 '5d0049f4-67b3-11e3-8059-273f883b3fb6'

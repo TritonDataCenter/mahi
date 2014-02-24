@@ -130,15 +130,6 @@ test('modify - irrelevant change', function (t) {
                         'Joy3nt'
                     ]
                 }
-            },
-            {
-                'operation': 'replace',
-                'modification': {
-                    'type': 'updated_at',
-                    'vals': [
-                        '1386795904026'
-                    ]
-                }
             }
         ],
         'entry': JSON.stringify({
@@ -232,15 +223,6 @@ test('modify - approved for provisioning', function (t) {
                         'true'
                     ]
                 }
-            },
-            {
-                'operation': 'replace',
-                'modification': {
-                    'type': 'updated_at',
-                    'vals': [
-                        '1386795903782'
-                    ]
-                }
             }
         ],
         entry: JSON.stringify({
@@ -331,15 +313,6 @@ test('modify - rename', function (t) {
                     'type': 'login',
                     'vals': [
                         'bmc'
-                    ]
-                }
-            },
-            {
-                'operation': 'replace',
-                'modification': {
-                    'type': 'updated_at',
-                    'vals': [
-                        '1386795903954'
                     ]
                 }
             }

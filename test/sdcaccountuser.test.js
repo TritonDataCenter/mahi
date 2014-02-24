@@ -144,15 +144,6 @@ test('modify - rename', function (t) {
                         'subuser3'
                     ]
                 }
-            },
-            {
-                'operation': 'replace',
-                'modification': {
-                    'type': 'updated_at',
-                    'vals': [
-                        '1387414685519'
-                    ]
-                }
             }
         ],
         'entry': JSON.stringify({
