@@ -104,7 +104,7 @@ test('add - user', function (t) {
                 '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18'
             ],
             '_owner': [
-                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                '3ffc7b4c-66a6-11e3-af09-8752d24e4669'
             ],
             '_parent': [
                 'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
@@ -227,7 +227,7 @@ test('delete - user', function (t) {
                 '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18'
             ],
             '_owner': [
-                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+                '3ffc7b4c-66a6-11e3-af09-8752d24e4669'
             ],
             '_parent': [
                 'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
