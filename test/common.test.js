@@ -24,7 +24,7 @@ before(function (cb) {
     var self = this;
     this.log = nodeunit.createLogger('common', process.stderr);
     this.redis = redis.createClient();
-    self.redis.set('/uuid/' + UUID, JSON.stringify({
+    self.redis.set('/uuidv2/' + UUID, JSON.stringify({
         name: 'name'
     }), function (err) {
         if (err) {
@@ -491,7 +491,7 @@ test('setValue', function (t)  {
     var self = this;
     var batch = this.redis.multi();
     common.setValue({
-        key: '/uuid/' + UUID,
+        key: '/uuidv2/' + UUID,
         property: 'name',
         value: 'newname',
         batch: batch,
@@ -507,7 +507,7 @@ test('setValue', function (t)  {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuid/' + UUID, function (err, res) {
+            self.redis.get('/uuidv2/' + UUID, function (err, res) {
                 var name = JSON.parse(res).name;
                 t.equal(name, 'newname');
                 t.done();
@@ -537,7 +537,7 @@ test('rename', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuid/' + UUID, function (err, res) {
+            self.redis.get('/uuidv2/' + UUID, function (err, res) {
                 var name = JSON.parse(res).name;
                 t.equal(name, 'newname');
                 t.done();

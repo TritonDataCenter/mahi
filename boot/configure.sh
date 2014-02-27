@@ -26,10 +26,17 @@ function manta_setup_redis {
     svcadm enable redis
 }
 
-
 function manta_setup_auth {
     svccfg import $SVC_ROOT/smf/manifests/mahi.xml
     svcadm enable mahi
+}
+
+function manta_setup_auth2 {
+    svccfg import $SVC_ROOT/smf/manifests/mahi-replicator.xml
+    svcadm enable mahi-replicator
+
+    svccfg import $SVC_ROOT/smf/manifests/mahi-server.xml
+    svcadm enable mahi-server
 }
 
 
@@ -51,6 +58,9 @@ manta_setup_redis
 
 echo "Updating auth"
 manta_setup_auth
+
+echo "Updating auithv2"
+manta_setup auth2
 
 manta_common_setup_end
 

@@ -65,7 +65,7 @@ test('add', function (t) {
     var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
     var name = 'devread';
     var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
-    var key = '/uuid/' + uuid;
+    var key = '/uuidv2/' + uuid;
     var value = {
         type: 'role',
         name: name,
@@ -100,7 +100,7 @@ test('add', function (t) {
                 t.strictEqual(1, res);
                 barrier.done('set');
             });
-            REDIS.get('/uuid/3ffc7b4c-66a6-11e3-af09-8752d24e4669',
+            REDIS.get('/uuidv2/3ffc7b4c-66a6-11e3-af09-8752d24e4669',
                 function (err, res) {
 
                 t.ok(JSON.parse(res).roles.indexOf(uuid) >= 0);
@@ -177,7 +177,7 @@ test('modify - add member', function (t) {
 
     var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
     var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
-    var key = '/uuid/' + user;
+    var key = '/uuidv2/' + user;
     transform.modify(args, function (err, res) {
         t.strictEqual(2, res.queue.length);
         REDIS.get(key, function (err, res) {
@@ -249,7 +249,7 @@ test('modify - delete member', function (t) {
 
     var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
     var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
-    var key = '/uuid/' + user;
+    var key = '/uuidv2/' + user;
     transform.modify(args, function (err, res) {
         t.strictEqual(2, res.queue.length);
         res.exec(function () {
@@ -323,7 +323,7 @@ test('modify - add policy', function (t) {
 
     var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
     var role = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
-    var key = '/uuid/' + uuid;
+    var key = '/uuidv2/' + uuid;
     transform.modify(args, function (err, res) {
         t.strictEqual(2, res.queue.length);
         res.exec(function () {
@@ -391,7 +391,7 @@ test('modify - delete policy', function (t) {
     };
     var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
     var role = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
-    var key = '/uuid/' + uuid;
+    var key = '/uuidv2/' + uuid;
     transform.modify(args, function (err, res) {
         t.strictEqual(2, res.queue.length);
         res.exec(function () {
@@ -448,7 +448,7 @@ test('delete', function (t) {
     var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
     var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
     var name = 'devread';
-    var key = '/uuid/' + uuid;
+    var key = '/uuidv2/' + uuid;
 
     transform.delete(args, function (err, res) {
         t.strictEqual(4, res.queue.length);

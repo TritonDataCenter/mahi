@@ -44,7 +44,7 @@ test('add - single user', function (t) {
         redis: REDIS
     };
 
-    var key = '/uuid/930896af-bf8c-48d4-885c-6573a94b1853';
+    var key = '/uuidv2/930896af-bf8c-48d4-885c-6573a94b1853';
     var value = JSON.stringify({'groups':{'operators':true}});
 
     transform.add(args, function (err, res) {
@@ -96,8 +96,8 @@ test('add - multiple users', function (t) {
         redis: REDIS
     };
 
-    var key1 = '/uuid/930896af-bf8c-48d4-885c-6573a94b1853';
-    var key2 = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var key1 = '/uuidv2/930896af-bf8c-48d4-885c-6573a94b1853';
+    var key2 = '/uuidv2/1a940615-65e9-4856-95f9-f4c530e86ca4';
     var value1 = JSON.stringify({
         'groups':{
             'operators':true,
@@ -205,9 +205,9 @@ test('modify', function (t) {
         'changenumber': '15'
     };
 
-    var key1 = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
-    var key2 = '/uuid/930896af-bf8c-48d4-885c-6573a94b1853';
-    var key3 = '/uuid/a820621a-5007-4a2a-9636-edde809106de';
+    var key1 = '/uuidv2/1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var key2 = '/uuidv2/930896af-bf8c-48d4-885c-6573a94b1853';
+    var key3 = '/uuidv2/a820621a-5007-4a2a-9636-edde809106de';
 
     var args = {
         changes: entry.changes,
@@ -280,10 +280,10 @@ test('delete', function (t) {
         redis: REDIS
     };
 
-    var key1 = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
-    var key2 = '/uuid/930896af-bf8c-48d4-885c-6573a94b1853';
-    var key3 = '/uuid/a820621a-5007-4a2a-9636-edde809106de';
-    var key4 = '/uuid/f445c6e2-61e9-11e3-a740-03049cda7ff9';
+    var key1 = '/uuidv2/1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var key2 = '/uuidv2/930896af-bf8c-48d4-885c-6573a94b1853';
+    var key3 = '/uuidv2/a820621a-5007-4a2a-9636-edde809106de';
+    var key4 = '/uuidv2/f445c6e2-61e9-11e3-a740-03049cda7ff9';
     var value = JSON.stringify({groups: {'admins': true}});
 
     transform.delete(args, function (err, res) {

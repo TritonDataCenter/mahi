@@ -32,7 +32,7 @@ JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
 JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
 REPO_MODULES	 = src/node-dummy
-SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in
+SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in smf/manifests/mahi-redis.xml.in smf/manifests/mahi-server.xml.in smf/manifests/mahi-replicator.xml.in
 
 
 #
@@ -90,7 +90,7 @@ release: all docs $(SMF_MANIFESTS)
 		$(TOP)/boot \
 		$(TOP)/bin \
 		$(TOP)/lib \
-		$(TOP)/main.js \
+		$(TOP)/v1 \
 		$(TOP)/node_modules \
 		$(TOP)/package.json \
 		$(TOP)/sapi_manifests \

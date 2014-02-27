@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
-<service_bundle type="manifest" name="mahi">
-  <service name="manta/application/mahi" type="service" version="1">
+<service_bundle type="manifest" name="mahi-server">
+  <service name="manta/application/mahi-server" type="service" version="1">
 
     <dependency name="network" grouping="require_all" restart_on="error" type="service">
       <service_fmri value="svc:/network/physical" />
@@ -20,7 +20,7 @@
 
     <exec_method type="method"
       name="start"
-      exec="./build/node/bin/node v1/main.js -d -f etc/mahi.json &amp;"
+      exec="./build/node/bin/node lib/server/server.js -c etc/mahi2.json &amp;"
       timeout_seconds="30">
       <method_context working_directory="/opt/smartdc/mahi">
         <method_credential user="root"

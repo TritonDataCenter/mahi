@@ -57,7 +57,7 @@ test('add - account', function (t) {
         redis: REDIS
     };
 
-    var key = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var key = '/uuidv2/1a940615-65e9-4856-95f9-f4c530e86ca4';
     var value = {
         keys: {
             '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18': 'elided-pkcs'
@@ -122,7 +122,7 @@ test('add - user', function (t) {
         redis: REDIS
     };
 
-    var key = '/uuid/3ffc7b4c-66a6-11e3-af09-8752d24e4669';
+    var key = '/uuidv2/3ffc7b4c-66a6-11e3-af09-8752d24e4669';
     var value = {
         keys: {
             '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18': 'elided-pkcs'
@@ -185,7 +185,7 @@ test('delete', function (t) {
     };
     var fp = '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18';
 
-    var key = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var key = '/uuidv2/1a940615-65e9-4856-95f9-f4c530e86ca4';
     transform.delete(args, function (err, res) {
         t.strictEqual(2, res.queue.length);
         res.exec(function () {
@@ -247,7 +247,7 @@ test('delete - user', function (t) {
 
     var fp = '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18';
 
-    var key = '/uuid/3ffc7b4c-66a6-11e3-af09-8752d24e4669';
+    var key = '/uuidv2/3ffc7b4c-66a6-11e3-af09-8752d24e4669';
     transform.delete(args, function (err, res) {
         t.strictEqual(2, res.queue.length);
         res.exec(function () {

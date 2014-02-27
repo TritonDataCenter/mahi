@@ -1,0 +1,5 @@
+{
+    "name": "mahi",
+    "path": "/opt/smartdc/mahi/etc/mahi2.json",
+	"master": true
+}
