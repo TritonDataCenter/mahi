@@ -105,8 +105,9 @@ else # ${FLAVOR} == "sdc"
     echo "Installing auth redis"
     sdc_setup_redis
 
-    echo "Installing auth"
-    manta_setup_auth
+    # SDC doesn't need old mahi service
+    # echo "Installing auth"
+    # manta_setup_auth
 
     echo "insgtalling authv2"
     manta_setup_auth2
