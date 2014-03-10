@@ -1,0 +1,15 @@
+{
+    "ufds": {
+        "url": "ldaps://{{{UFDS_SERVICE}}}",
+        "_comment": "max connections must > 1, we do want to use pooling",
+        "maxConnections": 2,
+        "bindDN": "{{{ufds_ldap_root_dn}}}",
+        "bindCredentials": "{{{ufds_ldap_root_pw}}}",
+        "interval": 10000
+    },
+    "redis": {
+        "host": "localhost",
+        "port": 6379,
+        "options" : {}
+    }
+}
