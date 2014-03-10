@@ -94,14 +94,14 @@ release: all docs $(SMF_MANIFESTS)
 		$(TOP)/node_modules \
 		$(TOP)/package.json \
 		$(TOP)/sapi_manifests \
+		$(ROOT)/sdc \
 		$(TOP)/smf \
 		$(TOP)/etc \
 		$(RELSTAGEDIR)/root/opt/smartdc/mahi/
 	mv $(RELSTAGEDIR)/root/opt/smartdc/mahi/build/scripts \
 	    $(RELSTAGEDIR)/root/opt/smartdc/mahi/boot
-	ln -s /opt/smartdc/mahi/boot/configure.sh \
-	    $(RELSTAGEDIR)/root/opt/smartdc/boot/configure.sh
-	chmod 755 $(RELSTAGEDIR)/root/opt/smartdc/mahi/boot/configure.sh
+	cp -R $(TOP)/deps/sdc-scripts/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
+	cp -R $(TOP)/boot/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
 	(cd $(RELSTAGEDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
 	@rm -rf $(RELSTAGEDIR)
 
