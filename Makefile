@@ -94,7 +94,7 @@ release: all docs $(SMF_MANIFESTS)
 		$(TOP)/node_modules \
 		$(TOP)/package.json \
 		$(TOP)/sapi_manifests \
-		$(ROOT)/sdc \
+		$(TOP)/sdc \
 		$(TOP)/smf \
 		$(TOP)/etc \
 		$(RELSTAGEDIR)/root/opt/smartdc/mahi/
