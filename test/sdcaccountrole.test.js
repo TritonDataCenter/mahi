@@ -140,8 +140,8 @@ test('modify - add member', function (t) {
             'name': [
                 'devread'
             ],
-            'memberrole': [
-                'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+            'memberpolicy': [
+                'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                     'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                     'ou=users, o=smartdc'
             ],
@@ -217,8 +217,8 @@ test('modify - delete member', function (t) {
             'name': [
                 'devread'
             ],
-            'memberrole': [
-                'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+            'memberpolicy': [
+                'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                     'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                     'ou=users, o=smartdc'
             ],
@@ -275,7 +275,7 @@ test('modify - add policy', function (t) {
             {
                 'operation': 'add',
                 'modification': {
-                    'type': 'memberrole',
+                    'type': 'memberpolicy',
                     'vals': [
                         'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                             'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
@@ -291,8 +291,8 @@ test('modify - add policy', function (t) {
             'name': [
                 'devread'
             ],
-            'memberrole': [
-                'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+            'memberpolicy': [
+                'group-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                     'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                     'ou=users, o=smartdc'
             ],
@@ -349,9 +349,9 @@ test('modify - delete policy', function (t) {
             {
                 'operation': 'delete',
                 'modification': {
-                    'type': 'memberrole',
+                    'type': 'memberpolicy',
                     'vals': [
-                        'role-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                        'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
                             'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                             'ou=users, o=smartdc'
                     ]
