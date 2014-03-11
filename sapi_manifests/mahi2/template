@@ -5,6 +5,9 @@
         "maxConnections": 2,
         "bindDN": "{{UFDS_ROOT_DN}}",
         "bindCredentials": "{{UFDS_ROOT_PW}}",
+        "tlsOptions": {
+            "rejectUnauthorized": false
+        }
         "interval": 10000
     },
     "redis": {

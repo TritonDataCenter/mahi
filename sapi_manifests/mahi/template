@@ -5,7 +5,10 @@
 		"maxConnections": 2,
 		"bindDN": "{{UFDS_ROOT_DN}}",
 		"bindCredentials": "{{UFDS_ROOT_PW}}",
-		"timeout": 5000
+		"timeout": 5000,
+		"tlsOptions": {
+			"rejectUnauthorized": false
+		}
 	},
 	"redisCfg": {
 		"host": "localhost",
