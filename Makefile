@@ -99,9 +99,11 @@ release: all docs $(SMF_MANIFESTS)
 		$(TOP)/etc \
 		$(RELSTAGEDIR)/root/opt/smartdc/mahi/
 	mv $(RELSTAGEDIR)/root/opt/smartdc/mahi/build/scripts \
-	    $(RELSTAGEDIR)/root/opt/smartdc/mahi/boot
+		$(RELSTAGEDIR)/root/opt/smartdc/mahi/boot
 	cp -R $(TOP)/deps/sdc-scripts/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
 	cp -R $(TOP)/boot/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
+	ln -s /opt/smartdc/mahi/boot/scripts \
+		$(RELSTAGEDIR)/root/opt/smartdc/boot/scripts
 	(cd $(RELSTAGEDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
 	@rm -rf $(RELSTAGEDIR)
 
