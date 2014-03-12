@@ -1013,7 +1013,7 @@ function del(self, changes, entry, cb) {
             changenumber: entry.object.changenumber,
             groupEntry: entry.object
         }, 'deleting group');
-        var users = changes.uniquemember;
+        var users = changes.uniquemember || [];
         // for each user UUID, delete the group name entry from the user's entry
 
         // like uuid=930896af-bf8c-48d4-885c-6573a94b1853, ou=users, o=smartdc
