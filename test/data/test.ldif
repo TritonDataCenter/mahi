@@ -53,7 +53,7 @@ changetype: add
 uuid: bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f
 login: banks
 email: banks@banks.com
-userpassword: password
+userpassword: secret123
 objectclass: sdcperson
 
 dn: uuid=1e77f528-9e64-11e3-8d12-838d40383bce, ou=users, o=smartdc
@@ -61,7 +61,7 @@ changetype: add
 uuid: 1e77f528-9e64-11e3-8d12-838d40383bce
 login: auto
 email: auto@auto.com
-userpassword: password
+userpassword: secret123
 approved_for_provisioning: true
 objectclass: sdcperson
 
@@ -70,7 +70,7 @@ changetype: add
 uuid: 2a05359a-9e64-11e3-816d-e7f87365cf40
 login: oil
 email: oil@oil.com
-userpassword: password
+userpassword: secret123
 approved_for_provisioning: false
 objectclass: sdcperson
 
@@ -83,7 +83,7 @@ login: bankofamerica
 email: boa@banks.com
 uuid: 3ffc7b4c-66a6-11e3-af09-8752d24e4669
 account: bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f
-userpassword: password
+userpassword: secret123
 objectclass: sdcperson
 
 dn: uuid=27cf9260-9e65-11e3-92c6-afafb8dd2915, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
@@ -92,7 +92,7 @@ login: chase
 email: chase@banks.com
 uuid: 27cf9260-9e65-11e3-92c6-afafb8dd2915
 account: bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f
-userpassword: password
+userpassword: secret123
 objectclass: sdcperson
 
 dn: uuid=4ea2902c-9e65-11e3-b92f-57ffe57ceee8, uuid=1e77f528-9e64-11e3-8d12-838d40383bce, ou=users, o=smartdc
@@ -101,7 +101,7 @@ login: ford
 email: ford@auto.com
 uuid: 4ea2902c-9e65-11e3-b92f-57ffe57ceee8
 account: 1e77f528-9e64-11e3-8d12-838d40383bce
-userpassword: password
+userpassword: secret123
 objectclass: sdcperson
 
 dn: uuid=a40a2764-9e65-11e3-85e0-33cd72381f16, uuid=2a05359a-9e64-11e3-816d-e7f87365cf40, ou=users, o=smartdc
@@ -110,7 +110,7 @@ login: exxon
 email: exxon@oil.com
 uuid: a40a2764-9e65-11e3-85e0-33cd72381f16
 account: 2a05359a-9e64-11e3-816d-e7f87365cf40
-userpassword: password
+userpassword: secret123
 objectclass: sdcperson
 
 dn: uuid=ae1b11c8-9e65-11e3-ae6f-87daf519a513, uuid=2a05359a-9e64-11e3-816d-e7f87365cf40, ou=users, o=smartdc
@@ -119,7 +119,7 @@ login: shell
 email: shell@oil.com
 uuid: ae1b11c8-9e65-11e3-ae6f-87daf519a513
 account: 2a05359a-9e64-11e3-816d-e7f87365cf40
-userpassword: password
+userpassword: secret123
 objectclass: sdcperson
 
 
@@ -133,16 +133,16 @@ uniquemember: uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
 
 ## --- sdckey add
 
-dn: fingerprint=7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
+dn: fingerprint=e3:4d:9b:26:bd:ef:a1:db:43:ae:4b:f7:bc:69:a7:24, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
 changetype: add
 name: bankskey
-openssh: ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA34XP/UMdCuB/jOQg3VU4XBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwlpLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5RU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi721ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpngw== bcantrill@Bryan-Cantrill-MacBook-Pro.local
+openssh: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3Q2YNYH1FKAKM4kaT2zdNDCPBlBfElAO6oUr49GM4mDegGQujMbMCBgc3oait7NZ9D5omYz3M3kEOdEok5N+tSGel/gdNMynhOeIHi7xVuV6iacBlskDqTHgmFK6dy0gr7Ddbj59hdDIz4lhkSYIL8OiooVhlygYpZ8ern/RGOg2BwipdFULBAGpIwkooV/MAZmnaImU1XTHJGhU6ShiHap/66Qqn6MIc7KqbwxpbdT9NgCAUbNlPya+06TlUpbjlyfXZH9I9WyUeWS92xyshQWg8ShPyzgwnCDX/8eohfYUA1KLKwAFK/y1yWk17aziNtt95x1CPK14uKMHHwxJl Fred@JOYENT-BASE-IMAGE-4.local
 objectclass: sdcKey
 
-dn: fingerprint=7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18, uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
+dn: fingerprint=e3:4d:9b:26:bd:ef:a1:db:43:ae:4b:f7:bc:69:a7:24, uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
 changetype: add
 name: boakey
-openssh: ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA34XP/UMdCuB/jOQg3VU4XBDs28i4Vw7X3TxHj0MX7ZnWtpXZ3cXtfetLtM6DWFY2BtEDIUBbY2JeDhZ5tTwlpLjNZLHN/RjOrlxmXI3mo/ocNOtF3735S+bRTe30ZUNgQGjQyGPjjl1lKHkBou5RU1FCG6SEsvp4FxJZqwf5hzvUu7d9GqDXsk/Nwv2e7xzJ1jbHvVz+Eau2gPLpxi721ErHrwCyyjr980X5VCqHGxye6tmn3plHlhh9Av1CZs42StBuScRShrxQ7/wOCRIG8zxepICaEDv6HcJdf1805ayk2N2Ye7jaRi8KlfdSiy4/K/1DSHiT7vfjZy3K6jpngw== bcantrill@Bryan-Cantrill-MacBook-Pro.local
+openssh: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3Q2YNYH1FKAKM4kaT2zdNDCPBlBfElAO6oUr49GM4mDegGQujMbMCBgc3oait7NZ9D5omYz3M3kEOdEok5N+tSGel/gdNMynhOeIHi7xVuV6iacBlskDqTHgmFK6dy0gr7Ddbj59hdDIz4lhkSYIL8OiooVhlygYpZ8ern/RGOg2BwipdFULBAGpIwkooV/MAZmnaImU1XTHJGhU6ShiHap/66Qqn6MIc7KqbwxpbdT9NgCAUbNlPya+06TlUpbjlyfXZH9I9WyUeWS92xyshQWg8ShPyzgwnCDX/8eohfYUA1KLKwAFK/y1yWk17aziNtt95x1CPK14uKMHHwxJl Fred@JOYENT-BASE-IMAGE-4.local
 objectclass: sdcKey
 
 
@@ -179,7 +179,7 @@ objectclass: sdcaccountrole
 dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
 changetype: add
 name: foo
-rule: Can read foo and bar when ip = 10.0.0.0/8
+rule: Can PutObject foo and bar when ip = 10.0.0.0/8
 rule: Can read red and blue when ip = 10.0.0.0/16
 account: bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f
 uuid: b4301b32-66b4-11e3-ac31-6b349ce5dc45
