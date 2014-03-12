@@ -15,15 +15,14 @@ var after = nodeunit.after;
 var before = nodeunit.before;
 var test = nodeunit.test;
 
-
+var DATA = path.resolve(__dirname, './data/test-nodeletes.json');
 var REDIS = redis.createClient();
 
 test('setup - populate redis', function (t) {
     var typeTable = {
         ip: 'ip'
     };
-    var data = fs.createReadStream(path.resolve(__dirname,
-        './data/test-nodeletes.json'));
+    var data = fs.createReadStream(DATA);
     var json = new jsonstream();
     var transform = new Transform({
         redis: REDIS,
@@ -71,6 +70,13 @@ test('getAccount', function (t) {
     });
 });
 
+test('account not approved', function (t) {
+    this.client.get('/account/oilandgas', function (err) {
+        t.equal(err.restCode, 'NotApprovedForProvisioning');
+        t.end();
+    });
+});
+
 test('account dne', function (t) {
     this.client.get('/account/asdfkasdf', function (err, req, res, obj) {
         t.equal(err.restCode, 'AccountDoesNotExist');
@@ -81,20 +87,32 @@ test('account dne', function (t) {
 
 test('getUser', function (t) {
     this.client.get('/user/banks/bankofamerica', function (err, req, res, obj) {
-        console.log(obj);
+        t.ok(obj.user);
         t.end();
     });
 });
 
 test('translate role', function (t) {
     var params = {
-        account: 'banks',
-        role: ['lender', 'borrower']
+        account: 'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f',
+        type: 'role',
+        names: ['lender', 'borrower', 'noexist']
     };
 
-    this.client.post('/translate', params, function (err, req, res, obj) {
-        t.ok(obj.role.lender);
-        t.ok(obj.role.borrower);
+    this.client.post('/getUuid', params, function (err, req, res, obj) {
+        t.ok(obj.lender);
+        t.ok(obj.borrower);
+        t.end();
+    });
+});
+
+test('translate uuid', function (t) {
+    var params = {
+        uuids: ['bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f', 'noexist']
+    };
+
+    this.client.post('/getName', params, function (err, req, res, obj) {
+        t.ok(obj['bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f']);
         t.end();
     });
 });

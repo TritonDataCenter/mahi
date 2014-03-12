@@ -1,3 +1,4 @@
+// From http://nodejs.org/api/stream.html#stream_state_objects
 var util = require('util');
 var StringDecoder = require('string_decoder').StringDecoder;
 var Transform = require('stream').Transform;
