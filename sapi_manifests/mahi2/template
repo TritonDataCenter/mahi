@@ -7,7 +7,7 @@
         "bindCredentials": "{{UFDS_ROOT_PW}}",
         "tlsOptions": {
             "rejectUnauthorized": false
-        }
+        },
         "interval": 10000
     },
     "redis": {
