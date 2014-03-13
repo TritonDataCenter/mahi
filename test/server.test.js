@@ -92,16 +92,28 @@ test('getUser', function (t) {
     });
 });
 
+test('translate account', function (t) {
+    var params = {
+        account: 'banks'
+    };
+
+    this.client.post('/getUuid', params, function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.end();
+    });
+});
+
 test('translate role', function (t) {
     var params = {
-        account: 'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f',
+        account: 'banks',
         type: 'role',
         names: ['lender', 'borrower', 'noexist']
     };
 
     this.client.post('/getUuid', params, function (err, req, res, obj) {
-        t.ok(obj.lender);
-        t.ok(obj.borrower);
+        t.ok(obj.account);
+        t.ok(obj.uuids.lender);
+        t.ok(obj.uuids.borrower);
         t.end();
     });
 });
