@@ -5,6 +5,9 @@
         "maxConnections": 2,
         "bindDN": "{{{ufds_ldap_root_dn}}}",
         "bindCredentials": "{{{ufds_ldap_root_pw}}}",
+        "tlsOptions": {
+            "rejectUnauthorized": false
+        },
         "interval": 10000
     },
     "redis": {
