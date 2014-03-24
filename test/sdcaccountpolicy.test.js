@@ -358,6 +358,77 @@ test('modify - delete policy', function (t) {
     });
 });
 
+test('modify - replace policy', function (t) {
+    var entry = {
+        'dn': 'changenumber=28, cn=changelog',
+        'controls': [],
+        'targetdn': 'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2014-02-07T18:16:42.315Z',
+        'changes': [
+            {
+                'operation': 'replace',
+                'modification': {
+                    'type': 'rule',
+                    'vals': [
+                        'Can read x and y when ip = 10.0.0.0/32'
+                    ]
+                }
+            }
+        ],
+        'entry': JSON.stringify({
+            'account': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            'name': [
+                'newname'
+            ],
+            'objectclass': [
+                'sdcaccountpolicy'
+            ],
+            'rule': [
+                'Can read x and y when ip = 10.0.0.0/32'
+            ],
+            'uuid': [
+                'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+            ],
+            '_owner': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            '_parent': [
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ]
+        }),
+        'changenumber': '28'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        modEntry: JSON.parse(entry.entry),
+        log: this.log,
+        parser: PARSER,
+        redis: REDIS
+    };
+
+    var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+    var rule = 'Can read x and y when ip = 10.0.0.0/32';
+
+    transform.modify(args, function (err, res) {
+        t.strictEqual(res.queue.length, 2);
+        res.exec(function () {
+            REDIS.get('/uuidv2/' + uuid, function (err, res) {
+                t.equal(JSON.parse(res).rules[0][0], rule);
+                t.done();
+            });
+        });
+    });
+});
+
 test('modify - add group', function (t) {
     var entry = {
         'dn': 'changenumber=23, cn=changelog',
