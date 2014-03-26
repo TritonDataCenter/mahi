@@ -71,8 +71,8 @@ test('getAccount', function (t) {
 });
 
 test('account not approved', function (t) {
-    this.client.get('/account/oilandgas', function (err) {
-        t.equal(err.restCode, 'NotApprovedForProvisioning');
+    this.client.get('/account/oilandgas', function (err, req, res, obj) {
+        t.ok(obj.account.approved_for_provisioning === false);
         t.end();
     });
 });
