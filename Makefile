@@ -30,7 +30,6 @@ JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
-JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
 REPO_MODULES	 = src/node-dummy
 SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in smf/manifests/mahi-redis.xml.in smf/manifests/mahi-server.xml.in smf/manifests/mahi-replicator.xml.in
 
