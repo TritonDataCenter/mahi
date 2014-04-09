@@ -283,6 +283,12 @@ changetype: modify
 add: uniquemember
 uniquemember: uuid=27cf9260-9e65-11e3-92c6-afafb8dd2915, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
 
+# add uniquememberdefault
+dn: group-uuid=f7e61afc-9f12-11e3-8353-4b17a217ad14, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
+changetype: modify
+add: uniquememberdefault
+uniquemember: uuid=27cf9260-9e65-11e3-92c6-afafb8dd2915, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
+
 # modify uniquemember (borrower set to chase only)
 dn: group-uuid=f7e61afc-9f12-11e3-8353-4b17a217ad14, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
 changetype: modify
@@ -312,6 +318,12 @@ dn: group-uuid=f7e61afc-9f12-11e3-8353-4b17a217ad14, uuid=bde5a308-9e5a-11e3-bbf
 changetype: modify
 delete: memberpolicy
 memberpolicy: policy-uuid=a188ee70-9fdd-11e3-925f-ab3b4c32f7b8, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
+
+# delete uniquememberdefault
+dn: group-uuid=f7e61afc-9f12-11e3-8353-4b17a217ad14, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
+changetype: modify
+delete: uniquememberdefault
+uniquemember: uuid=27cf9260-9e65-11e3-92c6-afafb8dd2915, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
 
 ## --- sdcaccountpolicy modify
 

@@ -136,6 +136,12 @@ objectclass: sdcaccountrole
 uniquemember: uuid=27cf9260-9e65-11e3-92c6-afafb8dd2915, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
 objectclass: sdcaccountrole
 
+# add uniquememberdefault
+dn: group-uuid=f7e61afc-9f12-11e3-8353-4b17a217ad14, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
+changetype: modify
+add: uniquememberdefault
+uniquemember: uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc
+
 ## --- sdcaccountpolicy add
 
 dn: policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ou=users, o=smartdc

@@ -180,9 +180,11 @@ test('modify - add member', function (t) {
     var key = '/uuidv2/' + user;
     transform.modify(args, function (err, res) {
         t.strictEqual(2, res.queue.length);
-        REDIS.get(key, function (err, res) {
-            t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
-            t.done();
+        res.exec(function () {
+            REDIS.get(key, function (err, res) {
+                t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
+                t.done();
+            });
         });
     });
 });
@@ -397,6 +399,168 @@ test('modify - delete policy', function (t) {
         res.exec(function () {
             REDIS.get(key, function (err, res) {
                 t.strictEqual(JSON.parse(res).policies.indexOf(role), -1);
+                t.done();
+            });
+        });
+    });
+});
+
+test('modify - add default member', function (t) {
+    var entry = {
+        'dn': 'changenumber=130, cn=changelog',
+        'controls': [],
+        'targetdn': 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2014-04-09T21:02:42.133Z',
+        'changes': [
+            {
+              'operation': 'add',
+              'modification': {
+                'type': 'uniquememberdefault',
+                'vals': [
+                    'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                        'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                ]
+              }
+            }
+        ],
+        'entry': JSON.stringify({
+              'account': [
+                'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f'
+              ],
+              'name': [
+                'borrower'
+              ],
+              'objectclass': [
+                'sdcaccountrole'
+              ],
+              'uniquemember': [
+                'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                    'uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ' +
+                    'ou=users, o=smartdc'
+              ],
+              'uuid': [
+                '5d0049f4-67b3-11e3-8059-273f883b3fb6'
+              ],
+              '_owner': [
+                'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f'
+              ],
+              '_parent': [
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc'
+              ],
+              'memberpolicy': [
+                'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                    'uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ' +
+                    'ou=users, o=smartdc'
+              ],
+              'uniquememberdefault': [
+                'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+              ]
+        }),
+        'changenumber': '130'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        modEntry: JSON.parse(entry.entry),
+        log: this.log,
+        redis: REDIS
+    };
+
+    var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+    var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
+    var key = '/uuidv2/' + user;
+    transform.modify(args, function (err, res) {
+        t.strictEqual(2, res.queue.length);
+        res.exec(function () {
+            REDIS.get(key, function (err, res) {
+                t.ok(JSON.parse(res).defaultRoles.indexOf(uuid) > -1);
+                t.done();
+            });
+        });
+    });
+});
+
+test('modify - delete default member', function (t) {
+    var entry = {
+        'dn': 'changenumber=130, cn=changelog',
+        'controls': [],
+        'targetdn': 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2014-04-09T21:02:42.133Z',
+        'changes': [
+            {
+              'operation': 'delete',
+              'modification': {
+                'type': 'uniquememberdefault',
+                'vals': [
+                    'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                        'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                        'ou=users, o=smartdc'
+                ]
+              }
+            }
+        ],
+        'entry': JSON.stringify({
+              'account': [
+                'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f'
+              ],
+              'name': [
+                'borrower'
+              ],
+              'objectclass': [
+                'sdcaccountrole'
+              ],
+              'uniquemember': [
+                'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                    'uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ' +
+                    'ou=users, o=smartdc'
+              ],
+              'uuid': [
+                '5d0049f4-67b3-11e3-8059-273f883b3fb6'
+              ],
+              '_owner': [
+                'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f'
+              ],
+              '_parent': [
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc'
+              ],
+              'memberpolicy': [
+                'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                    'uuid=bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f, ' +
+                    'ou=users, o=smartdc'
+              ],
+              'uniquememberdefault': []
+        }),
+        'changenumber': '130'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        modEntry: JSON.parse(entry.entry),
+        log: this.log,
+        redis: REDIS
+    };
+
+    var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+    var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
+    var key = '/uuidv2/' + user;
+    transform.modify(args, function (err, res) {
+        t.strictEqual(2, res.queue.length);
+        res.exec(function () {
+            REDIS.get(key, function (err, res) {
+                t.ok(JSON.parse(res).defaultRoles.indexOf(uuid) === -1);
                 t.done();
             });
         });
