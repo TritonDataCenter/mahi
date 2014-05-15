@@ -1,5 +1,7 @@
 {
     "typeTable": {
-        "ip": "ip"
+        "ip": "ip",
+        "tag": "string",
+        "route": "string"
     }
 }
