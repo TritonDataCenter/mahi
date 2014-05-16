@@ -45,7 +45,7 @@ test('add - single user', function (t) {
     };
 
     var key = '/uuidv2/930896af-bf8c-48d4-885c-6573a94b1853';
-    var value = JSON.stringify({'groups':{'operators':true}});
+    var value = JSON.stringify({'groups':['operators']});
 
     transform.add(args, function (err, res) {
         t.equal(2, res.queue.length);
@@ -99,12 +99,9 @@ test('add - multiple users', function (t) {
     var key1 = '/uuidv2/930896af-bf8c-48d4-885c-6573a94b1853';
     var key2 = '/uuidv2/1a940615-65e9-4856-95f9-f4c530e86ca4';
     var value1 = JSON.stringify({
-        'groups':{
-            'operators':true,
-            'admins': true
-        }
+        'groups': [ 'admins', 'operators' ]
     });
-    var value2 = JSON.stringify({'groups':{'admins':true}});
+    var value2 = JSON.stringify({'groups':['admins']});
 
     transform.add(args, function (err, res) {
         t.equal(3, res.queue.length);
@@ -227,17 +224,17 @@ test('modify', function (t) {
                 t.done();
             });
             REDIS.get(key1, function (err, res) {
-                t.ok(JSON.parse(res).groups.operators);
-                t.ok(JSON.parse(res).groups.admins);
+                t.ok(JSON.parse(res).groups.indexOf('operators') >= 0);
+                t.ok(JSON.parse(res).groups.indexOf('admins') >= 0);
                 barrier.done('1');
             });
             REDIS.get(key2, function (err, res) {
-                t.ok(JSON.parse(res).groups.operators);
-                t.ok(JSON.parse(res).groups.admins);
+                t.ok(JSON.parse(res).groups.indexOf('operators') >= 0);
+                t.ok(JSON.parse(res).groups.indexOf('admins') >= 0);
                 barrier.done('2');
             });
             REDIS.get(key3, function (err, res) {
-                t.ok(JSON.parse(res).groups.operators);
+                t.ok(JSON.parse(res).groups.indexOf('operators') >= 0);
                 barrier.done('3');
             });
         });
@@ -284,7 +281,7 @@ test('delete', function (t) {
     var key2 = '/uuidv2/930896af-bf8c-48d4-885c-6573a94b1853';
     var key3 = '/uuidv2/a820621a-5007-4a2a-9636-edde809106de';
     var key4 = '/uuidv2/f445c6e2-61e9-11e3-a740-03049cda7ff9';
-    var value = JSON.stringify({groups: {'admins': true}});
+    var value = JSON.stringify({groups: ['admins'] });
 
     transform.delete(args, function (err, res) {
         t.equal(5, res.queue.length);
@@ -316,11 +313,11 @@ test('delete', function (t) {
                 barrier.done('2');
             });
             REDIS.get(key3, function (err, res) {
-                t.strictEqual(res, JSON.stringify({groups: {}}));
+                t.strictEqual(res, JSON.stringify({groups: []}));
                 barrier.done('3');
             });
             REDIS.get(key4, function (err, res) {
-                t.strictEqual(res, JSON.stringify({groups: {}}));
+                t.strictEqual(res, JSON.stringify({groups: []}));
                 barrier.done('4');
             });
         });
