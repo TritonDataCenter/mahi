@@ -81,6 +81,7 @@ test('add', function (t) {
         type: 'account',
         uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
         login: 'bcantrill',
+        groups: [],
         approved_for_provisioning: false
     };
 
@@ -190,6 +191,7 @@ test('modify - irrelevant change', function (t) {
         type: 'account',
         uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
         login: 'bcantrill',
+        groups: [],
         approved_for_provisioning: false
     };
 
@@ -283,6 +285,7 @@ test('modify - approved for provisioning', function (t) {
         type: 'account',
         uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
         login: 'bcantrill',
+        groups: [],
         approved_for_provisioning: true
     };
 
@@ -376,6 +379,7 @@ test('modify - rename', function (t) {
         type: 'account',
         uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
         login: 'bmc',
+        groups: [],
         approved_for_provisioning: true
     };
 
