@@ -41,6 +41,11 @@ test('add', function (t) {
                     'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                     'ou=users, o=smartdc'
             ],
+            'uniquememberdefault': [
+                'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
             'uuid': [
                 '5d0049f4-67b3-11e3-8059-273f883b3fb6'
             ],
@@ -104,6 +109,7 @@ test('add', function (t) {
                 function (err, res) {
 
                 t.ok(JSON.parse(res).roles.indexOf(uuid) >= 0);
+                t.ok(JSON.parse(res).defaultRoles.indexOf(uuid) >= 0);
                 barrier.done('user');
             });
         });
