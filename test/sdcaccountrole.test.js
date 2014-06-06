@@ -603,6 +603,16 @@ test('delete', function (t) {
                 'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
                     'ou=users, o=smartdc'
             ],
+            'uniquemember': [
+                'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
+            'uniquememberdefault': [
+                'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
             'memberrole': []
         },
         'changenumber': '32'
@@ -621,12 +631,13 @@ test('delete', function (t) {
     var key = '/uuidv2/' + uuid;
 
     transform.delete(args, function (err, res) {
-        t.strictEqual(4, res.queue.length);
+        t.strictEqual(5, res.queue.length);
         res.exec(function () {
             var barrier = vasync.barrier();
             barrier.start('uuid');
             barrier.start('group');
             barrier.start('set');
+            barrier.start('user');
             barrier.on('drain', function () {
                 t.done();
             });
@@ -644,6 +655,13 @@ test('delete', function (t) {
 
                 t.strictEqual(0, res);
                 barrier.done('set');
+            });
+            REDIS.get('/uuidv2/3ffc7b4c-66a6-11e3-af09-8752d24e4669',
+                function (err, res) {
+
+                t.ok(JSON.parse(res).roles.indexOf(uuid) < 0);
+                t.ok(JSON.parse(res).defaultRoles.indexOf(uuid) < 0);
+                barrier.done('user');
             });
         });
     });
