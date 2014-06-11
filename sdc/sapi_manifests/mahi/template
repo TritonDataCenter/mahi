@@ -16,9 +16,9 @@
         "options" : {}
     },
     "replicator": {
-        "pingPort": 80
+        "pingPort": 8080
     },
     "server": {
-        "port": 8080
+        "port": 80
     }
 }
