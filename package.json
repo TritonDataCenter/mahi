@@ -9,6 +9,7 @@
     "dependencies": {
         "optimist": "0.3.4",
 
+        "aperture-config": "git+ssh://git@git.joyent.com:aperture-config.git#master",
         "aperture": "git+ssh://git@github.com:joyent/node-aperture.git#master",
         "binary-search": "1.1.1",
         "dashdash": "1.4.0",
