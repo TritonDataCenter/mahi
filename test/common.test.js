@@ -25,33 +25,33 @@ before(function (cb) {
     var self = this;
     this.log = nodeunit.createLogger('common', process.stderr);
     this.redis = redis.createClient();
-    self.redis.set('/uuidv2/' + UUID, JSON.stringify({
+    self.redis.set('/uuid/' + UUID, JSON.stringify({
         name: 'name'
     }), function (err) {
         if (err) {
             cb(err);
             return;
         }
-        self.redis.set('/uuidv2/array', JSON.stringify({
+        self.redis.set('/uuid/array', JSON.stringify({
             'array': ['b', 'f', 'g']
         }), function (err) {
             if (err) {
                 cb(err);
                 return;
             }
-            self.redis.sadd('/uuidv2/b/array', 'array', function (err) {
+            self.redis.sadd('/uuid/b/array', 'array', function (err) {
                 if (err) {
                     cb(err);
                     return;
                 }
-                self.redis.sadd('/uuidv2/f/array', 'array',
+                self.redis.sadd('/uuid/f/array', 'array',
                         function (err) {
 
                     if (err) {
                         cb(err);
                         return;
                     }
-                    self.redis.sadd('/uuidv2/g/array', 'array',
+                    self.redis.sadd('/uuid/g/array', 'array',
                         function (err) {
 
                         if (err) {
@@ -102,11 +102,11 @@ test('addToGroup beginning', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('a') >= 0);
-                self.redis.sismember('/uuidv2/a/array', 'array',
+                self.redis.sismember('/uuid/a/array', 'array',
                         function (err, res) {
 
                     t.equal(res, 1);
@@ -137,11 +137,11 @@ test('addToGroup middle', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('c') >= 0);
-                self.redis.sismember('/uuidv2/c/array', 'array',
+                self.redis.sismember('/uuid/c/array', 'array',
                         function (err, res) {
 
                     t.equal(res, 1);
@@ -172,11 +172,11 @@ test('addToGroup end', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('h') >= 0);
-                self.redis.sismember('/uuidv2/h/array', 'array',
+                self.redis.sismember('/uuid/h/array', 'array',
                         function (err, res) {
 
                     t.equal(res, 1);
@@ -207,12 +207,12 @@ test('addToGroup duplicate', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('b') >= 0);
                 t.equal(array.length, 3);
-                self.redis.sismember('/uuidv2/b/array', 'array',
+                self.redis.sismember('/uuid/b/array', 'array',
                         function (err, res) {
 
                     t.equal(res, 1);
@@ -243,11 +243,11 @@ test('delFromGroup beginning', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('b') < 0);
-                self.redis.sismember('/uuidv2/b/array', 'array',
+                self.redis.sismember('/uuid/b/array', 'array',
                         function (err, res) {
 
                     t.equal(res, 0);
@@ -278,11 +278,11 @@ test('delFromGroup middle', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('f') < 0);
-                self.redis.sismember('/uuidv2/f/array', 'array',
+                self.redis.sismember('/uuid/f/array', 'array',
                         function (err, res) {
 
                     t.equal(res, 0);
@@ -313,11 +313,11 @@ test('delFromGroup end', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('g') < 0);
-                self.redis.sismember('/uuidv2/g/array', 'array',
+                self.redis.sismember('/uuid/g/array', 'array',
                         function (err, res) {
 
                     t.equal(res, 0);
@@ -348,11 +348,11 @@ test('delFromGroup nonexistent', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.equal(array.length,  3);
-                self.redis.sismember('/uuidv2/c/array', 'array',
+                self.redis.sismember('/uuid/c/array', 'array',
                         function (err, res) {
 
                     t.equal(res, 0);
@@ -384,19 +384,19 @@ test('replaceGroup', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.deepEqual(array, ['b', 'f']);
-                self.redis.sismember('/uuidv2/b/array', 'array',
+                self.redis.sismember('/uuid/b/array', 'array',
                         function (err, res) {
 
                     t.equal(res, 1);
-                    self.redis.sismember('/uuidv2/f/array', 'array',
+                    self.redis.sismember('/uuid/f/array', 'array',
                             function (err, res) {
 
                         t.equal(res, 1);
-                        self.redis.smembers('/uuidv2/g/array',
+                        self.redis.smembers('/uuid/g/array',
                                 function (err, res) {
 
                             t.ok(res.indexOf('array1') >= 0);
@@ -416,7 +416,7 @@ test('setUnion longer', function (t) {
     var self = this;
     var batch = multi.multi(this.redis);
     common.setUnion({
-        key: '/uuidv2/array',
+        key: '/uuid/array',
         set: 'array',
         elements: ['a', 'b', 'c', 'h'],
         batch: batch,
@@ -432,7 +432,7 @@ test('setUnion longer', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.equal(array.length,  6);
@@ -446,7 +446,7 @@ test('setUnion shorter', function (t) {
     var self = this;
     var batch = multi.multi(this.redis);
     common.setUnion({
-        key: '/uuidv2/array',
+        key: '/uuid/array',
         set: 'array',
         elements: ['c'],
         batch: batch,
@@ -462,7 +462,7 @@ test('setUnion shorter', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.equal(array.length,  4);
@@ -476,7 +476,7 @@ test('setDifference longer', function (t) {
     var self = this;
     var batch = multi.multi(this.redis);
     common.setDifference({
-        key: '/uuidv2/array',
+        key: '/uuid/array',
         set: 'array',
         elements: ['b', 'f', 'h', 'i'],
         batch: batch,
@@ -492,7 +492,7 @@ test('setDifference longer', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.equal(array.length,  1);
@@ -506,7 +506,7 @@ test('setDifference shorter', function (t) {
     var self = this;
     var batch = multi.multi(this.redis);
     common.setDifference({
-        key: '/uuidv2/array',
+        key: '/uuid/array',
         set: 'array',
         elements: ['f'],
         batch: batch,
@@ -522,7 +522,7 @@ test('setDifference shorter', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/array', function (err, res) {
+            self.redis.get('/uuid/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.equal(array.length,  2);
@@ -536,7 +536,7 @@ test('setValue', function (t)  {
     var self = this;
     var batch = multi.multi(this.redis);
     common.setValue({
-        key: '/uuidv2/' + UUID,
+        key: '/uuid/' + UUID,
         property: 'name',
         value: 'newname',
         batch: batch,
@@ -552,7 +552,7 @@ test('setValue', function (t)  {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/' + UUID, function (err, res) {
+            self.redis.get('/uuid/' + UUID, function (err, res) {
                 var name = JSON.parse(res).name;
                 t.equal(name, 'newname');
                 t.done();
@@ -582,7 +582,7 @@ test('rename', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('/uuidv2/' + UUID, function (err, res) {
+            self.redis.get('/uuid/' + UUID, function (err, res) {
                 var name = JSON.parse(res).name;
                 t.equal(name, 'newname');
                 t.done();

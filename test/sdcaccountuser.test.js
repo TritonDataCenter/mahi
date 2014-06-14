@@ -86,7 +86,7 @@ test('add', function (t) {
     var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
     var uuid = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
     var login = 'subuser';
-    var key = '/uuidv2/' + uuid;
+    var key = '/uuid/' + uuid;
     var value = {
         type: 'user',
         uuid: uuid,
@@ -206,7 +206,7 @@ test('modify - rename', function (t) {
     var uuid = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
     var login = 'subuser3';
     var oldlogin = 'subuser';
-    var key = '/uuidv2/' + uuid;
+    var key = '/uuid/' + uuid;
 
     transform.modify(args, function (err, res) {
         t.strictEqual(4, res.queue.length);
@@ -306,7 +306,7 @@ test('delete', function (t) {
     var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
     var uuid = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
     var login = '390c229a-8c77-445f-b227-88e41c2bb3cf/subuser3';
-    var key = '/uuidv2/' + uuid;
+    var key = '/uuid/' + uuid;
 
     transform.delete(args, function (err, res) {
         t.strictEqual(4, res.queue.length);

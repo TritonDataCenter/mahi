@@ -28,7 +28,7 @@ test('setup - populate redis', function (t) {
         redis: REDIS,
         log: bunyan.createLogger({
             name: 'transform',
-            level: 'fatal'
+            level: process.env.LOG_LEVEL || 'fatal'
         }),
         typeTable: typeTable
     });

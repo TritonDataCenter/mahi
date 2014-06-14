@@ -98,7 +98,7 @@ test('add', function (t) {
             barrier.on('drain', function () {
                 t.done();
             });
-            REDIS.get('/uuidv2/' + uuid, function (err, res) {
+            REDIS.get('/uuid/' + uuid, function (err, res) {
                 t.deepEqual(JSON.parse(res), expected);
                 barrier.done('uuid');
             });
@@ -201,7 +201,7 @@ test('modify - rename', function (t) {
                 t.strictEqual(null, res);
                 barrier.done('oldname');
             });
-            REDIS.get('/uuidv2/' + uuid, function (err, res) {
+            REDIS.get('/uuid/' + uuid, function (err, res) {
                 t.strictEqual(JSON.parse(res).name, name);
                 barrier.done('uuid');
             });
@@ -274,7 +274,7 @@ test('modify - add policy', function (t) {
     transform.modify(args, function (err, res) {
         t.strictEqual(res.queue.length, 2);
         res.exec(function () {
-            REDIS.get('/uuidv2/' + uuid, function (err, res) {
+            REDIS.get('/uuid/' + uuid, function (err, res) {
                 t.ok(JSON.parse(res).rules.some(function (r) {
                     return (r[0] === rule);
                 }));
@@ -348,7 +348,7 @@ test('modify - delete policy', function (t) {
     transform.modify(args, function (err, res) {
         t.strictEqual(res.queue.length, 2);
         res.exec(function () {
-            REDIS.get('/uuidv2/' + uuid, function (err, res) {
+            REDIS.get('/uuid/' + uuid, function (err, res) {
                 t.notOk(JSON.parse(res).rules.some(function (r) {
                     return (r[0] === rule);
                 }));
@@ -421,7 +421,7 @@ test('modify - replace policy', function (t) {
     transform.modify(args, function (err, res) {
         t.strictEqual(res.queue.length, 2);
         res.exec(function () {
-            REDIS.get('/uuidv2/' + uuid, function (err, res) {
+            REDIS.get('/uuid/' + uuid, function (err, res) {
                 t.equal(JSON.parse(res).rules[0][0], rule);
                 t.done();
             });
@@ -487,7 +487,7 @@ test('delete', function (t) {
             barrier.on('drain', function () {
                 t.done();
             });
-            REDIS.get('/uuidv2/' + uuid, function (err, res) {
+            REDIS.get('/uuid/' + uuid, function (err, res) {
                 t.strictEqual(null, res);
                 barrier.done('uuid');
             });

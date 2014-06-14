@@ -76,7 +76,7 @@ test('add', function (t) {
     };
 
     var uuid = '1a940615-65e9-4856-95f9-f4c530e86ca4';
-    var key = '/uuidv2/' + uuid;
+    var key = '/uuid/' + uuid;
     var value = {
         type: 'account',
         uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
@@ -186,7 +186,7 @@ test('modify - irrelevant change', function (t) {
         redis: REDIS
     };
 
-    var key = '/uuidv2/1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var key = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
     var value = {
         type: 'account',
         uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
@@ -280,7 +280,7 @@ test('modify - approved for provisioning', function (t) {
         redis: REDIS
     };
 
-    var key = '/uuidv2/1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var key = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
     var value = {
         type: 'account',
         uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
@@ -374,7 +374,7 @@ test('modify - rename', function (t) {
     };
 
     var uuid = '1a940615-65e9-4856-95f9-f4c530e86ca4';
-    var key = '/uuidv2/' + uuid;
+    var key = '/uuid/' + uuid;
     var value = {
         type: 'account',
         uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
@@ -477,7 +477,7 @@ test('delete', function (t) {
     };
 
     var uuid = '1a940615-65e9-4856-95f9-f4c530e86ca4';
-    var key = '/uuidv2/' + uuid;
+    var key = '/uuid/' + uuid;
 
     transform.delete(args, function (err, res) {
         t.strictEqual(7, res.queue.length);
