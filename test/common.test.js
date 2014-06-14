@@ -1,6 +1,7 @@
 // Copyright (c) 2014, Joyent, Inc. All rights reserved.
 
 var common = require('../lib/replicator/transforms').common;
+var multi = require('../lib/replicator/MultiCache.js');
 var redis = require('fakeredis');
 
 var nodeunit = require('nodeunit-plus');
@@ -31,21 +32,35 @@ before(function (cb) {
             cb(err);
             return;
         }
-        self.redis.set('array', JSON.stringify({
+        self.redis.set('/uuidv2/array', JSON.stringify({
             'array': ['b', 'f', 'g']
         }), function (err) {
             if (err) {
                 cb(err);
                 return;
             }
-            self.redis.set('map', JSON.stringify({
-                'map': {
-                    'first': true,
-                    'second': true,
-                    'third': true
+            self.redis.sadd('/uuidv2/b/array', 'array', function (err) {
+                if (err) {
+                    cb(err);
+                    return;
                 }
-            }), function (err) {
-                cb(err);
+                self.redis.sadd('/uuidv2/f/array', 'array',
+                        function (err) {
+
+                    if (err) {
+                        cb(err);
+                        return;
+                    }
+                    self.redis.sadd('/uuidv2/g/array', 'array',
+                        function (err) {
+
+                        if (err) {
+                            cb(err);
+                            return;
+                        }
+                        cb();
+                    });
+                });
             });
         });
     });
@@ -67,13 +82,13 @@ test('getDNValue', function (t) {
     t.done();
 });
 
-test('addToSet beginning', function (t) {
+test('addToGroup beginning', function (t) {
     var self = this;
-    var batch = this.redis.multi();
-    common.addToSet({
-        key: 'array',
-        set: 'array',
-        element: 'a',
+    var batch = multi.multi(this.redis);
+    common.addToGroup({
+        member: 'array',
+        group: 'a',
+        type: 'array',
         batch: batch,
         log: this.log,
         redis: this.redis
@@ -87,23 +102,28 @@ test('addToSet beginning', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('a') >= 0);
-                t.done();
+                self.redis.sismember('/uuidv2/a/array', 'array',
+                        function (err, res) {
+
+                    t.equal(res, 1);
+                    t.done();
+                });
             });
         });
     });
 });
 
-test('addToSet middle', function (t) {
+test('addToGroup middle', function (t) {
     var self = this;
-    var batch = this.redis.multi();
-    common.addToSet({
-        key: 'array',
-        set: 'array',
-        element: 'b',
+    var batch = multi.multi(this.redis);
+    common.addToGroup({
+        member: 'array',
+        group: 'c',
+        type: 'array',
         batch: batch,
         log: this.log,
         redis: this.redis
@@ -117,23 +137,28 @@ test('addToSet middle', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
-                t.ok(array.indexOf('b') >= 0);
-                t.done();
+                t.ok(array.indexOf('c') >= 0);
+                self.redis.sismember('/uuidv2/c/array', 'array',
+                        function (err, res) {
+
+                    t.equal(res, 1);
+                    t.done();
+                });
             });
         });
     });
 });
 
-test('addToSet end', function (t) {
+test('addToGroup end', function (t) {
     var self = this;
-    var batch = this.redis.multi();
-    common.addToSet({
-        key: 'array',
-        set: 'array',
-        element: 'h',
+    var batch = multi.multi(this.redis);
+    common.addToGroup({
+        member: 'array',
+        group: 'h',
+        type: 'array',
         batch: batch,
         log: this.log,
         redis: this.redis
@@ -147,23 +172,28 @@ test('addToSet end', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('h') >= 0);
-                t.done();
+                self.redis.sismember('/uuidv2/h/array', 'array',
+                        function (err, res) {
+
+                    t.equal(res, 1);
+                    t.done();
+                });
             });
         });
     });
 });
 
-test('addToSet duplicate', function (t) {
+test('addToGroup duplicate', function (t) {
     var self = this;
-    var batch = this.redis.multi();
-    common.addToSet({
-        key: 'array',
-        set: 'array',
-        element: 'b',
+    var batch = multi.multi(this.redis);
+    common.addToGroup({
+        member: 'array',
+        group: 'b',
+        type: 'array',
         batch: batch,
         log: this.log,
         redis: this.redis
@@ -177,24 +207,29 @@ test('addToSet duplicate', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('b') >= 0);
                 t.equal(array.length, 3);
-                t.done();
+                self.redis.sismember('/uuidv2/b/array', 'array',
+                        function (err, res) {
+
+                    t.equal(res, 1);
+                    t.done();
+                });
             });
         });
     });
 });
 
-test('delFromSet beginning', function (t) {
+test('delFromGroup beginning', function (t) {
     var self = this;
-    var batch = this.redis.multi();
-    common.delFromSet({
-        key: 'array',
-        set: 'array',
-        element: 'b',
+    var batch = multi.multi(this.redis);
+    common.delFromGroup({
+        member: 'array',
+        group: 'b',
+        type: 'array',
         batch: batch,
         log: this.log,
         redis: this.redis
@@ -208,23 +243,28 @@ test('delFromSet beginning', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('b') < 0);
-                t.done();
+                self.redis.sismember('/uuidv2/b/array', 'array',
+                        function (err, res) {
+
+                    t.equal(res, 0);
+                    t.done();
+                });
             });
         });
     });
 });
 
-test('delFromSet middle', function (t) {
+test('delFromGroup middle', function (t) {
     var self = this;
-    var batch = this.redis.multi();
-    common.delFromSet({
-        key: 'array',
-        set: 'array',
-        element: 'f',
+    var batch = multi.multi(this.redis);
+    common.delFromGroup({
+        member: 'array',
+        group: 'f',
+        type: 'array',
         batch: batch,
         log: this.log,
         redis: this.redis
@@ -238,23 +278,28 @@ test('delFromSet middle', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('f') < 0);
-                t.done();
+                self.redis.sismember('/uuidv2/f/array', 'array',
+                        function (err, res) {
+
+                    t.equal(res, 0);
+                    t.done();
+                });
             });
         });
     });
 });
 
-test('delFromSet end', function (t) {
+test('delFromGroup end', function (t) {
     var self = this;
-    var batch = this.redis.multi();
-    common.delFromSet({
-        key: 'array',
-        set: 'array',
-        element: 'g',
+    var batch = multi.multi(this.redis);
+    common.delFromGroup({
+        member: 'array',
+        group: 'g',
+        type: 'array',
         batch: batch,
         log: this.log,
         redis: this.redis
@@ -268,23 +313,28 @@ test('delFromSet end', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.ok(array.indexOf('g') < 0);
-                t.done();
+                self.redis.sismember('/uuidv2/g/array', 'array',
+                        function (err, res) {
+
+                    t.equal(res, 0);
+                    t.done();
+                });
             });
         });
     });
 });
 
-test('delFromSet nonexistent', function (t) {
+test('delFromGroup nonexistent', function (t) {
     var self = this;
-    var batch = this.redis.multi();
-    common.delFromSet({
-        key: 'array',
-        set: 'array',
-        element: 'c',
+    var batch = multi.multi(this.redis);
+    common.delFromGroup({
+        member: 'array',
+        group: 'c',
+        type: 'array',
         batch: batch,
         log: this.log,
         redis: this.redis
@@ -298,11 +348,64 @@ test('delFromSet nonexistent', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.equal(array.length,  3);
-                t.done();
+                self.redis.sismember('/uuidv2/c/array', 'array',
+                        function (err, res) {
+
+                    t.equal(res, 0);
+                    t.done();
+                });
+            });
+        });
+    });
+});
+
+
+test('replaceGroup', function (t) {
+    var self = this;
+    var batch = multi.multi(this.redis);
+    common.replaceGroup({
+        members: [ 'array1', 'array2' ],
+        group: 'g',
+        type: 'array',
+        batch: batch,
+        log: this.log,
+        redis: this.redis
+    }, function (err, res) {
+        if (err) {
+            t.fail(err);
+            return;
+        }
+        res.exec(function(err) {
+            if (err) {
+                t.fail(err);
+                return;
+            }
+            self.redis.get('/uuidv2/array', function (err, res) {
+                var array = JSON.parse(res).array;
+                t.ok(isSorted(array));
+                t.deepEqual(array, ['b', 'f']);
+                self.redis.sismember('/uuidv2/b/array', 'array',
+                        function (err, res) {
+
+                    t.equal(res, 1);
+                    self.redis.sismember('/uuidv2/f/array', 'array',
+                            function (err, res) {
+
+                        t.equal(res, 1);
+                        self.redis.smembers('/uuidv2/g/array',
+                                function (err, res) {
+
+                            t.ok(res.indexOf('array1') >= 0);
+                            t.ok(res.indexOf('array2') >= 0);
+                            t.equal(res.length, 2);
+                            t.done();
+                        });
+                    });
+                });
             });
         });
     });
@@ -311,9 +414,9 @@ test('delFromSet nonexistent', function (t) {
 
 test('setUnion longer', function (t) {
     var self = this;
-    var batch = this.redis.multi();
+    var batch = multi.multi(this.redis);
     common.setUnion({
-        key: 'array',
+        key: '/uuidv2/array',
         set: 'array',
         elements: ['a', 'b', 'c', 'h'],
         batch: batch,
@@ -329,7 +432,7 @@ test('setUnion longer', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.equal(array.length,  6);
@@ -341,9 +444,9 @@ test('setUnion longer', function (t) {
 
 test('setUnion shorter', function (t) {
     var self = this;
-    var batch = this.redis.multi();
+    var batch = multi.multi(this.redis);
     common.setUnion({
-        key: 'array',
+        key: '/uuidv2/array',
         set: 'array',
         elements: ['c'],
         batch: batch,
@@ -359,7 +462,7 @@ test('setUnion shorter', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.equal(array.length,  4);
@@ -371,9 +474,9 @@ test('setUnion shorter', function (t) {
 
 test('setDifference longer', function (t) {
     var self = this;
-    var batch = this.redis.multi();
+    var batch = multi.multi(this.redis);
     common.setDifference({
-        key: 'array',
+        key: '/uuidv2/array',
         set: 'array',
         elements: ['b', 'f', 'h', 'i'],
         batch: batch,
@@ -389,7 +492,7 @@ test('setDifference longer', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.equal(array.length,  1);
@@ -401,9 +504,9 @@ test('setDifference longer', function (t) {
 
 test('setDifference shorter', function (t) {
     var self = this;
-    var batch = this.redis.multi();
+    var batch = multi.multi(this.redis);
     common.setDifference({
-        key: 'array',
+        key: '/uuidv2/array',
         set: 'array',
         elements: ['f'],
         batch: batch,
@@ -419,7 +522,7 @@ test('setDifference shorter', function (t) {
                 t.fail(err);
                 return;
             }
-            self.redis.get('array', function (err, res) {
+            self.redis.get('/uuidv2/array', function (err, res) {
                 var array = JSON.parse(res).array;
                 t.ok(isSorted(array));
                 t.equal(array.length,  2);
@@ -429,67 +532,9 @@ test('setDifference shorter', function (t) {
     });
 });
 
-test('addToMapSet', function (t)  {
-    var self = this;
-    var batch = this.redis.multi();
-    common.addToMapSet({
-        key: 'map',
-        set: 'map',
-        element: 'fourth',
-        batch: batch,
-        log: this.log,
-        redis: this.redis
-    }, function (err, res) {
-        if (err) {
-            t.fail(err);
-            return;
-        }
-        res.exec(function (err) {
-            if (err) {
-                t.fail(err);
-                return;
-            }
-            self.redis.get('map', function (err, res) {
-                var map = JSON.parse(res).map;
-                t.ok(map.fourth);
-                t.done();
-            });
-        });
-    });
-});
-
-test('delFromMapSet', function (t)  {
-    var self = this;
-    var batch = this.redis.multi();
-    common.delFromMapSet({
-        key: 'map',
-        set: 'map',
-        element: 'third',
-        batch: batch,
-        log: this.log,
-        redis: this.redis
-    }, function (err, res) {
-        if (err) {
-            t.fail(err);
-            return;
-        }
-        res.exec(function (err) {
-            if (err) {
-                t.fail(err);
-                return;
-            }
-            self.redis.get('map', function (err, res) {
-                var map = JSON.parse(res).map;
-                t.notOk(map.third);
-                t.done();
-            });
-        });
-    });
-});
-
 test('setValue', function (t)  {
     var self = this;
-    var batch = this.redis.multi();
+    var batch = multi.multi(this.redis);
     common.setValue({
         key: '/uuidv2/' + UUID,
         property: 'name',
@@ -519,7 +564,7 @@ test('setValue', function (t)  {
 
 test('rename', function (t) {
     var self = this;
-    var batch = this.redis.multi();
+    var batch = multi.multi(this.redis);
     common.rename({
         name: 'newname',
         uuid: UUID,

@@ -79,7 +79,7 @@ test('add', function (t) {
     };
 
     transform.add(args, function (err, res) {
-        t.strictEqual(5, res.queue.length);
+        t.strictEqual(8, res.queue.length);
         res.exec(function () {
             var barrier = vasync.barrier();
             barrier.start('role');
@@ -185,7 +185,7 @@ test('modify - add member', function (t) {
     var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
     var key = '/uuidv2/' + user;
     transform.modify(args, function (err, res) {
-        t.strictEqual(2, res.queue.length);
+        t.strictEqual(3, res.queue.length);
         res.exec(function () {
             REDIS.get(key, function (err, res) {
                 t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
@@ -259,7 +259,7 @@ test('modify - delete member', function (t) {
     var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
     var key = '/uuidv2/' + user;
     transform.modify(args, function (err, res) {
-        t.strictEqual(2, res.queue.length);
+        t.strictEqual(3, res.queue.length);
         res.exec(function () {
             REDIS.get(key, function (err, res) {
                 t.strictEqual(JSON.parse(res).roles.indexOf(uuid), -1);
@@ -484,7 +484,7 @@ test('modify - add default member', function (t) {
     var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
     var key = '/uuidv2/' + user;
     transform.modify(args, function (err, res) {
-        t.strictEqual(2, res.queue.length);
+        t.strictEqual(3, res.queue.length);
         res.exec(function () {
             REDIS.get(key, function (err, res) {
                 t.ok(JSON.parse(res).defaultRoles.indexOf(uuid) > -1);
@@ -563,10 +563,106 @@ test('modify - delete default member', function (t) {
     var user = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
     var key = '/uuidv2/' + user;
     transform.modify(args, function (err, res) {
-        t.strictEqual(2, res.queue.length);
+        t.strictEqual(3, res.queue.length);
         res.exec(function () {
             REDIS.get(key, function (err, res) {
                 t.ok(JSON.parse(res).defaultRoles.indexOf(uuid) === -1);
+                t.done();
+            });
+        });
+    });
+});
+
+test('modify - add member and defaultmember', function (t) {
+    var entry = {
+        'dn': 'changenumber=26, cn=changelog',
+        'controls': [],
+        'targetdn': 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2013-12-19T00:58:06.209Z',
+        'changes': [
+            {
+                'operation': 'add',
+                'modification': {
+                    'type': 'uniquemember',
+                    'vals': [
+                        'uuid=4ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                            'ou=users, o=smartdc'
+                    ]
+                }
+            },
+            {
+                'operation': 'add',
+                'modification': {
+                    'type': 'uniquememberdefault',
+                    'vals': [
+                        'uuid=4ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                            'ou=users, o=smartdc'
+                    ]
+                }
+            }
+        ],
+        'entry': JSON.stringify({
+            'account': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            'name': [
+                'devread'
+            ],
+            'memberpolicy': [
+                'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
+            'objectclass': [
+                'sdcaccountrole'
+            ],
+            'uuid': [
+                '5d0049f4-67b3-11e3-8059-273f883b3fb6'
+            ],
+            '_owner': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            '_parent': [
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
+            'uniquemember': [
+                'uuid=4ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
+            'uniquememberdefault': [
+                'uuid=4ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ]
+        }),
+        'changenumber': '26'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        modEntry: JSON.parse(entry.entry),
+        log: this.log,
+        redis: REDIS
+    };
+
+    var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+    var user = '4ffc7b4c-66a6-11e3-af09-8752d24e4669';
+    var key = '/uuidv2/' + user;
+    transform.modify(args, function (err, res) {
+        t.strictEqual(5, res.queue.length);
+        res.exec(function () {
+            REDIS.get(key, function (err, res) {
+                t.ok(JSON.parse(res).roles.indexOf(uuid) > -1);
+                t.ok(JSON.parse(res).defaultRoles.indexOf(uuid) > -1);
                 t.done();
             });
         });
@@ -631,7 +727,7 @@ test('delete', function (t) {
     var key = '/uuidv2/' + uuid;
 
     transform.delete(args, function (err, res) {
-        t.strictEqual(5, res.queue.length);
+        t.strictEqual(8, res.queue.length);
         res.exec(function () {
             var barrier = vasync.barrier();
             barrier.start('uuid');

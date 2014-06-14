@@ -44,12 +44,14 @@ test('add - single user', function (t) {
         redis: REDIS
     };
 
-    var key = '/uuidv2/930896af-bf8c-48d4-885c-6573a94b1853';
+    var user = '930896af-bf8c-48d4-885c-6573a94b1853';
+    var key = '/uuidv2/' + user;
     var value = JSON.stringify({'groups':['operators']});
 
     transform.add(args, function (err, res) {
-        t.equal(2, res.queue.length);
-        t.deepEqual(res.queue[1], [
+        t.equal(3, res.queue.length);
+        t.deepEqual(res.queue[1][0], 'sadd');
+        t.deepEqual(res.queue[2], [
             'set',
             key,
             value
@@ -57,7 +59,11 @@ test('add - single user', function (t) {
         res.exec(function () {
             REDIS.get(key, function (err, res){
                 t.strictEqual(value, res);
-                t.done();
+                REDIS.sismember('/uuidv2/operators/groups', user,
+                        function (err, res) {
+                    t.strictEqual(res, 1);
+                    t.done();
+                });
             });
         });
     });
@@ -96,21 +102,23 @@ test('add - multiple users', function (t) {
         redis: REDIS
     };
 
-    var key1 = '/uuidv2/930896af-bf8c-48d4-885c-6573a94b1853';
-    var key2 = '/uuidv2/1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var user1 = '930896af-bf8c-48d4-885c-6573a94b1853';
+    var user2 = '1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var key1 = '/uuidv2/' + user1;
+    var key2 = '/uuidv2/' + user2;
     var value1 = JSON.stringify({
         'groups': [ 'admins', 'operators' ]
     });
     var value2 = JSON.stringify({'groups':['admins']});
 
     transform.add(args, function (err, res) {
-        t.equal(3, res.queue.length);
-        t.deepEqual(res.queue[1], [
+        t.equal(5, res.queue.length);
+        t.deepEqual(res.queue[3], [
             'set',
             key1,
             value1
         ]);
-        t.deepEqual(res.queue[2], [
+        t.deepEqual(res.queue[4], [
             'set',
             key2,
             value2
@@ -120,7 +128,17 @@ test('add - multiple users', function (t) {
                 t.strictEqual(value1, res);
                 REDIS.get(key2, function (err2, res2) {
                     t.strictEqual(value2, res2);
-                    t.done();
+                    REDIS.sismember('/uuidv2/admins/groups', user1,
+                        function (err, res) {
+
+                        t.strictEqual(res, 1);
+                        REDIS.sismember('/uuidv2/admins/groups', user2,
+                            function (err, res) {
+
+                            t.strictEqual(res, 1);
+                            t.done();
+                        });
+                    });
                 });
             });
         });
@@ -214,7 +232,7 @@ test('modify', function (t) {
     };
 
     transform.modify(args, function (err, res) {
-        t.strictEqual(3, res.queue.length);
+        t.strictEqual(5, res.queue.length);
         res.exec(function () {
             var barrier = vasync.barrier();
             barrier.start('1');
@@ -235,6 +253,81 @@ test('modify', function (t) {
             });
             REDIS.get(key3, function (err, res) {
                 t.ok(JSON.parse(res).groups.indexOf('operators') >= 0);
+                barrier.done('3');
+            });
+        });
+    });
+});
+
+test('modify - replace', function (t) {
+    var entry = {
+        'dn': 'changenumber=15, cn=changelog',
+        'controls': [],
+        'targetdn': 'cn=operators, ou=groups, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2013-12-10T19:23:21.228Z',
+        'changes': [
+            {
+                'operation': 'replace',
+                'modification': {
+                    'type': 'uniquemember',
+                    'vals': [
+                        'uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ' +
+                            'ou=users, o=smartdc'
+                    ]
+                }
+            }
+        ],
+        'entry': JSON.stringify({
+            'objectclass': [
+                'groupofuniquenames'
+            ],
+            'uniquemember': [
+                'uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ' +
+                    'ou=users, o=smartdc',
+            ],
+            '_parent': [
+                'ou=groups, o=smartdc'
+            ]
+        }),
+        'changenumber': '15'
+    };
+
+    var key1 = '/uuidv2/1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var key2 = '/uuidv2/930896af-bf8c-48d4-885c-6573a94b1853';
+    var key3 = '/uuidv2/a820621a-5007-4a2a-9636-edde809106de';
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        log: this.log,
+        redis: REDIS
+    };
+
+    transform.modify(args, function (err, res) {
+        t.strictEqual(5, res.queue.length);
+        res.exec(function () {
+            var barrier = vasync.barrier();
+            barrier.start('1');
+            barrier.start('2');
+            barrier.start('3');
+            barrier.on('drain', function () {
+                t.done();
+            });
+            REDIS.get(key1, function (err, res) {
+                t.ok(JSON.parse(res).groups.indexOf('operators') >= 0);
+                t.ok(JSON.parse(res).groups.indexOf('admins') >= 0);
+                barrier.done('1');
+            });
+            REDIS.get(key2, function (err, res) {
+                t.ok(JSON.parse(res).groups.indexOf('operators') < 0);
+                t.ok(JSON.parse(res).groups.indexOf('admins') >= 0);
+                barrier.done('2');
+            });
+            REDIS.get(key3, function (err, res) {
+                t.ok(JSON.parse(res).groups.indexOf('operators') < 0);
+                t.ok(JSON.parse(res).groups.indexOf('admins') < 0);
                 barrier.done('3');
             });
         });
@@ -284,13 +377,13 @@ test('delete', function (t) {
     var value = JSON.stringify({groups: ['admins'] });
 
     transform.delete(args, function (err, res) {
-        t.equal(5, res.queue.length);
-        t.deepEqual(res.queue[1],[
+        t.equal(9, res.queue.length);
+        t.deepEqual(res.queue[5],[
             'set',
             key1,
             value
         ]);
-        t.deepEqual(res.queue[2],[
+        t.deepEqual(res.queue[6],[
             'set',
             key2,
             value
