@@ -89,6 +89,8 @@ if [[ ${FLAVOR} == "manta" ]]; then
     manta_setup_auth
 
     echo "Updating authv2"
+    manta_add_logadm_entry "mahi-replicator"
+    manta_add_logadm_entry "mahi-server"
     manta_setup_auth2
 
     manta_common_setup_end
