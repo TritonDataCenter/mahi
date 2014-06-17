@@ -16,6 +16,7 @@ var before = nodeunit.before;
 var test = nodeunit.test;
 
 var DATA = path.resolve(__dirname, './data/test-nodeletes.json');
+DATA = path.resolve(__dirname, '../changelog');
 var REDIS = redis.createClient();
 
 test('setup - populate redis', function (t) {

@@ -505,3 +505,59 @@ test('delete', function (t) {
         });
     });
 });
+
+test('delete with memberroles', function (t) {
+    var entry = {
+        'dn': 'changenumber=2336, cn=changelog',
+        'controls': [],
+        'targetdn': 'policy-uuid=6fd87fe9-1b07-4ea8-a36c-89624d9c94e5, ' +
+            'uuid=4cb1538a-02ac-11e2-9d31-334658c618ee, ou=users, o=smartdc',
+        'changetype': 'delete',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2014-06-12T17:09:43.711Z',
+        'changes':  {
+            '_owner': [
+              '4cb1538a-02ac-11e2-9d31-334658c618ee'
+            ],
+            '_parent': [
+              'uuid=4cb1538a-02ac-11e2-9d31-334658c618ee, ou=users, o=smartdc'
+            ],
+            '_replicated': [
+              'true'
+            ],
+            'account': [
+              '4cb1538a-02ac-11e2-9d31-334658c618ee'
+            ],
+            'name': [
+              'read'
+            ],
+            'objectclass': [
+              'sdcaccountpolicy'
+            ],
+            'rule': [
+              'can describeanalytics'
+            ],
+            'uuid': [
+              '6fd87fe9-1b07-4ea8-a36c-89624d9c94e5'
+            ],
+            'memberrole': [
+              'role-uuid=dd13b7ed-0ec0-ef8b-d436-ba4c9f40cb6c, ' +
+                'uuid=4cb1538a-02ac-11e2-9d31-334658c618ee, ou=users, o=smartdc',
+              'role-uuid=dd13b7ed-0ec0-ef8b-d436-ba5c9f40cb6c, ' +
+                'uuid=4cb1538a-02ac-11e2-9d31-334658c618ee, ou=users, o=smartdc'
+            ]
+          },
+        'changenumber': '2336'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        log: this.log,
+        redis: REDIS
+    };
+    transform.delete(args, function (err, res) {
+        console.log(res.queue);
+        t.done();
+    });
+});

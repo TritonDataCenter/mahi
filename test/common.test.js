@@ -416,12 +416,11 @@ test('setUnion longer', function (t) {
     var self = this;
     var batch = multi.multi(this.redis);
     common.setUnion({
-        key: '/uuid/array',
-        set: 'array',
-        elements: ['a', 'b', 'c', 'h'],
+        group: 'array',
+        members: ['a', 'b', 'c', 'h'],
+        type: 'array',
         batch: batch,
-        log: this.log,
-        redis: this.redis
+        log: this.log
     }, function (err, res) {
         if (err) {
             t.fail(err);
@@ -446,9 +445,9 @@ test('setUnion shorter', function (t) {
     var self = this;
     var batch = multi.multi(this.redis);
     common.setUnion({
-        key: '/uuid/array',
-        set: 'array',
-        elements: ['c'],
+        group: 'array',
+        members: ['c'],
+        type: 'array',
         batch: batch,
         log: this.log,
         redis: this.redis
@@ -476,9 +475,9 @@ test('setDifference longer', function (t) {
     var self = this;
     var batch = multi.multi(this.redis);
     common.setDifference({
-        key: '/uuid/array',
-        set: 'array',
-        elements: ['b', 'f', 'h', 'i'],
+        group: 'array',
+        type: 'array',
+        members: ['b', 'f', 'h', 'i'],
         batch: batch,
         log: this.log,
         redis: this.redis
@@ -506,9 +505,9 @@ test('setDifference shorter', function (t) {
     var self = this;
     var batch = multi.multi(this.redis);
     common.setDifference({
-        key: '/uuid/array',
-        set: 'array',
-        elements: ['f'],
+        group: 'array',
+        type: 'array',
+        members: ['f'],
         batch: batch,
         log: this.log,
         redis: this.redis
