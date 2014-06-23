@@ -14,11 +14,26 @@ if [[ -h $SOURCE ]]; then
 fi
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 SVC_ROOT=/opt/smartdc/mahi
+MAHI_ROOT=/mahi
 
 MAHI_CFG=$SVC_ROOT/etc/mahi.json
 ZONE_UUID=`/usr/bin/zonename`
+ZONE_DATASET=zones/$ZONE_UUID/data
 
 export PATH=$SVC_ROOT/build/node/bin:/opt/local/bin:/usr/sbin/:/usr/bin:$PATH
+
+mkdir -p $MAHI_ROOT
+zfs list $ZONE_DATASET && rc=$? || rc=$?
+if [[ $rc == 0 ]]; then
+    mountpoint=$(zfs get -H -o value mountpoint $ZONE_DATASET)
+    if [[ $mountpoint != $MAHI_ROOT ]]; then
+        zfs set mountpoint=$MAHI_ROOT $ZONE_DATASET || \
+            fatal "failed to set mountpoint"
+    fi
+fi
+chmod 777 $MAHI_ROOT
+mkdir -p $MAHI_ROOT/redis
+chmod 777 $MAHI_ROOT/redis
 
 #
 # XXX in the future this should come from SAPI and we should be pulling out
@@ -32,7 +47,7 @@ fi
 
 function manta_setup_redis {
     manta_add_logadm_entry "redis"
-    svccfg import /opt/local/share/smf/redis/manifest.xml
+    svccfg import $SVC_ROOT/smf/manifests/mahi-redis.xml
     svcadm enable redis
 }
 
