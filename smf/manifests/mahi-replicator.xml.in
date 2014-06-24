@@ -27,7 +27,7 @@
 
     <exec_method type="method"
       name="start"
-      exec="./build/node/bin/node lib/replicator/main.js -c etc/mahi2.json --aperture=etc/aperture.json &amp;"
+      exec="./build/node/bin/node --abort-on-uncaught-exception lib/replicator/main.js -c etc/mahi2.json --aperture=etc/aperture.json &amp;"
       timeout_seconds="30">
       <method_context working_directory="/opt/smartdc/mahi">
         <method_credential user="root"
