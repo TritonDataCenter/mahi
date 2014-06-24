@@ -29,7 +29,7 @@
   "adminIp": "{{MANTA_IP}}",
 
   "healthCheck": {
-    "command": "/opt/local/bin/redis-cli get virgin",
+    "command": "/opt/local/bin/redis-cli -n $(json -f /opt/smartdc/mahi/etc/mahi2.json redis.db) get virgin",
     "ignoreExitStatus": true,
     "__comment__": "so redis-cli when not in tty mode does not emit (nil) on non-existent keys but rather a new line. Hence we try and match newline which will indicate that the service is healthy since the virgin flag no longer exists",
     "stdoutMatch": {
