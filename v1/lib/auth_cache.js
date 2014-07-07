@@ -482,7 +482,7 @@ function mod(self, changes, entry, cb) {
                     removeGroupMember(self, userdn, groupdn, onModReturn);
                     break;
                 default:
-                    cb(new Error('default case invoked'));
+                    onModReturn();
                     break;
                 }
             }
@@ -505,7 +505,7 @@ function mod(self, changes, entry, cb) {
                                               [false], onReturn);
                 break;
             default:
-                cb(new Error('default case invoked'));
+                onReturn();
                 break;
             }
         } else if (change.modification.type === 'login') {
