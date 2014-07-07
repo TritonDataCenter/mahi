@@ -73,6 +73,7 @@ for login or name to uuid, and sets that contain full lists of uuids.
         account: <parentAccountUUID>,
         keys: {keyfp: key},
         roles: [roleUUID],
+        defaultRoles: [roleUUID],
         login: <login>,
     }
 
