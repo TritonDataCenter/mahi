@@ -93,6 +93,10 @@ if [[ ${FLAVOR} == "manta" ]]; then
     echo "Adding local manifest directories"
     manta_add_manifest_dir "/opt/smartdc/mahi"
 
+    # set up log rotation for mahiv2 first so logadm rotates logs properly
+    manta_add_logadm_entry "mahi-replicator"
+    manta_add_logadm_entry "mahi-server"
+
     manta_common_setup "mahi"
 
     manta_ensure_zk
@@ -104,8 +108,6 @@ if [[ ${FLAVOR} == "manta" ]]; then
     manta_setup_auth
 
     echo "Updating authv2"
-    manta_add_logadm_entry "mahi-replicator"
-    manta_add_logadm_entry "mahi-server"
     manta_setup_auth2
 
     manta_common_setup_end
