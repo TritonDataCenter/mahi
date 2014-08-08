@@ -56,7 +56,7 @@ RELSTAGEDIR     := /tmp/$(STAMP)
 #
 .PHONY: all
 all: $(SMF_MANIFESTS) | $(NODEUNIT) $(REPO_DEPS) scripts
-	$(NPM) rebuild
+	$(NPM) install
 
 $(NODEUNIT): | $(NPM_EXEC)
 	$(NPM) install
