@@ -16,7 +16,6 @@ var before = nodeunit.before;
 var test = nodeunit.test;
 
 var DATA = path.resolve(__dirname, './data/test-nodeletes.json');
-DATA = path.resolve(__dirname, '../changelog');
 var REDIS = redis.createClient();
 
 test('setup - populate redis', function (t) {
@@ -29,7 +28,7 @@ test('setup - populate redis', function (t) {
         redis: REDIS,
         log: bunyan.createLogger({
             name: 'transform',
-            level: process.env.LOG_LEVEL || 'fatal'
+            level: 'fatal'
         }),
         typeTable: typeTable
     });
@@ -40,16 +39,17 @@ test('setup - populate redis', function (t) {
 });
 
 before(function (cb) {
+    var port = 8080;
     this.client = restify.createJsonClient({
-        url: 'http://localhost:8080'
+        url: 'http://localhost:' + port
     });
     this.server = new Server({
         redis: REDIS,
         log: bunyan.createLogger({
             name: 'server',
-            level: 'info'
+            level: process.env.LOG_LEVEL || 'fatal'
         }),
-        port: 8080
+        port: port
     });
     cb();
 });
@@ -64,7 +64,7 @@ after(function (cb) {
     cb();
 });
 
-test('getAccount', function (t) {
+test('getAccount (old)', function (t) {
     this.client.get('/account/banks', function (err, req, res, obj) {
         t.ok(obj.account);
         t.end();
@@ -86,14 +86,14 @@ test('account dne', function (t) {
     });
 });
 
-test('getUser', function (t) {
+test('getUser (old)', function (t) {
     this.client.get('/user/banks/bankofamerica', function (err, req, res, obj) {
         t.ok(obj.user);
         t.end();
     });
 });
 
-test('translate account', function (t) {
+test('translate account (old)', function (t) {
     var params = {
         account: 'banks'
     };
@@ -104,7 +104,7 @@ test('translate account', function (t) {
     });
 });
 
-test('translate role', function (t) {
+test('translate role (old)', function (t) {
     var params = {
         account: 'banks',
         type: 'role',
@@ -119,13 +119,107 @@ test('translate role', function (t) {
     });
 });
 
-test('translate uuid', function (t) {
+test('translate uuid (old)', function (t) {
     var params = {
         uuids: ['bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f', 'noexist']
     };
 
     this.client.post('/getName', params, function (err, req, res, obj) {
         t.ok(obj['bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f']);
+        t.end();
+    });
+});
+
+test('get account by id', function (t) {
+    var uuid = '2a05359a-9e64-11e3-816d-e7f87365cf40';
+    this.client.get('/accounts/' + uuid, function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.end();
+    });
+});
+
+test('get account by login', function (t) {
+    this.client.get('/accounts?login=banks', function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.end();
+    });
+});
+
+test('get account by id', function (t) {
+    var uuid = '2a05359a-9e64-11e3-816d-e7f87365cf40';
+    this.client.get('/accounts/' + uuid, function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.end();
+    });
+});
+
+test('get account by login', function (t) {
+    this.client.get('/accounts?login=banks', function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.end();
+    });
+});
+
+test('get user by id', function (t) {
+    var uuid = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
+    this.client.get('/users/' + uuid, function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.ok(obj.user);
+        t.end();
+    });
+});
+
+test('get user by login', function (t) {
+    var uuid = '3ffc7b4c-66a6-11e3-af09-8752d24e4669';
+    this.client.get('/users/' + uuid, function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.ok(obj.user);
+        t.end();
+    });
+});
+
+test('translate account', function (t) {
+    this.client.get('/uuids?account=banks', function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.end();
+    });
+});
+
+test('translate role', function (t) {
+    this.client.get('/uuids?account=banks&type=role&name=lender',
+            function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.ok(obj.uuids.lender);
+        t.end();
+    });
+});
+
+test('translate multiple roles', function (t) {
+    this.client.get('/uuids?account=banks&type=role&name=lender&name=borrower' +
+                    '&name=noexist',
+            function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.ok(obj.uuids.lender);
+        t.ok(obj.uuids.borrower);
+        t.end();
+    });
+});
+
+test('translate uuid', function (t) {
+    var uuid = 'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f';
+    this.client.get('/names?uuid=' + uuid, function (err, req, res, obj) {
+        t.ok(obj[uuid]);
+        t.end();
+    });
+});
+
+test('translate multiple uuids', function (t) {
+    var uuid1 = 'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f';
+    var uuid2 = '2a05359a-9e64-11e3-816d-e7f87365cf40';
+    var q = '?uuid=' + uuid1 + '&uuid=' + uuid2 + '&uuid=noexist';
+    this.client.get('/names' + q , function (err, req, res, obj) {
+        t.ok(obj[uuid1]);
+        t.ok(obj[uuid2]);
         t.end();
     });
 });

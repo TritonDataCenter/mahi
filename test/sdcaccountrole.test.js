@@ -727,7 +727,7 @@ test('delete', function (t) {
     var key = '/uuid/' + uuid;
 
     transform.delete(args, function (err, res) {
-        t.strictEqual(8, res.queue.length);
+        t.strictEqual(9, res.queue.length);
         res.exec(function () {
             var barrier = vasync.barrier();
             barrier.start('uuid');

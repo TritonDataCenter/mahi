@@ -556,8 +556,35 @@ test('delete with memberroles', function (t) {
         log: this.log,
         redis: REDIS
     };
+
+    var uuid = '6fd87fe9-1b07-4ea8-a36c-89624d9c94e5';
+    var account = '4cb1538a-02ac-11e2-9d31-334658c618ee';
+    var name = 'read';
+
     transform.delete(args, function (err, res) {
-        console.log(res.queue);
-        t.done();
+        res.exec(function () {
+            var barrier = vasync.barrier();
+            barrier.start('uuid');
+            barrier.start('set');
+            barrier.start('policy');
+            barrier.on('drain', function () {
+                t.done();
+            });
+            REDIS.get('/uuid/' + uuid, function (err, res) {
+                t.strictEqual(null, res);
+                barrier.done('uuid');
+            });
+            REDIS.sismember('/set/policies/' + account, uuid,
+                function (err, res) {
+
+                t.strictEqual(0, res);
+                barrier.done('set');
+            });
+            REDIS.get(sprintf('/policy/%s/%s', account, name),
+                function (err, res) {
+                t.strictEqual(null, res);
+                barrier.done('policy');
+            });
+        });
     });
 });

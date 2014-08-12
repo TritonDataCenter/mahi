@@ -377,7 +377,7 @@ test('delete', function (t) {
     var value = JSON.stringify({groups: ['admins'] });
 
     transform.delete(args, function (err, res) {
-        t.equal(9, res.queue.length);
+        t.equal(10, res.queue.length);
         t.deepEqual(res.queue[5],[
             'set',
             key1,
