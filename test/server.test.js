@@ -134,6 +134,7 @@ test('get account by id', function (t) {
     var uuid = '2a05359a-9e64-11e3-816d-e7f87365cf40';
     this.client.get('/accounts/' + uuid, function (err, req, res, obj) {
         t.ok(obj.account);
+        t.ok(obj.roles);
         t.end();
     });
 });
@@ -141,6 +142,7 @@ test('get account by id', function (t) {
 test('get account by login', function (t) {
     this.client.get('/accounts?login=banks', function (err, req, res, obj) {
         t.ok(obj.account);
+        t.ok(obj.roles);
         t.end();
     });
 });
@@ -149,6 +151,7 @@ test('get account by id', function (t) {
     var uuid = '2a05359a-9e64-11e3-816d-e7f87365cf40';
     this.client.get('/accounts/' + uuid, function (err, req, res, obj) {
         t.ok(obj.account);
+        t.ok(obj.roles);
         t.end();
     });
 });
@@ -156,6 +159,7 @@ test('get account by id', function (t) {
 test('get account by login', function (t) {
     this.client.get('/accounts?login=banks', function (err, req, res, obj) {
         t.ok(obj.account);
+        t.ok(obj.roles);
         t.end();
     });
 });
@@ -165,6 +169,7 @@ test('get user by id', function (t) {
     this.client.get('/users/' + uuid, function (err, req, res, obj) {
         t.ok(obj.account);
         t.ok(obj.user);
+        t.ok(obj.roles);
         t.end();
     });
 });
@@ -174,6 +179,7 @@ test('get user by login', function (t) {
     this.client.get('/users/' + uuid, function (err, req, res, obj) {
         t.ok(obj.account);
         t.ok(obj.user);
+        t.ok(obj.roles);
         t.end();
     });
 });
