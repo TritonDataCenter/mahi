@@ -8,8 +8,7 @@
     "//": "dependencies are in groups of v1 only, v2 only, and both v1 and v2",
     "dependencies": {
         "optimist": "0.3.4",
-
-        "aperture-config": "git+ssh://git@git.joyent.com:aperture-config.git#master",
+        "aperture-config": "git+ssh://git@github.com:joyent/aperture-config.git#master",
         "aperture": "git+ssh://git@github.com:joyent/node-aperture.git#master",
         "binary-search": "1.1.1",
         "dashdash": "1.4.0",
