@@ -6,5 +6,5 @@ docs/*.html
 cscope.in.out
 cscope.po.out
 cscope.out
-smf/manifests/mahi.xml
+smf/manifests/*.xml
 *.bz2
