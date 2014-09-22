@@ -25,10 +25,15 @@ The server is a restify server that talks to the redis instance.
 # Interface
 
 GET /accounts/:accountid
+
 GET /accounts?login=:accountlogin
+
 GET /users/:userid
+
 GET /users?account=x&login=y&fallback=true
+
 GET /uuids?account=x&type=y&name=z1&name=z2
+
 GET /names?uuid=x1&uuid=x2
 
 
