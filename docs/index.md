@@ -1,6 +1,6 @@
 ---
 title: Mahi
-markdown2extras: wiki-tables, code-friendly
+markdown2extras: tables, code-friendly
 apisections: Task Control API
 ---
 <!--
@@ -14,6 +14,12 @@ apisections: Task Control API
 
 # Mahi
 
+Mahi is the auth cache API used by [SmartDataCenter](https://github.com/joyent/sdc)
+and [Manta](https://github.com/joyent/manta). It maintains a cache of user auth
+data from [UFDS](https://github.com/joyent/sdc-ufds) in a local Redis and exposes
+a REST API to that data.
+
+
 # Accounts
 
 ## GetAccount (GET /accounts)
@@ -22,8 +28,9 @@ Returns JSON containing account information.
 
 ### Inputs
 
-|| **Field** || **Type** || **Required?** || **Notes** ||
-|| login (query param) || string || Yes || account login name ||
+| Field | Type | Required? | Notes |
+| ----- | ---- | --------- | ----- |
+| login (query param) | string | Yes | account login name |
 
 ### Returns
 
@@ -31,9 +38,10 @@ The account object.
 
 ### Errors
 
-|| **Code** || **HTTP Status Code** || **Description** ||
-|| AccountDoesNotExistError || 404 || No account exists with the given login ||
-|| RedisError || 500 || Error contacting redis ||
+| Code | HTTP Status Code | Description |
+| ---- | ---------------- | ----------- |
+| AccountDoesNotExistError | 404 | No account exists with the given login |
+| RedisError | 500 | Error contacting redis |
 
 ### Example
 
@@ -69,8 +77,9 @@ Returns account information by UUID.
 
 ### Inputs
 
-|| **Field** || **Type** || **Required?** || **Notes** ||
-|| accountid || UUID || Yes || ||
+| Field | Type | Required? | Notes |
+| ----- | ---- | --------- | ----- |
+| accountid | UUID | Yes |  |
 
 ### Returns
 
@@ -78,9 +87,10 @@ The account object.
 
 ### Errors
 
-|| **Code** || **HTTP Status Code** || **Description** ||
-|| AccountIdDoesNotExistError || 404 || No account exists with the given UUID ||
-|| RedisError || 500 || Error contacting redis ||
+| Code | HTTP Status Code | Description |
+| ---- | ---------------- | ----------- |
+| AccountIdDoesNotExistError | 404 | No account exists with the given UUID |
+| RedisError | 500 | Error contacting redis |
 
 ### Example
 
@@ -122,10 +132,11 @@ it defaults to true.
 
 ### Inputs
 
-|| **Field** || **Type** || **Required?** || **Notes** ||
-|| account (query param) || string || Yes || account login ||
-|| login (query param) || string || Yes || user login ||
-|| fallback (query param) || boolean || No || See above ||
+| Field | Type | Required? | Notes |
+| ----- | ---- | --------- | ----- |
+| account (query param) | string | Yes | account login |
+| login (query param) | string | Yes | user login |
+| fallback (query param) | boolean | No | See above |
 
 ### Returns
 
@@ -133,10 +144,11 @@ The user object.
 
 ### Errors
 
-|| **Code** || **HTTP Status Code** || **Description** ||
-|| AccountDoesNotExistError || 404 || No account exists with the given account login||
-|| UserDoesNotExistError || 404 || No user with the given login exists under the given account ||
-|| RedisError || 500 || Error contacting redis ||
+| Code | HTTP Status Code | Description |
+| ---- | ---------------- | ----------- |
+| AccountDoesNotExistError | 404 | No account exists with the given account login |
+| UserDoesNotExistError | 404 | No user with the given login exists under the given account |
+| RedisError | 500 | Error contacting redis |
 
 ### Examples
 
@@ -234,8 +246,9 @@ Returns user information by UUID.
 
 ### Inputs
 
-|| **Field** || **Type** || **Required?** || **Notes** ||
-|| userid || UUID || Yes || ||
+| Field | Type | Required? | Notes |
+| ----- | ---- | --------- | ----- |
+| userid | UUID | Yes |  |
 
 ### Returns
 
@@ -243,9 +256,10 @@ The user object.
 
 ### Errors
 
-|| **Code** || **HTTP Status Code** || **Description** ||
-|| UserIdDoesNotExistError || 404 || No user exists with that UUID ||
-|| RedisError || 500 || Error contacting redis ||
+| Code | HTTP Status Code | Description |
+| ---- | ---------------- | ----------- |
+| UserIdDoesNotExistError | 404 | No user exists with that UUID |
+| RedisError | 500 | Error contacting redis |
 
 ### Examples
 
@@ -322,9 +336,10 @@ name. Check for undefined.
 
 ### Errors
 
-|| **Code** || **HTTP Status Code** || **Description** ||
-|| AccountDoesNotExist || 404 || No account exists with the given login ||
-|| RedisError || 500 || Error contacting redis ||
+| Code | HTTP Status Code | Description |
+| ---- | ---------------- | ----------- |
+| AccountDoesNotExist | 404 | No account exists with the given login |
+| RedisError | 500 | Error contacting redis |
 
 ### Examples
 
@@ -358,8 +373,9 @@ returned for that name. Check for undefined.
 
 ### Errors
 
-|| **Code** || **HTTP Status Code** || **Description** ||
-|| RedisError || 500 || Error contacting redis ||
+| Code | HTTP Status Code | Description |
+| ---- | ---------------- | ----------- |
+| RedisError | 500 | Error contacting redis |
 
 ### Examples
 

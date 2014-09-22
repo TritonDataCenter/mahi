@@ -31,7 +31,7 @@ NAME		:= mahi
 #
 ## Files
 #
-DOC_FILES	 = index.restdown
+DOC_FILES	 = index.md
 JS_FILES	:= $(shell ls *.js) $(shell find lib -name '*.js')
 JSON_FILES	 = package.json sapi_manifests/mahi/template sapi_manifests/mahi2/template
 JSL_CONF_NODE	 = tools/jsl.node.conf
