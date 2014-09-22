@@ -73,8 +73,7 @@ function manta_setup_auth2 {
 function sdc_setup_redis {
     sdc_log_rotation_add amon-agent /var/svc/log/*amon-agent*.log 1g
     sdc_log_rotation_add config-agent /var/svc/log/*config-agent*.log 1g
-    sdc_log_rotation_add $role /var/svc/log/*$role*.log 1g
-    sdc_log_rotation_add $role /var/log/redis/*redis*.log 1g
+    sdc_log_rotation_add redis /var/log/redis/*redis*.log 1g
     sdc_log_rotation_setup_end
 
     svccfg import /opt/local/share/smf/redis/manifest.xml
@@ -130,7 +129,11 @@ else # ${FLAVOR} == "sdc"
     echo "Installing auth redis"
     sdc_setup_redis
 
-    # SDC doesn't need old mahi service
+    # add log rotation entries for mahi
+    sdc_log_rotation_add mahi-replicator /var/svc/log/*mahi-replicator*.log 1g
+    sdc_log_rotation_add mahi-server /var/svc/log/*mahi-server*.log 1g
+
+    # SDC doesn't need old mahi service
     # echo "Installing auth"
     # manta_setup_auth
 
