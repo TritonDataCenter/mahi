@@ -18,7 +18,6 @@ fi
 
 PORT=$(json -f etc/mahi2.json replicator.port)
 DBDIR=$(json -f etc/mahi2.json redis.directory)
-DBNUM=$(json -f etc/mahi2.json redis.db)
 REMOTE="http://$1:$PORT/snapshot"
 
 echo "fetching snapshot from $REMOTE to /var/tmp/mahi-snapshot.rdb"
@@ -26,9 +25,6 @@ curl -o /var/tmp/mahi-snapshot.rdb $REMOTE
 
 echo "backing up existing db to /var/tmp/dump.rdb.backup"
 cp $DBDIR/dump.rdb /var/tmp/dump.rdb.backup
-
-echo "saving current changenumber"
-changenumber=$(redis-cli -n $DBNUM get changenumber)
 
 echo "disabling mahi-server"
 svcadm disable mahi-server
@@ -44,9 +40,6 @@ cp /var/tmp/mahi-snapshot.rdb $DBDIR/dump.rdb
 
 echo "enabling redis"
 svcadm enable redis
-
-echo "restoring changenumber"
-redis-cli -n $DBNUM set changenumber $changenumber
 
 echo "enabling mahi-replicator"
 svcadm enable mahi-replicator
