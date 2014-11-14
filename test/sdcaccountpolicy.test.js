@@ -55,6 +55,10 @@ test('add', function (t) {
           'Can read foo and bar when ip = 10.0.0.0/8',
           'Can read red and blue when ip = 10.0.0.0/16'
         ],
+        'memberrole': [
+          'role-uuid=781d804a-6ba3-11e4-b4bd-23690a23bdf7, ' +
+              'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ou=users, o=smartdc'
+        ],
         'uuid': [
           'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
         ],
@@ -90,6 +94,9 @@ test('add', function (t) {
         type: 'policy',
         uuid: uuid,
         name: 'developer_read',
+        roles: [
+            '781d804a-6ba3-11e4-b4bd-23690a23bdf7'
+        ],
         rules: [
             policy1, policy2
         ],
@@ -97,7 +104,7 @@ test('add', function (t) {
     };
 
     transform.add(args, function (err, res) {
-        t.strictEqual(4, res.queue.length);
+        t.strictEqual(5, res.queue.length);
         res.exec(function () {
             var barrier = vasync.barrier();
             barrier.start('uuid');
@@ -119,6 +126,10 @@ test('add', function (t) {
                 function (err, res) {
                 t.strictEqual(uuid, res);
                 barrier.done('policy');
+            });
+            REDIS.get('/uuid/781d804a-6ba3-11e4-b4bd-23690a23bdf7',
+                function (err, res) {
+                t.strictEqual(uuid, JSON.parse(res).policies[0]);
             });
         });
     });
@@ -437,6 +448,96 @@ test('modify - replace policy', function (t) {
     });
 });
 
+test('modify - replace memberroles', function (t) {
+    var entry = {
+        'dn': 'changenumber=29, cn=changelog',
+        'controls': [],
+        'targetdn': 'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2014-02-07T18:16:42.315Z',
+        'changes': [
+            {
+                'operation': 'replace',
+                'modification': {
+                    'type': 'memberrole',
+                    'vals': [
+                        'role-uuid=dd13b7ed-0ec0-ef8b-d436-ba4c9f40cb6c, ' +
+                            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                            'ou=users, o=smartdc',
+                        'role-uuid=bbf6f06c-6ba3-11e4-af38-8f2769fe17db, ' +
+                            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                            'ou=users, o=smartdc'
+                    ]
+                }
+            }
+        ],
+        'entry': JSON.stringify({
+            'account': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            'name': [
+                'newname'
+            ],
+            'objectclass': [
+                'sdcaccountpolicy'
+            ],
+            'rule': [
+                'Can read x and y when ip = 10.0.0.0/32'
+            ],
+            'uuid': [
+                'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+            ],
+            '_owner': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            '_parent': [
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ]
+        }),
+        'changenumber': '28'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        modEntry: JSON.parse(entry.entry),
+        log: this.log,
+        parser: PARSER,
+        redis: REDIS
+    };
+
+    var uuid = 'b4301b32-66b4-11e3-ac31-6b349ce5dc45';
+    var rule = 'Can read x and y when ip = 10.0.0.0/32';
+
+    transform.modify(args, function (err, res) {
+        t.strictEqual(res.queue.length, 5);
+        res.exec(function () {
+            REDIS.get('/uuid/' + uuid, function (err, res) {
+                var result = JSON.parse(res);
+                t.equal(result.rules[0][0], rule);
+                t.equal(result.roles.length, 2);
+                // TODO add checks for removal of old ones
+                REDIS.get('/uuid/dd13b7ed-0ec0-ef8b-d436-ba4c9f40cb6c',
+                        function (err, res) {
+
+                    t.equal(JSON.parse(res).policies[0], uuid);
+                    REDIS.get('/uuid/781d804a-6ba3-11e4-b4bd-23690a23bdf7',
+                            function (err, res) {
+
+                        t.equal(JSON.parse(res).policies.length, 0);
+                        t.done();
+                    });
+                });
+            });
+        });
+    });
+
+});
+
 
 test('delete', function (t) {
     var entry = {
@@ -596,3 +697,5 @@ test('delete with memberroles', function (t) {
         });
     });
 });
+
+
