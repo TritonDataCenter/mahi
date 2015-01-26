@@ -26,7 +26,7 @@
     "timeout": 60000
   },
 
-  "adminIp": "{{MANTA_IP}}",
+  "adminIp": "{{auto.MANTA_IP}}",
 
   "healthCheck": {
     "command": "/opt/local/bin/redis-cli -n $(json -f /opt/smartdc/mahi/etc/mahi2.json redis.db) get virgin",
