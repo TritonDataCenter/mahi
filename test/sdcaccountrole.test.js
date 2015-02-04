@@ -677,6 +677,75 @@ test('modify - add member and defaultmember', function (t) {
     });
 });
 
+
+test('modify - rename', function (t) {
+    var entry = {
+        'dn': 'changenumber=1707160, cn=changelog',
+        'controls': [],
+        'targetdn': 'role-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2015-02-04T17:54:36.981Z',
+        'changes': [
+            {
+                'operation': 'replace',
+                'modification': {
+                    'type': 'name',
+                    'vals': [
+                        'rename1'
+                    ]
+                }
+            }
+        ],
+        'entry': JSON.stringify({
+            '_owner': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            '_parent': [
+                'uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ou=users, o=smartdc'
+            ],
+            '_replicated': [
+                'true'
+            ],
+            'account': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            'name': [
+                'rename1'
+            ],
+            'objectclass': [
+                'sdcaccountrole'
+            ],
+            'uuid': [
+                '5d0049f4-67b3-11e3-8059-273f883b3fb6'
+            ]
+        }),
+        'changenumber': '1707160'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        modEntry: JSON.parse(entry.entry),
+        log: this.log,
+        redis: REDIS
+    };
+
+    var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+    var key = '/uuid/' + uuid;
+    transform.modify(args, function (err, res) {
+        t.strictEqual(4, res.queue.length);
+        res.exec(function () {
+            REDIS.get(key, function (err, res) {
+                t.ok(JSON.parse(res).name === 'rename1');
+                t.done();
+            });
+        });
+    });
+});
+
 test('delete', function (t) {
     var entry = {
         'dn': 'changenumber=32, cn=changelog',
