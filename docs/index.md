@@ -384,3 +384,95 @@ returned for that name. Check for undefined.
       "83546bda-028d-11e2-aabe-17b87241f6ee": "fred",
       "92543592-6018-62ae-fc60-ffb83f0b5157": "muskie_test_user"
     }
+
+
+# Troubleshooting
+
+
+## Changes don't show up
+
+If changes in UFDS aren't showing up in services that use mahi, there could be
+a few things wrong.
+
+Since mahi is split into two parts, if the mahi-replicator crashes or is taken
+offline then mahi-server will still serve requests using the existing, stale
+data in redis.
+
+Check if mahi-replicator has crashed or is stuck.
+
+
+## mahi-replicator has crashed
+
+If mahi-replicator crashes, the most likely cause is it tried to apply a change
+to redis but because of inconsistencies in the data, the transformation failed.
+
+Inconsistencies in the redis data occur if mahi skips changes that it's
+supposed to apply. This is always a bug. As an example, in the past, this has
+been seen because UFDS returned changelogs entries out of order.
+
+If the redis data becomes inconsistent with the data in UFDS, a cache rebuild is
+required after the bug is fixed.
+
+## mahi-replicator is stuck
+
+Mahi-replicator may get stuck if it encounters a change it doesn't know how to
+handle. To check if mahi-replicator is stuck, compare mahi's changenumber
+UFDS's changenumber.
+
+To get the latest UFDS changelog number run this on the headnode:
+
+    sdc-ldap search -b "cn=latestchangenumber" "objectclass=*"
+
+Then, get the changelog number from mahi by running this in the mahi zone:
+
+    redis-cli -n $(json -f /opt/smartdc/mahi/etc/mahi2.json redis.db) get changenumber
+
+The mahi number should be within ~10-15 changenumbers of the UFDS number. They
+won't always match because of polling delay and because mahi doesn't update the
+changenumber in redis if it sees a change it doesn't care about (e.g.
+`updated_at` changes).
+
+If mahi-replicator is stuck, the logs should indicate the change that mahi is
+stuck on.
+
+    cat $(svcs -L mahi-replicator) | bunyan
+
+This is usually a bug in mahi. A cache rebuild is probalby not required after
+the bug is fixed.
+
+
+## Rebuilding the Redis Cache
+
+Mahi stores its redis database on a zfs dataset so reboots don't require mahi
+to start over from the beginning of time to rebuild the cache. However, there
+are some times when rebuilding the cache is necessary. Follow these steps to
+rebuild the cache.
+
+1. In the mahi zone, disable registrar and mahi-server. This takes mahi out of
+   DNS so services will not try to use this instance of mahi. HA setups (Manta)
+   will continue to use other instances.
+
+        svcadm disable registrar
+        svcadm disable mahi-server
+
+1. Disable mahi-replicator, flush the redis database and re-enable
+   mahi-replicator.
+
+        svcadm disable mahi-replicator
+        redis-cli -n $(json -f /opt/smartdc/mahi/etc/mahi2.json redis.db || 0) flushdb
+        svcadm enable mahi-replicator
+
+  Or
+
+        sh /opt/smartdc/mahi/bin/clearcache.sh
+
+1. (Optional) Wait for mahi-replicator to catch back up to UFDS. You can follow
+  the steps under "mahi-replicator is stuck" to see where mahi is at.
+
+1. Enable mahi-server and registrar. Registrar's healthcheck won't pass and
+   mahi-server will return 500s until mahi-replicator has caught up.
+
+        svcadm enable mahi-server
+        svcadm enable registrar
+
+1. Done.
