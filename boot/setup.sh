@@ -76,7 +76,7 @@ function sdc_setup_redis {
     sdc_log_rotation_add redis /var/log/redis/*redis*.log 1g
     sdc_log_rotation_setup_end
 
-    svccfg import /opt/local/share/smf/redis/manifest.xml
+    svccfg import $SVC_ROOT/smf/manifests/mahi-redis.xml
     svcadm enable redis
 }
 
