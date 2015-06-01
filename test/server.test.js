@@ -237,3 +237,17 @@ test('translate multiple uuids', function (t) {
         t.end();
     });
 });
+
+test('generate lookup', function (t) {
+    var expected = [
+        ['bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f', true, 'banks'],
+        ['1e77f528-9e64-11e3-8d12-838d40383bce', true, 'auto'],
+        ['2a05359a-9e64-11e3-816d-e7f87365cf40', false, 'oilandgas']];
+    this.client.get('/lookup', function (err, req, res, obj) {
+        expected.forEach(function (tuple) {
+            t.equal(obj[tuple[0]].approved, tuple[1]);
+            t.equal(obj[tuple[0]].login, tuple[2]);
+        });
+        t.end();
+    });
+});
