@@ -32,14 +32,20 @@ NAME		:= mahi
 ## Files
 #
 DOC_FILES	 = index.md
-JS_FILES	:= $(shell find lib -name '*.js')
-JSON_FILES	 = package.json sapi_manifests/mahi/template sapi_manifests/mahi2/template
+JS_FILES	:= $(shell \
+    find lib test -name '*.js' -not -name 'jsonparsestream.js')
+JSON_FILES	 = package.json \
+    sapi_manifests/mahi/template \
+    sapi_manifests/mahi2/template
 JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
 REPO_MODULES	 = src/node-dummy
-SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in smf/manifests/mahi-redis.xml.in smf/manifests/mahi-server.xml.in smf/manifests/mahi-replicator.xml.in
+SMF_MANIFESTS_IN = smf/manifests/mahi.xml.in \
+    smf/manifests/mahi-redis.xml.in \
+    smf/manifests/mahi-server.xml.in \
+    smf/manifests/mahi-replicator.xml.in
 
 
 #

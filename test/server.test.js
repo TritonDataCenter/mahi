@@ -231,7 +231,7 @@ test('translate multiple uuids', function (t) {
     var uuid1 = 'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f';
     var uuid2 = '2a05359a-9e64-11e3-816d-e7f87365cf40';
     var q = '?uuid=' + uuid1 + '&uuid=' + uuid2 + '&uuid=noexist';
-    this.client.get('/names' + q , function (err, req, res, obj) {
+    this.client.get('/names' + q, function (err, req, res, obj) {
         t.ok(obj[uuid1]);
         t.ok(obj[uuid2]);
         t.end();

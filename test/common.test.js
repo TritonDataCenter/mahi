@@ -21,7 +21,7 @@ var UUID = '6123a6de-98cd-11e3-95c9-8fcb0fa87330';
 
 function isSorted(arr) {
     var i;
-    for(i = 0; i < arr.length - 1; i++) {
+    for (i = 0; i < arr.length - 1; i++) {
         if (arr[i] > arr[i + 1]) {
             return (false);
         }
@@ -387,7 +387,7 @@ test('replaceGroup', function (t) {
             t.fail(err);
             return;
         }
-        res.exec(function(err) {
+        res.exec(function (err) {
             if (err) {
                 t.fail(err);
                 return;

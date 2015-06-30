@@ -65,7 +65,7 @@ test('add - single user', function (t) {
             value
         ]);
         res.exec(function () {
-            REDIS.get(key, function (err, res){
+            REDIS.get(key, function (err, res) {
                 t.strictEqual(value, res);
                 REDIS.sismember('/uuid/operators/groups', user,
                         function (err, res) {
@@ -293,7 +293,7 @@ test('modify - replace', function (t) {
             ],
             'uniquemember': [
                 'uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ' +
-                    'ou=users, o=smartdc',
+                    'ou=users, o=smartdc'
             ],
             '_parent': [
                 'ou=groups, o=smartdc'
@@ -386,12 +386,12 @@ test('delete', function (t) {
 
     transform.delete(args, function (err, res) {
         t.equal(10, res.queue.length);
-        t.deepEqual(res.queue[5],[
+        t.deepEqual(res.queue[5], [
             'set',
             key1,
             value
         ]);
-        t.deepEqual(res.queue[6],[
+        t.deepEqual(res.queue[6], [
             'set',
             key2,
             value

@@ -415,7 +415,7 @@ test('modify - rename', function (t) {
                 barrier.done('add');
             });
             REDIS.sismember('/set/accounts', uuid,
-                function  (err, res) {
+                function (err, res) {
                 t.strictEqual(1, res);
                 barrier.done('set');
             });
@@ -509,7 +509,7 @@ test('delete', function (t) {
                 barrier.done('account');
             });
             REDIS.sismember('/set/accounts', uuid,
-                function  (err, res) {
+                function (err, res) {
                 t.strictEqual(0, res);
                 barrier.done('set');
             });
