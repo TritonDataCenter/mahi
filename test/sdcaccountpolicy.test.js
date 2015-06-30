@@ -539,6 +539,79 @@ test('modify - replace memberroles', function (t) {
 });
 
 
+test('modify - unsupported operation', function (t) {
+    var entry = {
+        'dn': 'changenumber=29, cn=changelog',
+        'controls': [],
+        'targetdn': 'policy-uuid=b4301b32-66b4-11e3-ac31-6b349ce5dc45, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2014-02-07T18:16:42.315Z',
+        'changes': [
+            {
+                'operation': 'bop',
+                'modification': {
+                    'type': 'memberrole',
+                    'vals': [
+                        'role-uuid=dd13b7ed-0ec0-ef8b-d436-ba4c9f40cb6c, ' +
+                            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                            'ou=users, o=smartdc',
+                        'role-uuid=bbf6f06c-6ba3-11e4-af38-8f2769fe17db, ' +
+                            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                            'ou=users, o=smartdc'
+                    ]
+                }
+            }
+        ],
+        'entry': JSON.stringify({
+            'account': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            'name': [
+                'newname'
+            ],
+            'objectclass': [
+                'sdcaccountpolicy'
+            ],
+            'rule': [
+                'Can read x and y when ip = 10.0.0.0/32'
+            ],
+            'uuid': [
+                'b4301b32-66b4-11e3-ac31-6b349ce5dc45'
+            ],
+            '_owner': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            '_parent': [
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ]
+        }),
+        'changenumber': '28'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        modEntry: JSON.parse(entry.entry),
+        log: this.log,
+        parser: PARSER,
+        redis: REDIS
+    };
+
+    transform.modify(args, function (err, res) {
+        t.ok(err);
+        t.equal(err.name, 'UnsupportedOperationError');
+        t.equal(err.message,
+            'unsupported operation "bop" for type "memberrole"');
+        t.done();
+    });
+});
+
+
+
 test('delete', function (t) {
     var entry = {
         'dn': 'changenumber=30, cn=changelog',
@@ -651,9 +724,11 @@ test('delete with memberroles', function (t) {
             ],
             'memberrole': [
               'role-uuid=dd13b7ed-0ec0-ef8b-d436-ba4c9f40cb6c, ' +
-                'uuid=4cb1538a-02ac-11e2-9d31-334658c618ee, ou=users, o=smartdc',
+                'uuid=4cb1538a-02ac-11e2-9d31-334658c618ee, ou=users, ' +
+                'o=smartdc',
               'role-uuid=dd13b7ed-0ec0-ef8b-d436-ba5c9f40cb6c, ' +
-                'uuid=4cb1538a-02ac-11e2-9d31-334658c618ee, ou=users, o=smartdc'
+                'uuid=4cb1538a-02ac-11e2-9d31-334658c618ee, ou=users, ' +
+                'o=smartdc'
             ]
           },
         'changenumber': '2336'
@@ -697,5 +772,3 @@ test('delete with memberroles', function (t) {
         });
     });
 });
-
-
