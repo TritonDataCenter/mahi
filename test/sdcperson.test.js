@@ -308,6 +308,103 @@ test('modify - approved for provisioning', function (t) {
     });
 });
 
+test('modify - enable triton cns', function (t) {
+    var entry = {
+        'dn': 'changenumber=10, cn=changelog',
+        'controls': [],
+        'targetdn': 'uuid=1a940615-65e9-4856-95f9-f4c530e86ca4, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2013-12-11T21:05:03.783Z',
+        'changes': [
+            {
+                'operation': 'replace',
+                'modification': {
+                    'type': 'triton_cns_enabled',
+                    'vals': [
+                        'true'
+                    ]
+                }
+            }
+        ],
+        entry: JSON.stringify({
+            'cn': [
+                'Bryan',
+                'Cantrill'
+            ],
+            'email': [
+                'bcantrill@acm.org'
+            ],
+            'login': [
+                'bcantrill'
+            ],
+            'objectclass': [
+                'sdcperson'
+            ],
+            'userpassword': [
+                '20ce672f319c31eba1cbdea8e5d46b081e1f2506'
+            ],
+            'uuid': [
+                '1a940615-65e9-4856-95f9-f4c530e86ca4'
+            ],
+            '_owner': [
+                '1a940615-65e9-4856-95f9-f4c530e86ca4'
+            ],
+            'pwdchangedtime': [
+                '1386795903462'
+            ],
+            'created_at': [
+                '1386795903462'
+            ],
+            'updated_at': [
+                '1386795903782'
+            ],
+            'approved_for_provisioning': [
+                'true'
+            ],
+            'triton_cns_enabled': [
+                'true'
+            ],
+            '_salt': [
+                '477ea5c58f134c44598f566f75156c6e790c9be'
+            ],
+            '_parent': [
+                'ou=users, o=smartdc'
+            ]
+        }),
+        'changenumber': '10'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        modEntry: JSON.parse(entry.entry),
+        log: this.log,
+        redis: REDIS
+    };
+
+    var key = '/uuid/1a940615-65e9-4856-95f9-f4c530e86ca4';
+    var value = {
+        type: 'account',
+        uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
+        login: 'bcantrill',
+        groups: [],
+        approved_for_provisioning: true,
+        triton_cns_enabled: true
+    };
+
+    transform.modify(args, function (err, res) {
+        t.strictEqual(2, res.queue.length);
+        res.exec(function () {
+            REDIS.get(key, function (err, res) {
+                t.deepEqual(value, JSON.parse(res));
+                t.done();
+            });
+        });
+    });
+});
+
 test('modify - rename', function (t) {
     var entry = {
         'dn': 'changenumber=12, cn=changelog',
@@ -363,6 +460,9 @@ test('modify - rename', function (t) {
                 'approved_for_provisioning': [
                     'true'
                 ],
+                'triton_cns_enabled': [
+                    'true'
+                ],
                 '_salt': [
                     '477ea5c58f134c44598f566f75156c6e790c9be'
                 ],
@@ -388,7 +488,8 @@ test('modify - rename', function (t) {
         uuid: '1a940615-65e9-4856-95f9-f4c530e86ca4',
         login: 'bmc',
         groups: [],
-        approved_for_provisioning: true
+        approved_for_provisioning: true,
+        triton_cns_enabled: true
     };
 
     transform.modify(args, function (err, res) {
