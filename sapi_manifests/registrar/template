@@ -37,6 +37,6 @@
     },
     "interval": 1000,
     "threshold": 1,
-    "timeout": 1000
+    "timeout": 10000
   }
 }
