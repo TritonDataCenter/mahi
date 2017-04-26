@@ -9,7 +9,7 @@ apisections: Task Control API
     file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <!--
-    Copyright (c) 2014, Joyent, Inc.
+    Copyright (c) 2017, Joyent, Inc.
 -->
 
 # Mahi
@@ -41,6 +41,7 @@ The account object.
 | Code | HTTP Status Code | Description |
 | ---- | ---------------- | ----------- |
 | AccountDoesNotExistError | 404 | No account exists with the given login |
+| BadRequestError | 400 | "login" was not specified |
 | RedisError | 500 | Error contacting redis |
 
 ### Example
@@ -119,7 +120,7 @@ The account object.
     }
 
 
-# Userse
+# Users
 
 ## GetUser (GET /users)
 
@@ -147,6 +148,7 @@ The user object.
 | Code | HTTP Status Code | Description |
 | ---- | ---------------- | ----------- |
 | AccountDoesNotExistError | 404 | No account exists with the given account login |
+| BadRequestError | 400 | "account" or "login" was not specified |
 | UserDoesNotExistError | 404 | No user with the given login exists under the given account |
 | RedisError | 500 | Error contacting redis |
 
@@ -323,10 +325,12 @@ The user object.
 ## NameToUuid (GET /uuids)
 
 ### Inputs
-|| **Field** || **Type** || **Required?** || **Notes** ||
-|| account (query param) || string || Yes || account login to translate ||
-|| name (query param) || string || No || name of policy/user/role under the given account to translate. required if type is specified. specify multiple times for multiple translations ||
-|| type (query param) || string || No || type of the names to translate (policy, user, role). required if any names are specified ||
+
+| Field | Type | Required? | Notes |
+| --------- | -------- | ------------- | --------- |
+| account (query param) | string | Yes | account login to translate |
+| name (query param) | string | No | name of policy/user/role under the given account to translate. required if type is specified. specify multiple times for multiple translations |
+| type (query param) | string | No | type of the names to translate (policy, user, role). required if any names are specified |
 
 ### Returns
 
@@ -339,6 +343,7 @@ name. Check for undefined.
 | Code | HTTP Status Code | Description |
 | ---- | ---------------- | ----------- |
 | AccountDoesNotExist | 404 | No account exists with the given login |
+| BadRequestError | 400 | "account" was not specified |
 | RedisError | 500 | Error contacting redis |
 
 ### Examples
@@ -362,8 +367,10 @@ name. Check for undefined.
 ## UuidToName (GET /names)
 
 ### Inputs
-|| **Field** || **Type** || **Required?** || **Notes** ||
-|| uuid (query param) || UUID || Yes || repeat param for multiple translations ||
+
+| Field | Type | Required? | Notes |
+| ----- | ---- | --------- | ----- |
+| uuid (query param) | UUID | Yes | repeat param for multiple translations |
 
 ### Returns
 

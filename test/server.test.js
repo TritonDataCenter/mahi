@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 var Server = require('../lib/server/server.js').Server;
@@ -248,6 +248,46 @@ test('generate lookup', function (t) {
             t.equal(obj[tuple[0]].approved, tuple[1]);
             t.equal(obj[tuple[0]].login, tuple[2]);
         });
+        t.end();
+    });
+});
+
+test('/accounts: missing arguments', function (t) {
+    this.client.get('/accounts', function (err, req, res, obj) {
+        t.equal(err.restCode, 'BadRequestError');
+        t.equal(obj.code, 'BadRequestError');
+        t.end();
+    });
+});
+
+test('/users: missing argument (account)', function (t) {
+    this.client.get('/users', function (err, req, res, obj) {
+        t.equal(err.restCode, 'BadRequestError');
+        t.equal(obj.code, 'BadRequestError');
+        t.end();
+    });
+});
+
+test('/users: missing argument (user)', function (t) {
+    this.client.get('/users?account=banks', function (err, req, res, obj) {
+        t.equal(err.restCode, 'BadRequestError');
+        t.equal(obj.code, 'BadRequestError');
+        t.end();
+    });
+});
+
+test('/names: missing arguments', function (t) {
+    this.client.get('/names', function (err, req, res, obj) {
+        t.ok(!err);
+        t.deepEqual(obj, {});
+        t.end();
+    });
+});
+
+test('/uuids: missing arguments', function (t) {
+    this.client.get('/uuids', function (err, req, res, obj) {
+        t.equal(err.restCode, 'BadRequestError');
+        t.equal(obj.code, 'BadRequestError');
         t.end();
     });
 });
