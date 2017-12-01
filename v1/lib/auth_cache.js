@@ -650,6 +650,14 @@ function addGroupMember(self, userdn, groupdn, cb) {
                                   groupdn.indexOf(','));
     var userUuid = userdn.substring(userdn.indexOf('=') + 1,
                                     userdn.indexOf(','));
+
+    if (userUuid === '') {
+        log.warn('ignoring attempt to add invalid user DN "%s" to group %s',
+            userdn, group);
+        cb();
+        return;
+    }
+
     log.info('adding user %s to group %s', userUuid, group);
     // get the login from uuid
     var loginKey = sprintf('/uuid/%s', userUuid);
@@ -670,7 +678,7 @@ function addGroupMember(self, userdn, groupdn, cb) {
                 return;
             }
             log.info({entry: payload}, 'got user entry from redis');
-            payload = JSON.parse(payload);
+            payload = JSON.parse(payload) || {};
             if (!payload.groups) {
                 payload.groups = {};
             }
