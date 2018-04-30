@@ -192,6 +192,34 @@ test('get user by login', function (t) {
     });
 });
 
+test('cross-account roles', function (t) {
+    var uuid = '2a05359a-9e64-11e3-816d-e7f87365cf40';
+    this.client.get('/accounts/' + uuid, function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.ok(obj.roles);
+        t.deepEqual(obj.roles, {
+            'fd4d1489-a2c4-4303-8b32-0396ca297447': {
+                type: 'role',
+                uuid: 'fd4d1489-a2c4-4303-8b32-0396ca297447',
+                name: 'crossrole',
+                account: 'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f',
+                rules: []
+            }
+        });
+        t.end();
+    });
+});
+
+test('cross-account roles (none)', function (t) {
+    var uuid = 'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f';
+    this.client.get('/accounts/' + uuid, function (err, req, res, obj) {
+        t.ok(obj.account);
+        t.ok(obj.roles);
+        t.deepEqual(obj.roles, {});
+        t.end();
+    });
+});
+
 test('translate account', function (t) {
     this.client.get('/uuids?account=banks', function (err, req, res, obj) {
         t.ok(obj.account);
