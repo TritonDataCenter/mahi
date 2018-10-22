@@ -47,6 +47,9 @@ test('add - account', function (t) {
             'fingerprint': [
                 '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18'
             ],
+            'attested': [
+                'false'
+            ],
             '_owner': [
                 '1a940615-65e9-4856-95f9-f4c530e86ca4'
             ],
@@ -69,6 +72,9 @@ test('add - account', function (t) {
     var value = {
         keys: {
             '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18': 'elided-pkcs'
+        },
+        key_info: {
+            '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18': {}
         }
     };
 
@@ -108,6 +114,15 @@ test('add - user', function (t) {
             'pkcs': [
                 'elided-pkcs'
             ],
+            'attested': [
+                'true'
+            ],
+            'ykpinrequired': [
+                'false'
+            ],
+            'yktouchrequired': [
+                'true'
+            ],
             'fingerprint': [
                 '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18'
             ],
@@ -134,6 +149,12 @@ test('add - user', function (t) {
     var value = {
         keys: {
             '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18': 'elided-pkcs'
+        },
+        key_info: {
+            '7b:a4:7c:6c:c7:2f:d9:a6:bd:ec:1b:2f:e8:3d:40:18': {
+                'attested': true,
+                'touch': true
+            }
         }
     };
 
