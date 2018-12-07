@@ -1,12 +1,11 @@
 {
     "name": "mahi",
     "description": "Manta Auth Cache",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "author": "Joyent (joyent.com)",
     "private": true,
 
     "//": "dependencies are in groups of v1 only, v2 only, and both v1 and v2",
-    "// lru-cache": "attempting to pin version while satisfying transitive deps, because lru-cache@4.1.4 includes yallist@3 which breaks node --abort-on-uncaught-exception with node <v4",
     "dependencies": {
         "optimist": "0.3.4",
         "aperture-config": "git+https://github.com/joyent/aperture-config.git#master",
@@ -14,7 +13,6 @@
         "binary-search": "1.1.1",
         "dashdash": "1.4.0",
         "hiredis": "0.1.16",
-        "lru-cache": "4.1.3",
         "verror": "1.3.7",
 
         "assert-plus": "0.1.5",
