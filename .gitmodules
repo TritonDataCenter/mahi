@@ -6,7 +6,7 @@
 	url = https://github.com/davepacheco/javascriptlint.git
 [submodule "deps/jsstyle"]
 	path = deps/jsstyle
-	url = https://github.com/davepacheco/jsstyle.git
+	url = https://github.com/joyent/jsstyle.git
 [submodule "deps/manta-scripts"]
 	path = deps/manta-scripts
 	url = https://github.com/joyent/manta-scripts.git
