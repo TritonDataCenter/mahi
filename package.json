@@ -8,8 +8,8 @@
     "//": "dependencies are in groups of v1 only, v2 only, and both v1 and v2",
     "dependencies": {
         "optimist": "0.3.4",
-        "aperture-config": "git+https://github.com/joyent/aperture-config.git#master",
-        "aperture": "git+https://github.com/joyent/node-aperture.git#master",
+        "aperture-config": "git+https://github.com/joyent/aperture-config.git#448811fa1696cd6c63d8d3391187c084b39b2e7b",
+        "aperture": "git+https://github.com/joyent/node-aperture.git#516f54924f9b3c997cca674e92937250801bd037",
         "binary-search": "1.1.1",
         "dashdash": "1.4.0",
         "hiredis": "0.1.16",
