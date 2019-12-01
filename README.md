@@ -5,16 +5,15 @@
 -->
 
 <!--
-    Copyright (c) 2014, Joyent, Inc.
+    Copyright 2019 Joyent, Inc.
 -->
 
 # mahi
 
-This repository is part of the Joyent SmartDataCenter project (SDC).  For
-contribution guidelines, issues, and general documentation, visit the main
-[SDC](http://github.com/joyent/sdc) project page.
-
-# Overview
+This repository is part of the Joyent Triton and Manta projects.
+For contribution guidelines, issues, and general documentation, visit the main
+[Triton](http://github.com/joyent/triton) and
+[Manta](http://github.com/joyent/manta) project pages.
 
 Mahi is the authentication cache. It has two components: the replicator and the
 server. The replicator pulls in account, user, role, group, and
@@ -22,7 +21,20 @@ key information from UFDS and caches them in a local redis instance.
 The server is a restify server that talks to the redis instance.
 
 
-# Interface
+## Active Branches
+
+There are currently two active branches of this repository, for the two
+active major versions of Manta. See the [mantav2 overview
+document](https://github.com/joyent/manta/blob/master/docs/mantav2.md) for
+details on major Manta versions.
+
+- [`master`](../../tree/master/) - For development of mantav2, the latest
+  version of Manta. This is the version used by Triton.
+- [`mantav1`](../../tree/mantav1/) - For development of mantav1, the long
+  term support maintenance version of Manta.
+
+
+## Interface
 
     GET /accounts/:accountid
     GET /accounts?login=:accountlogin
@@ -32,7 +44,7 @@ The server is a restify server that talks to the redis instance.
     GET /names?uuid=x1&uuid=x2
 
 
-# Redis Schema
+## Redis Schema
 
 All data is stored in keys of the form `/uuid/<uuid>`. There are also mappings
 for login or name to uuid, and sets that contain full lists of uuids.
@@ -87,7 +99,7 @@ for login or name to uuid, and sets that contain full lists of uuids.
     /set/policies/<account> -> set of policyUUIDs
 
 
-# Testing
+## Testing
 
 Auth data from tests/data is loaded into a fake redis implemented in node for
 testing.
