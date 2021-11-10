@@ -735,6 +735,15 @@ function removeGroupMember(self, userdn, groupdn, cb) {
                 user: payload
             }, 'got user entry');
             payload = JSON.parse(payload);
+            if (!payload.groups) {
+                // don't bother with client.set() we didn't do anything
+                log.info({
+                    key: key,
+                    entry: payload
+                }, 'user has no groups');
+                cb(err);
+                return;
+            }
             delete payload.groups[group];
             payload = JSON.stringify(payload);
             log.info({
