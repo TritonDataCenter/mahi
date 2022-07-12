@@ -6,6 +6,8 @@
 
 /*
  * Copyright (c) 2014, Joyent, Inc.
+ * Copyright 2022 MNX Cloud, Inc.
+ * Copyright 2022 Alex Wilson
  */
 
 /*
@@ -735,6 +737,9 @@ function removeGroupMember(self, userdn, groupdn, cb) {
                 user: payload
             }, 'got user entry');
             payload = JSON.parse(payload);
+            if (typeof (payload.groups) !== 'object' || payload.groups === null) {
+                payload.groups = {};
+            }
             delete payload.groups[group];
             payload = JSON.stringify(payload);
             log.info({
