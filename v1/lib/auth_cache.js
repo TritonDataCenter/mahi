@@ -735,6 +735,9 @@ function removeGroupMember(self, userdn, groupdn, cb) {
                 user: payload
             }, 'got user entry');
             payload = JSON.parse(payload);
+            if (typeof (payload.groups) !== 'object' || payload.groups === null) {
+                payload.groups = {};
+            }
             delete payload.groups[group];
             payload = JSON.stringify(payload);
             log.info({
