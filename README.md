@@ -6,14 +6,15 @@
 
 <!--
     Copyright 2019 Joyent, Inc.
+    Copyright 2022 MNX Cloud, Inc.
 -->
 
 # mahi
 
-This repository is part of the Joyent Triton and Manta projects.
+This repository is part of the Triton Data Center and Manta projects.
 For contribution guidelines, issues, and general documentation, visit the main
-[Triton](http://github.com/joyent/triton) and
-[Manta](http://github.com/joyent/manta) project pages.
+[Triton](http://github.com/TritonDataCenter/triton) and
+[Manta](http://github.com/TritonDataCenter/manta) project pages.
 
 Mahi is the authentication cache. It has two components: the replicator and the
 server. The replicator pulls in account, user, role, group, and
@@ -25,7 +26,7 @@ The server is a restify server that talks to the redis instance.
 
 There are currently two active branches of this repository, for the two
 active major versions of Manta. See the [mantav2 overview
-document](https://github.com/joyent/manta/blob/master/docs/mantav2.md) for
+document](https://github.com/TritonDataCenter/manta/blob/master/docs/mantav2.md) for
 details on major Manta versions.
 
 - [`master`](../../tree/master/) - For development of mantav2, the latest
