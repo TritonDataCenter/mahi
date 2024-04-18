@@ -10,14 +10,16 @@ apisections: Task Control API
 -->
 <!--
     Copyright (c) 2017, Joyent, Inc.
+    Copyright 2024 MNX Cloud, Inc.
 -->
 
 # Mahi
 
-Mahi is the auth cache API used by [SmartDataCenter](https://github.com/joyent/sdc)
-and [Manta](https://github.com/joyent/manta). It maintains a cache of user auth
-data from [UFDS](https://github.com/joyent/sdc-ufds) in a local Redis and exposes
-a REST API to that data.
+Mahi is the auth cache API used by
+[Triton Data Center](https://github.com/TritonDataCenter/triton)
+and [Manta](https://github.com/TritonDataCenter/manta). It maintains a cache of
+user auth data from [UFDS](https://github.com/TritonDataCenter/sdc-ufds) in a
+local Redis and exposes a REST API to that data.
 
 
 # Accounts
