@@ -6,7 +6,7 @@
 
 <!--
     Copyright 2019 Joyent, Inc.
-    Copyright 2022 MNX Cloud, Inc.
+    Copyright 2025 Edgecast Cloud LLC.
 -->
 
 # mahi
@@ -43,6 +43,8 @@ details on major Manta versions.
     GET /users?account=x&login=y&fallback=true
     GET /uuids?account=x&type=y&name=z1&name=z2
     GET /names?uuid=x1&uuid=x2
+    GET /aws-auth/:accesskeyid
+    POST /aws-verify
 
 
 ## Redis Schema
@@ -66,6 +68,7 @@ for login or name to uuid, and sets that contain full lists of uuids.
         uuid: <uuid>,
         account: <parentAccountUUID>,
         keys: {keyfp: key},
+        accesskeys: {accessKeyId: secret},
         roles: [roleUUID],
         defaultRoles: [roleUUID],
         login: <login>,
@@ -93,11 +96,49 @@ for login or name to uuid, and sets that contain full lists of uuids.
     /user/<accountUUID>/<userLogin> -> userUUID
     /role/<accountUUID>/<roleName> -> roleUUID
     /policy/<accountUUID>/<policyName> -> policyUUID
+    /accesskey/<accessKeyId> -> userUUID
 
     /set/accounts -> set of accountUUIDs
     /set/users/<account> -> set of userUUIDs
     /set/roles/<account> -> set of roleUUIDSs
     /set/policies/<account> -> set of policyUUIDs
+
+## AWS Signature V4 Authentication
+
+Mahi supports AWS Signature Version 4 (SigV4) authentication for S3 API compatibility.
+
+    GET /aws-auth/:accesskeyid
+
+Returns user information for the given AWS access key ID. 
+
+Response:
+```json
+{
+    "type": "account",
+    "uuid": "user-uuid",
+    "login": "username",
+    "accesskeys": ["AKIA123456789EXAMPLE"],
+    "approved_for_provisioning": true
+}
+```
+
+    POST /aws-verify
+
+Verifies an AWS Signature Version 4 request signature. Validates the authorization
+header, timestamp, and signature against the stored access key secret.
+Services requiring to use SigV4 auth should use this endpoint.
+
+Request: Standard HTTP request with AWS4-HMAC-SHA256 authorization header
+Response:
+```json
+{
+    "valid": true,
+    "accessKeyId": "AKIA123456789EXAMPLE", 
+    "userUuid": "user-uuid"
+}
+```
+
+
 
 
 ## Testing
@@ -105,3 +146,42 @@ for login or name to uuid, and sets that contain full lists of uuids.
 Auth data from tests/data is loaded into a fake redis implemented in node for
 testing.
 Run `make test`.
+
+
+#### AWS SigV4 Endpoints
+
+**Testing Access Key Lookup:**
+```bash
+# Get user information by access key ID
+curl -i http://localhost:8080/aws-auth/AKIA123456789EXAMPLE
+
+# Expected response:
+# {
+#   "type": "account", 
+#   "uuid": "550e8400-e29b-41d4-a716-446655440001",
+#   "login": "s3user",
+#   "accesskeys": ["AKIA123456789EXAMPLE", "AKIA987654321EXAMPLE"],
+#   "approved_for_provisioning": true
+# }
+
+# Test nonexistent access key
+curl -i http://localhost:8080/aws-auth/AKIANONEXISTENT0001
+# Expected: 404 ObjectDoesNotExist error
+```
+
+### Redis Data Inspection
+
+**Check Access Key Storage:**
+```bash
+# Connect to Redis
+redis-cli
+
+# Check user record with access keys
+redis> GET /uuid/550e8400-e29b-41d4-a716-446655440001
+# Shows: {"accesskeys": {"AKIA123456789EXAMPLE": "secret..."}}
+
+# Check reverse lookup mapping
+redis> GET /accesskey/AKIA123456789EXAMPLE  
+# Shows: 550e8400-e29b-41d4-a716-446655440001
+
+```
