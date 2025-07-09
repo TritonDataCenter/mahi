@@ -138,9 +138,6 @@ Response:
 }
 ```
 
-
-
-
 ## Testing
 
 Auth data from tests/data is loaded into a fake redis implemented in node for
