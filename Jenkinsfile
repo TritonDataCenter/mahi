@@ -14,7 +14,8 @@
 pipeline {
 
     agent {
-        label joyCommonLabels(image_ver: '15.4.1')
+        label joyCommonLabels(image_ver: '15.4.1') + '&&' +
+        'ip:10.124.10.60'
     }
 
     options {
