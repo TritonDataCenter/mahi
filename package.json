@@ -1,7 +1,7 @@
 {
     "name": "mahi",
     "description": "Manta Auth Cache",
-    "version": "2.0.5",
+    "version": "2.0.6",
     "author":"Edgecast Cloud (edgecast.io)",
     "private": true,
 
