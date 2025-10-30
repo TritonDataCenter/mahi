@@ -1,8 +1,8 @@
 {
     "name": "mahi",
     "description": "Manta Auth Cache",
-    "version": "2.0.5",
-    "author": "MNX Cloud (mnx.io)",
+    "version": "2.1.0",
+    "author":"Edgecast Cloud (edgecast.io)",
     "private": true,
 
     "//": "dependencies are in groups of v1 only, v2 only, and both v1 and v2",
