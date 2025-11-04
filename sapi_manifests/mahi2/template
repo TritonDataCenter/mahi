@@ -21,5 +21,18 @@
     },
     "server": {
         "port": 80
+    },
+    "sessionConfig": {
+        "secretKey": "{{SESSION_SECRET_KEY}}",
+        "secretKeyId": "{{SESSION_SECRET_KEY_ID}}",
+        "oldSecretKey": "{{SESSION_SECRET_KEY_OLD}}",
+        "oldSecretKeyId": "{{SESSION_SECRET_KEY_OLD_ID}}",
+        "rotationTime": "{{SESSION_SECRET_ROTATION_TIME}}",
+        "gracePeriod": "{{SESSION_SECRET_GRACE_PERIOD}}",
+        "issuer": "manta-mahi",
+        "audience": "manta-s3",
+        "defaultDuration": 3600,
+        "maxDuration": 43200,
+        "_comment": "JWT session token configuration with rotation support"
     }
 }

@@ -203,6 +203,7 @@ test('cross-account roles', function (t) {
                 uuid: 'fd4d1489-a2c4-4303-8b32-0396ca297447',
                 name: 'crossrole',
                 account: 'bde5a308-9e5a-11e3-bbf2-1b6f3d02ff6f',
+                assumerolepolicydocument: null,
                 rules: []
             }
         });

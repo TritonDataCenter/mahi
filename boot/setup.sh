@@ -57,6 +57,94 @@ function manta_setup_redis {
     svcadm enable redis
 }
 
+function manta_setup_session_secret {
+    echo "Configuring SESSION_SECRET_KEY with rotation support"
+    
+    # Check if SESSION_SECRET_KEY is already configured in SAPI
+    local current_secret=""
+    local current_key_id=""
+    current_secret=$(mdata-get sdc:application_metadata.SESSION_SECRET_KEY 2>/dev/null || true)
+    current_key_id=$(mdata-get sdc:application_metadata.SESSION_SECRET_KEY_ID 2>/dev/null || true)
+    
+    if [[ -z "$current_secret" ]]; then
+        echo "Generating initial SESSION_SECRET_KEY with rotation support"
+        local secret_key=""
+        local key_id=""
+        local rotation_time=""
+        
+        secret_key=$($SVC_ROOT/boot/scripts/generate-session-secret.js)
+        if [[ -z "$secret_key" ]]; then
+            fatal "Failed to generate session secret key"
+        fi
+        
+        # Generate initial key ID
+        key_id="initial-$(date +%Y%m%d-%H%M%S)"
+        rotation_time=$(date +%s)
+        
+        echo "Setting SESSION_SECRET_KEY and metadata in SAPI"
+        if ! $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY "$secret_key"; then
+            echo "Warning: Failed to set SESSION_SECRET_KEY in SAPI" >&2
+            echo "This may require manual configuration" >&2
+        fi
+        
+        if ! $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY_ID "$key_id"; then
+            echo "Warning: Failed to set SESSION_SECRET_KEY_ID in SAPI" >&2
+        fi
+        
+        if ! $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_ROTATION_TIME "$rotation_time"; then
+            echo "Warning: Failed to set rotation timestamp in SAPI" >&2
+        fi
+        
+        echo "SESSION_SECRET_KEY configured successfully with key ID: $key_id"
+        
+        # Make rotation script executable
+        chmod +x $SVC_ROOT/boot/scripts/rotate-session-secret.sh
+        
+    else
+        echo "SESSION_SECRET_KEY already configured"
+        
+        # Ensure key ID exists for existing installations
+        if [[ -z "$current_key_id" ]]; then
+            echo "Adding key ID to existing secret for rotation support"
+            local legacy_key_id="legacy-$(date +%Y%m%d)"
+            
+            if ! $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY_ID "$legacy_key_id"; then
+                echo "Warning: Failed to set legacy key ID in SAPI" >&2
+            else
+                echo "Added legacy key ID: $legacy_key_id"
+            fi
+        fi
+        
+        # Ensure rotation script is executable
+        chmod +x $SVC_ROOT/boot/scripts/rotate-session-secret.sh
+        
+        # Clean up any expired old secrets
+        cleanup_expired_session_secrets
+    fi
+}
+
+function cleanup_expired_session_secrets {
+    local rotation_time=""
+    local grace_period=""
+    local now=""
+    local expiry_time=""
+    
+    rotation_time=$(mdata-get sdc:application_metadata.SESSION_SECRET_ROTATION_TIME 2>/dev/null || true)
+    grace_period=$(mdata-get sdc:application_metadata.SESSION_SECRET_GRACE_PERIOD 2>/dev/null || true)
+    
+    if [[ -n "$rotation_time" && -n "$grace_period" ]]; then
+        now=$(date +%s)
+        expiry_time=$((rotation_time + grace_period))
+        
+        if [[ $now -gt $expiry_time ]]; then
+            echo "Cleaning up expired session secret during boot"
+            $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD "" 2>/dev/null || true
+            $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD_ID "" 2>/dev/null || true
+            echo "Expired session secret cleaned up"
+        fi
+    fi
+}
+
 function manta_setup_auth {
     svccfg import $SVC_ROOT/smf/manifests/mahi.xml
     svcadm enable mahi
@@ -98,6 +186,9 @@ if [[ ${FLAVOR} == "manta" ]]; then
     echo "Adding local manifest directories"
     manta_add_manifest_dir "/opt/smartdc/mahi"
 
+    echo "Setting up session secret for JWT tokens"
+    manta_setup_session_secret
+
     # set up log rotation for mahiv2 first so logadm rotates logs properly
     manta_add_logadm_entry "mahi-replicator"
     manta_add_logadm_entry "mahi-server"
@@ -128,6 +219,9 @@ else # ${FLAVOR} == "sdc"
 
     echo "Installing auth redis"
     sdc_setup_redis
+
+    echo "Setting up session secret for JWT tokens"
+    manta_setup_session_secret
 
     # add log rotation entries for mahi
     sdc_log_rotation_add mahi-replicator /var/svc/log/*mahi-replicator*.log 1g

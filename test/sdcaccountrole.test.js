@@ -6,10 +6,12 @@
 
 /*
  * Copyright (c) 2014, Joyent, Inc.
+ * Copyright 2025 Edgecast Cloud LLC.
  */
 
 var transform = require('../lib/replicator/transforms/sdcaccountrole.js');
 
+var bunyan = require('bunyan');
 var redis = require('fakeredis');
 var REDIS;
 
@@ -18,6 +20,12 @@ var vasync = require('vasync');
 var test = nodeunit.test;
 
 var sprintf = require('util').format;
+
+// Create a test logger
+var LOG = bunyan.createLogger({
+    name: 'sdcaccountrole-test',
+    level: process.env.LOG_LEVEL || 'fatal'
+});
 
 test('setup', function (t) {
     REDIS = redis.createClient();
@@ -71,7 +79,7 @@ test('add', function (t) {
     var args = {
         changes: entry.changes,
         entry: entry,
-        log: this.log,
+        log: LOG,
         redis: REDIS
     };
 
@@ -83,7 +91,8 @@ test('add', function (t) {
         type: 'role',
         name: name,
         uuid: uuid,
-        account: account
+        account: account,
+        assumerolepolicydocument: null
     };
 
     transform.add(args, function (err, res) {
@@ -185,7 +194,7 @@ test('modify - add member', function (t) {
         changes: entry.changes,
         entry: entry,
         modEntry: JSON.parse(entry.entry),
-        log: this.log,
+        log: LOG,
         redis: REDIS
     };
 
@@ -259,7 +268,7 @@ test('modify - delete member', function (t) {
         changes: entry.changes,
         entry: entry,
         modEntry: JSON.parse(entry.entry),
-        log: this.log,
+        log: LOG,
         redis: REDIS
     };
 
@@ -333,7 +342,7 @@ test('modify - add policy', function (t) {
         changes: entry.changes,
         entry: entry,
         modEntry: JSON.parse(entry.entry),
-        log: this.log,
+        log: LOG,
         redis: REDIS
     };
 
@@ -402,7 +411,7 @@ test('modify - delete policy', function (t) {
         changes: entry.changes,
         entry: entry,
         modEntry: JSON.parse(entry.entry),
-        log: this.log,
+        log: LOG,
         redis: REDIS
     };
     var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
@@ -484,7 +493,7 @@ test('modify - add default member', function (t) {
         changes: entry.changes,
         entry: entry,
         modEntry: JSON.parse(entry.entry),
-        log: this.log,
+        log: LOG,
         redis: REDIS
     };
 
@@ -563,7 +572,7 @@ test('modify - delete default member', function (t) {
         changes: entry.changes,
         entry: entry,
         modEntry: JSON.parse(entry.entry),
-        log: this.log,
+        log: LOG,
         redis: REDIS
     };
 
@@ -658,7 +667,7 @@ test('modify - add member and defaultmember', function (t) {
         changes: entry.changes,
         entry: entry,
         modEntry: JSON.parse(entry.entry),
-        log: this.log,
+        log: LOG,
         redis: REDIS
     };
 
@@ -729,7 +738,7 @@ test('modify - rename', function (t) {
         changes: entry.changes,
         entry: entry,
         modEntry: JSON.parse(entry.entry),
-        log: this.log,
+        log: LOG,
         redis: REDIS
     };
 
@@ -740,6 +749,393 @@ test('modify - rename', function (t) {
         res.exec(function () {
             REDIS.get(key, function (err, res) {
                 t.ok(JSON.parse(res).name === 'rename1');
+                t.done();
+            });
+        });
+    });
+});
+
+test('add - role with assumerolepolicydocument', function (t) {
+    var trustPolicy = JSON.stringify({
+        'Version': '2012-10-17',
+        'Statement': [ {
+            'Effect': 'Allow',
+            'Principal': {'AWS': 'arn:aws:iam::123456789012:user/testuser'},
+            'Action': 'sts:AssumeRole'
+        }]
+    });
+
+    var entry = {
+        'dn': 'changenumber=18, cn=changelog',
+        'controls': [],
+        'targetdn': 'group-uuid=6e00a9f4-67b3-11e3-8059-273f883b3fb6, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'add',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2014-02-24T17:22:18.474Z',
+        'changes': {
+            'account': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            'name': [
+                'sts-assumerole'
+            ],
+            'objectclass': [
+                'sdcaccountrole'
+            ],
+            'uniquemember': [
+                'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
+            'uniquememberdefault': [
+                'uuid=3ffc7b4c-66a6-11e3-af09-8752d24e4669, ' +
+                    'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
+            'uuid': [
+                '6e00a9f4-67b3-11e3-8059-273f883b3fb6'
+            ],
+            '_owner': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            '_parent': [
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
+            'assumerolepolicydocument': [
+                trustPolicy
+            ]
+        },
+        'changenumber': '18'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        log: LOG,
+        redis: REDIS
+    };
+
+    var uuid = '6e00a9f4-67b3-11e3-8059-273f883b3fb6';
+    var name = 'sts-assumerole';
+    var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
+    var key = '/uuid/' + uuid;
+    var value = {
+        type: 'role',
+        name: name,
+        uuid: uuid,
+        account: account,
+        assumerolepolicydocument: trustPolicy
+    };
+
+    transform.add(args, function (err, res) {
+        t.strictEqual(8, res.queue.length);
+        res.exec(function () {
+            var barrier = vasync.barrier();
+            barrier.start('role');
+            barrier.start('uuid');
+            barrier.start('set');
+            barrier.start('user');
+            barrier.start('trustpolicy');
+            barrier.on('drain', function () {
+                t.done();
+            });
+            REDIS.get(key, function (err, res) {
+                var roleData = JSON.parse(res);
+                t.deepEqual(roleData.type, value.type);
+                t.deepEqual(roleData.name, value.name);
+                t.deepEqual(roleData.uuid, value.uuid);
+                t.deepEqual(roleData.account, value.account);
+                t.deepEqual(roleData.assumerolepolicydocument,
+                           value.assumerolepolicydocument);
+                barrier.done('uuid');
+            });
+            REDIS.get(sprintf('/role/%s/%s', account, name),
+                function (err, res) {
+                t.strictEqual(res, uuid);
+                barrier.done('role');
+            });
+            REDIS.sismember('/set/roles/' + account, uuid,
+                function (err, res) {
+                t.strictEqual(1, res);
+                barrier.done('set');
+            });
+            REDIS.get('/uuid/3ffc7b4c-66a6-11e3-af09-8752d24e4669',
+                function (err, res) {
+                t.ok(JSON.parse(res).roles.indexOf(uuid) >= 0);
+                t.ok(JSON.parse(res).defaultRoles.indexOf(uuid) >= 0);
+                barrier.done('user');
+            });
+            // Verify trust policy is stored correctly
+            REDIS.get(key, function (err, res) {
+                var parsed = JSON.parse(res);
+                var trustPolicyObj = JSON.parse(
+                    parsed.assumerolepolicydocument);
+                t.strictEqual(trustPolicyObj.Version, '2012-10-17');
+                t.ok(trustPolicyObj.Statement);
+                t.ok(trustPolicyObj.Statement.length > 0);
+                t.strictEqual(trustPolicyObj.Statement[0].Effect, 'Allow');
+                t.strictEqual(trustPolicyObj.Statement[0].Action,
+                             'sts:AssumeRole');
+                barrier.done('trustpolicy');
+            });
+        });
+    });
+});
+
+test('modify - add assumerolepolicydocument', function (t) {
+    var newTrustPolicy = JSON.stringify({
+        'Version': '2012-10-17',
+        'Statement': [
+            {
+                'Effect': 'Allow',
+                'Principal': {
+                    'AWS': 'arn:aws:iam::123456789012:user/newuser'
+                },
+                'Action': 'sts:AssumeRole'
+            }
+        ]
+    });
+
+    var entry = {
+        'dn': 'changenumber=30, cn=changelog',
+        'controls': [],
+        'targetdn': 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2013-12-19T00:58:06.296Z',
+        'changes': [
+            {
+                'operation': 'add',
+                'modification': {
+                    'type': 'assumerolepolicydocument',
+                    'vals': [
+                        newTrustPolicy
+                    ]
+                }
+            }
+        ],
+        'entry': JSON.stringify({
+            'account': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            'name': [
+                'devread'
+            ],
+            'objectclass': [
+                'sdcaccountrole'
+            ],
+            'uuid': [
+                '5d0049f4-67b3-11e3-8059-273f883b3fb6'
+            ],
+            '_owner': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            '_parent': [
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
+            'assumerolepolicydocument': [
+                newTrustPolicy
+            ]
+        }),
+        'changenumber': '30'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        modEntry: JSON.parse(entry.entry),
+        log: LOG,
+        redis: REDIS
+    };
+
+    var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+    var key = '/uuid/' + uuid;
+
+    transform.modify(args, function (err, res) {
+        t.strictEqual(2, res.queue.length);
+        res.exec(function () {
+            REDIS.get(key, function (err, res) {
+                var roleData = JSON.parse(res);
+                t.strictEqual(roleData.assumerolepolicydocument,
+                             newTrustPolicy);
+                // Validate trust policy structure
+                var trustPolicyObj = JSON.parse(
+                    roleData.assumerolepolicydocument);
+                t.strictEqual(trustPolicyObj.Version, '2012-10-17');
+                t.strictEqual(trustPolicyObj.Statement[0].Principal.AWS,
+                    'arn:aws:iam::123456789012:user/newuser');
+                t.done();
+            });
+        });
+    });
+});
+
+test('modify - replace assumerolepolicydocument', function (t) {
+    var updatedTrustPolicy = JSON.stringify({
+        'Version': '2012-10-17',
+        'Statement': [
+            {
+                'Effect': 'Allow',
+                'Principal': {
+                    'Service': 'lambda.amazonaws.com'
+                },
+                'Action': 'sts:AssumeRole'
+            },
+            {
+                'Effect': 'Deny',
+                'Principal': {
+                    'AWS': 'arn:aws:iam::123456789012:user/denieduser'
+                },
+                'Action': 'sts:AssumeRole'
+            }
+        ]
+    });
+
+    var entry = {
+        'dn': 'changenumber=31, cn=changelog',
+        'controls': [],
+        'targetdn': 'group-uuid=5d0049f4-67b3-11e3-8059-273f883b3fb6, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'modify',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2013-12-19T00:58:07.100Z',
+        'changes': [
+            {
+                'operation': 'replace',
+                'modification': {
+                    'type': 'assumerolepolicydocument',
+                    'vals': [
+                        updatedTrustPolicy
+                    ]
+                }
+            }
+        ],
+        'entry': JSON.stringify({
+            'account': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            'name': [
+                'devread'
+            ],
+            'objectclass': [
+                'sdcaccountrole'
+            ],
+            'uuid': [
+                '5d0049f4-67b3-11e3-8059-273f883b3fb6'
+            ],
+            '_owner': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            '_parent': [
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ],
+            'assumerolepolicydocument': [
+                updatedTrustPolicy
+            ]
+        }),
+        'changenumber': '31'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        modEntry: JSON.parse(entry.entry),
+        log: LOG,
+        redis: REDIS
+    };
+
+    var uuid = '5d0049f4-67b3-11e3-8059-273f883b3fb6';
+    var key = '/uuid/' + uuid;
+
+    transform.modify(args, function (err, res) {
+        t.strictEqual(2, res.queue.length);
+        res.exec(function () {
+            REDIS.get(key, function (err, res) {
+                var roleData = JSON.parse(res);
+                t.strictEqual(roleData.assumerolepolicydocument,
+                             updatedTrustPolicy);
+                // Validate complex trust policy with multiple statements
+                var trustPolicyObj = JSON.parse(
+                    roleData.assumerolepolicydocument);
+                t.strictEqual(trustPolicyObj.Statement.length, 2);
+                t.strictEqual(trustPolicyObj.Statement[0].Effect, 'Allow');
+                t.strictEqual(trustPolicyObj.Statement[0].Principal.Service,
+                             'lambda.amazonaws.com');
+                t.strictEqual(trustPolicyObj.Statement[1].Effect, 'Deny');
+                t.strictEqual(trustPolicyObj.Statement[1].Principal.AWS,
+                    'arn:aws:iam::123456789012:user/denieduser');
+                t.done();
+            });
+        });
+    });
+});
+
+test('add - role without assumerolepolicydocument', function (t) {
+    var entry = {
+        'dn': 'changenumber=19, cn=changelog',
+        'controls': [],
+        'targetdn': 'group-uuid=7f00b9f4-67b3-11e3-8059-273f883b3fb6, ' +
+            'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+            'ou=users, o=smartdc',
+        'changetype': 'add',
+        'objectclass': 'changeLogEntry',
+        'changetime': '2014-02-24T17:22:19.000Z',
+        'changes': {
+            'account': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            'name': [
+                'legacy-role'
+            ],
+            'objectclass': [
+                'sdcaccountrole'
+            ],
+            'uuid': [
+                '7f00b9f4-67b3-11e3-8059-273f883b3fb6'
+            ],
+            '_owner': [
+                '390c229a-8c77-445f-b227-88e41c2bb3cf'
+            ],
+            '_parent': [
+                'uuid=390c229a-8c77-445f-b227-88e41c2bb3cf, ' +
+                    'ou=users, o=smartdc'
+            ]
+            // No assumerolepolicydocument field
+        },
+        'changenumber': '19'
+    };
+
+    var args = {
+        changes: entry.changes,
+        entry: entry,
+        log: LOG,
+        redis: REDIS
+    };
+
+    var uuid = '7f00b9f4-67b3-11e3-8059-273f883b3fb6';
+    var name = 'legacy-role';
+    var account = '390c229a-8c77-445f-b227-88e41c2bb3cf';
+    var key = '/uuid/' + uuid;
+
+    transform.add(args, function (err, res) {
+        t.ok(res.queue.length >= 3, 'Should have at least 3 operations');
+        res.exec(function () {
+            REDIS.get(key, function (err, res) {
+                var roleData = JSON.parse(res);
+                t.strictEqual(roleData.type, 'role');
+                t.strictEqual(roleData.name, name);
+                t.strictEqual(roleData.uuid, uuid);
+                t.strictEqual(roleData.account, account);
+                // Verify assumerolepolicydocument is null when not provided
+                t.strictEqual(roleData.assumerolepolicydocument, null);
                 t.done();
             });
         });
@@ -794,7 +1190,7 @@ test('delete', function (t) {
     var args = {
         changes: entry.changes,
         entry: entry,
-        log: this.log,
+        log: LOG,
         redis: REDIS
     };
 

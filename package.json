@@ -22,8 +22,11 @@
         "once": "1.3.0",
         "redis": "0.10.0",
         "restify": "2.6.1",
+        "ufds": "git+https://github.com/TritonDataCenter/node-ufds.git#TRITON-2513",
         "vasync": "1.4.3",
-        "xtend": "2.1.2"
+        "xtend": "2.1.2",
+        "jsonwebtoken": "1.1.0",
+        "generic-pool": "2.5.4"
     },
     "engines": {
         "node": ">=0.10"
