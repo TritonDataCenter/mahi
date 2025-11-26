@@ -118,7 +118,11 @@ function manta_setup_session_secret {
         if ! $SVC_ROOT/boot/set-sapi-metadata.sh SESSION_SECRET_ROTATION_TIME "$rotation_time"; then
             echo "Warning: Failed to set rotation timestamp in SAPI" >&2
         fi
-        
+
+        if ! $SVC_ROOT/boot/set-sapi-metadata.sh SESSION_SECRET_GRACE_PERIOD "86400"; then
+            echo "Warning: Failed to set grace period in SAPI" >&2
+        fi
+
         echo "SESSION_SECRET_KEY configured successfully with key ID: $key_id"
         
         # Make rotation script executable
