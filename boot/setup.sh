@@ -63,8 +63,17 @@ function manta_setup_session_secret {
     # Check if SESSION_SECRET_KEY is already configured in SAPI
     local current_secret=""
     local current_key_id=""
-    current_secret=$(mdata-get sdc:application_metadata.SESSION_SECRET_KEY 2>/dev/null || true)
-    current_key_id=$(mdata-get sdc:application_metadata.SESSION_SECRET_KEY_ID 2>/dev/null || true)
+    local sapi_url=""
+
+    sapi_url=$(mdata-get SAPI_URL 2>/dev/null || true)
+
+    current_secret=$(curl -sH 'application/json' \
+        $sapiurl/services?name=authcache | \
+        json -ga metadata.SESSION_SECRET_KEY 2>/dev/null || true)
+
+    current_key_id=$(curl -sH 'application/json' \
+        $sapiurl/services?name=authcache | \
+        json -ga metadata.SESSION_SECRET_KEY_ID 2>/dev/null || true)
     
     if [[ -z "$current_secret" ]]; then
         echo "Generating initial SESSION_SECRET_KEY with rotation support"
@@ -72,7 +81,7 @@ function manta_setup_session_secret {
         local key_id=""
         local rotation_time=""
         
-        secret_key=$($SVC_ROOT/boot/scripts/generate-session-secret.js)
+        secret_key=$($SVC_ROOT/boot/generate-session-secret.js)
         if [[ -z "$secret_key" ]]; then
             fatal "Failed to generate session secret key"
         fi
@@ -82,23 +91,23 @@ function manta_setup_session_secret {
         rotation_time=$(date +%s)
         
         echo "Setting SESSION_SECRET_KEY and metadata in SAPI"
-        if ! $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY "$secret_key"; then
+        if ! $SVC_ROOT/boot/set-sapi-metadata.sh SESSION_SECRET_KEY "$secret_key"; then
             echo "Warning: Failed to set SESSION_SECRET_KEY in SAPI" >&2
             echo "This may require manual configuration" >&2
         fi
         
-        if ! $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY_ID "$key_id"; then
+        if ! $SVC_ROOT/boot/set-sapi-metadata.sh SESSION_SECRET_KEY_ID "$key_id"; then
             echo "Warning: Failed to set SESSION_SECRET_KEY_ID in SAPI" >&2
         fi
         
-        if ! $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_ROTATION_TIME "$rotation_time"; then
+        if ! $SVC_ROOT/boot/set-sapi-metadata.sh SESSION_SECRET_ROTATION_TIME "$rotation_time"; then
             echo "Warning: Failed to set rotation timestamp in SAPI" >&2
         fi
         
         echo "SESSION_SECRET_KEY configured successfully with key ID: $key_id"
         
         # Make rotation script executable
-        chmod +x $SVC_ROOT/boot/scripts/rotate-session-secret.sh
+        chmod +x $SVC_ROOT/boot/rotate-session-secret.sh
         
     else
         echo "SESSION_SECRET_KEY already configured"
@@ -108,7 +117,7 @@ function manta_setup_session_secret {
             echo "Adding key ID to existing secret for rotation support"
             local legacy_key_id="legacy-$(date +%Y%m%d)"
             
-            if ! $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY_ID "$legacy_key_id"; then
+            if ! $SVC_ROOT/boot/set-sapi-metadata.sh SESSION_SECRET_KEY_ID "$legacy_key_id"; then
                 echo "Warning: Failed to set legacy key ID in SAPI" >&2
             else
                 echo "Added legacy key ID: $legacy_key_id"
@@ -116,7 +125,7 @@ function manta_setup_session_secret {
         fi
         
         # Ensure rotation script is executable
-        chmod +x $SVC_ROOT/boot/scripts/rotate-session-secret.sh
+        chmod +x $SVC_ROOT/boot/rotate-session-secret.sh
         
         # Clean up any expired old secrets
         cleanup_expired_session_secrets
@@ -138,8 +147,8 @@ function cleanup_expired_session_secrets {
         
         if [[ $now -gt $expiry_time ]]; then
             echo "Cleaning up expired session secret during boot"
-            $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD "" 2>/dev/null || true
-            $SVC_ROOT/boot/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD_ID "" 2>/dev/null || true
+            $SVC_ROOT/boot/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD "" 2>/dev/null || true
+            $SVC_ROOT/boot/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD_ID "" 2>/dev/null || true
             echo "Expired session secret cleaned up"
         fi
     fi

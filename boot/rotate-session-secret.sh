@@ -13,7 +13,7 @@ FORCE="${FORCE:-false}"
 
 SVC_ROOT="/opt/smartdc"
 BOOT_ROOT="$SVC_ROOT/boot"
-GENERATE_SECRET_SCRIPT="$BOOT_ROOT/scripts/generate-session-secret.js"
+GENERATE_SECRET_SCRIPT="$BOOT_ROOT/generate-session-secret.js"
 
 function usage() {
     cat << EOF
@@ -63,7 +63,7 @@ function set_sapi_metadata() {
     fi
     
     log "Setting $key in SAPI metadata..."
-    if ! $BOOT_ROOT/scripts/set-sapi-metadata.sh "$key" "$value"; then
+    if ! $BOOT_ROOT/set-sapi-metadata.sh "$key" "$value"; then
         log "Warning: SAPI metadata update failed for $key (this may be expected in dev environments)"
     else
         log "Successfully set $key in SAPI metadata"
@@ -214,8 +214,8 @@ function cleanup_expired_secrets() {
         if [[ "$DRY_RUN" == "true" ]]; then
             log "DRY RUN: Would remove old secret keys"
         else
-            $BOOT_ROOT/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD ""
-            $BOOT_ROOT/scripts/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD_ID ""
+            $BOOT_ROOT/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD ""
+            $BOOT_ROOT/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD_ID ""
             log "Expired old secret removed"
         fi
     else
@@ -232,11 +232,10 @@ function notify_instances() {
         return 0
     fi
     
-    # Send SIGHUP to running mahi processes to reload config
-    # This assumes mahi handles SIGHUP for config reload
+    # Send refresh to running mahi processes to reload config
     if pgrep -f "node.*mahi" >/dev/null; then
-        pkill -HUP -f "node.*mahi"
-        log "Sent SIGHUP to mahi processes"
+        svcadm refresh "mahi-server"
+        log "Sent refresh to mahi processes"
     else
         log "WARNING: No running mahi processes found"
     fi
@@ -277,7 +276,7 @@ function rotate_secret() {
     
     log "Secret rotation completed successfully!"
     log "New key ID: $new_key_id"
-    log "Rotation time: $(date -d @$rotation_time)"
+    log "Rotation time: $(date -d "@$rotation_time")"
     log "Grace period expires: $(date -d @$((rotation_time + GRACE_PERIOD)))"
     
     if [[ "$DRY_RUN" == "true" ]]; then
