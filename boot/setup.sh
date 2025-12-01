@@ -88,7 +88,7 @@ function manta_setup_session_secret {
         local key_id=""
         local rotation_time=""
         
-        secret_key=$($SVC_ROOT/boot/generate-session-secret.js)
+        secret_key=$(xxd -p -c 64 -l 32 /dev/random)
         if [[ -z "$secret_key" ]]; then
             fatal "Failed to generate session secret key"
         fi

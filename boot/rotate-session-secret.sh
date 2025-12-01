@@ -13,7 +13,6 @@ FORCE="${FORCE:-false}"
 
 SVC_ROOT="/opt/smartdc"
 BOOT_ROOT="$SVC_ROOT/boot"
-GENERATE_SECRET_SCRIPT="$BOOT_ROOT/generate-session-secret.js"
 
 function usage() {
     cat << EOF
@@ -73,13 +72,13 @@ function set_sapi_metadata() {
 
 function generate_new_secret() {
     local secret
-    secret=$("$GENERATE_SECRET_SCRIPT")
-    
+    secret=$(xxd -p -c 64 -l 32 /dev/random)
+
     if [[ -z "$secret" ]]; then
         log "ERROR: Failed to generate new secret"
         exit 1
     fi
-    
+
     echo "$secret"
 }
 
