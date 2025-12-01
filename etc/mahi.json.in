@@ -7,31 +7,10 @@
     "bindCredentials": "LDAP_SECRET",
     "timeout": 5000
   },
-  "ufdsCfg": {
-    "url": "UFDS_URL",
-    "bindDN": "UFDS_BIND_DN", 
-    "bindCredentials": "UFDS_SECRET",
-    "maxConnections": 5,
-    "timeout": 5000,
-    "_comment": "UFDS client for STS operations"
-  },
   "redisCfg": {
     "host": "REDIS_HOST",
     "port": REDIS_PORT,
     "options" : {}
   },
-  "pollInterval": POLL_INTERVAL,
-  "sessionConfig": {
-    "secretKey": "SESSION_SECRET_KEY",
-    "secretKeyId": "SESSION_SECRET_KEY_ID", 
-    "oldSecretKey": "SESSION_SECRET_KEY_OLD",
-    "oldSecretKeyId": "SESSION_SECRET_KEY_OLD_ID",
-    "rotationTime": "SESSION_SECRET_ROTATION_TIME",
-    "gracePeriod": "SESSION_SECRET_GRACE_PERIOD",
-    "issuer": "manta-mahi",
-    "audience": "manta-s3",
-    "defaultDuration": 3600,
-    "maxDuration": 43200,
-    "_comment": "JWT session token configuration with rotation support"
-  }
+  "pollInterval": POLL_INTERVAL
 }

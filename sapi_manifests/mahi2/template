@@ -10,6 +10,15 @@
         },
         "interval": 10000
     },
+    "ufdsCfg": {
+      "url": "{{UFDS_URL}}",
+      "bindDN": "UFDS_BIND_DN", 
+      "bindCredentials": "UFDS_SECRET",
+      "maxConnections": 5,
+      "timeout": 5000,
+      "_comment": "UFDS client for STS operations"
+    },
+
     "redis": {
         "host": "localhost",
         "port": 6379,
