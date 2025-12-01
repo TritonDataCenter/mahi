@@ -116,7 +116,7 @@ function check_rotation_needed() {
         log "Secrets are already configured:"
         log "  Key ID: $current_key_id"
         if [[ -n "$last_rotation" ]]; then
-            log "  Last rotation: $(date -d @$last_rotation 2>/dev/null || echo $last_rotation)"
+            log "  Last rotation: $(date -d "@$last_rotation" 2>/dev/null || echo "$last_rotation")"
         fi
         log ""
         log "No rotation needed - secrets are already present."
