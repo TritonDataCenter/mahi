@@ -78,18 +78,10 @@ function manta_setup_session_secret {
     # Check if SESSION_SECRET_KEY is already configured in SAPI
     local current_secret=""
     local current_key_id=""
-    local sapi_url=""
 
-    sapi_url=$(mdata-get SAPI_URL 2>/dev/null || true)
-
-    current_secret=$(curl -sH 'application/json' \
-        $sapiurl/services?name=authcache | \
-        json -ga metadata.SESSION_SECRET_KEY 2>/dev/null || true)
-
-    current_key_id=$(curl -sH 'application/json' \
-        $sapiurl/services?name=authcache | \
-        json -ga metadata.SESSION_SECRET_KEY_ID 2>/dev/null || true)
-    
+    current_secret=$(get_sapi_metadata SESSION_SECRET_KEY)
+    current_key_id=$(get_sapi_metadata SESSION_SECRET_KEY_ID)
+   
     if [[ -z "$current_secret" ]]; then
         echo "Generating initial SESSION_SECRET_KEY with rotation support"
         local secret_key=""
