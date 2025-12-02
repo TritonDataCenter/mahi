@@ -28,7 +28,7 @@ var validateServicePrincipal = sts.internal.validateServicePrincipal;
 var statementMatchesAction = sts.internal.statementMatchesAction;
 var generateUUID = sts.internal.generateUUID;
 var generateTemporaryAccessKeyId = sts.internal.generateTemporaryAccessKeyId;
-var generateTemporarySecretKey = sts.internal.generateTemporarySecretKey;
+var accesskey = require('ufds/lib/accesskey');
 // Removed: generateSessionToken (insecure Base64 method)
 // Use session-token.js module for secure JWT generation
 
@@ -146,17 +146,22 @@ test('validateSinglePrincipal: does not match wrong user ARN', function (t) {
 test('credential generation functions work', function (t) {
     var uuid = generateUUID();
     var tempAccessKey = generateTemporaryAccessKeyId();
-    var tempSecret = generateTemporarySecretKey();
 
     t.ok(uuid && uuid.length === 36, 'UUID should be 36 characters');
     t.ok(tempAccessKey.indexOf('MSTS') === 0,
          'temp access key should start with MSTS');
-    t.ok(tempSecret && tempSecret.length > 20,
-         'temp secret should be substantial length');
 
-    // Note: Session token generation now handled by session-token.js
-    // with secure JWT implementation instead of insecure Base64 JSON
-    t.end();
+    // Test secret key generation using node-ufds accesskey module
+    accesskey.generate(accesskey.DEFAULT_PREFIX, accesskey.DEFAULT_BYTE_LENGTH,
+        function (err, tempSecret) {
+        t.ifError(err, 'should generate secret without error');
+        t.ok(tempSecret && tempSecret.indexOf('tdc_') === 0,
+             'temp secret should start with tdc_ prefix');
+        t.ok(accesskey.validate(accesskey.DEFAULT_PREFIX,
+             accesskey.DEFAULT_BYTE_LENGTH, tempSecret),
+             'temp secret should pass validation');
+        t.end();
+    });
 });
 
 //
