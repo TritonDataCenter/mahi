@@ -10,7 +10,7 @@ apisections: Task Control API
 -->
 <!--
     Copyright (c) 2017, Joyent, Inc.
-    Copyright 2024 MNX Cloud, Inc.
+    Copyright 2025 Edgecast Cloud LLC.
 -->
 
 # Mahi
