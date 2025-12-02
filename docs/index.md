@@ -322,6 +322,19 @@ The user object.
       }
     }
 
+
+# STS (Security Token Service)
+
+AWS-compatible STS endpoints for temporary credential management.
+See [STS API](sts.md) for full documentation.
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| /sts/assume-role | POST | Assume an IAM role |
+| /sts/get-session-token | POST | Get temporary credentials |
+| /sts/get-caller-identity | GET | Get caller identity |
+
+
 # Translations
 
 ## NameToUuid (GET /uuids)
