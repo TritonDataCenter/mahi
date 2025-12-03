@@ -8,6 +8,7 @@
 
 #
 # Copyright (c) 2014, Joyent, Inc.
+# Copyright 2025 Edgecast Cloud LLC.
 #
 
 export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
@@ -125,8 +126,9 @@ function manta_setup_session_secret {
         
         # Ensure key ID exists for existing installations
         if [[ -z "$current_key_id" ]]; then
+            local legacy_key_id;
             echo "Adding key ID to existing secret for rotation support"
-            local legacy_key_id="legacy-$(date +%Y%m%d)"
+            legacy_key_id="legacy-$(date +%Y%m%d)"
             
             if ! $SVC_ROOT/boot/set-sapi-metadata.sh SESSION_SECRET_KEY_ID "$legacy_key_id"; then
                 echo "Warning: Failed to set legacy key ID in SAPI" >&2

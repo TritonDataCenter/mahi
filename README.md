@@ -282,7 +282,11 @@ redis> GET /uuid/550e8400-e29b-41d4-a716-446655440001
 # Shows: {"accesskeys": {"AKIA123456789EXAMPLE": "secret..."}}
 
 # Check reverse lookup mapping
-redis> GET /accesskey/AKIA123456789EXAMPLE  
+redis> GET /accesskey/AKIA123456789EXAMPLE
 # Shows: 550e8400-e29b-41d4-a716-446655440001
 
 ```
+
+## Additional Documentation
+
+- [JWT Secret Rotation](jwt-rotation.md) - JWT secret rotation with grace period support for STS session tokens
