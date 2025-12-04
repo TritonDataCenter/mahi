@@ -1,5 +1,11 @@
 #!/bin/bash
 #
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright 2025 Edgecast Cloud LLC.
+#
 # Rotate JWT session secret with grace period support
 # Allows graceful secret rotation without invalidating existing tokens
 #
@@ -232,7 +238,8 @@ function notify_instances() {
     fi
     
     # Send refresh to running mahi processes to reload config
-    if pgrep -f "node.*mahi" >/dev/null; then
+    status=$(svcs mahi-server | tail -1 | cut -d ' ' -f 1)
+    if [[ "$status" == "online" ]]; then
         svcadm refresh "mahi-server"
         log "Sent refresh to mahi processes"
     else
