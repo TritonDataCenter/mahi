@@ -271,12 +271,6 @@ else # ${FLAVOR} == "sdc"
     echo "Installing auth redis"
     sdc_setup_redis
 
-    echo "Setting up session secret for JWT tokens"
-    manta_setup_session_secret
-
-    echo "Setting up JWT rotation cron job"
-    setup_rotation_cron
-
     # add log rotation entries for mahi
     sdc_log_rotation_add mahi-replicator /var/svc/log/*mahi-replicator*.log 1g
     sdc_log_rotation_add mahi-server /var/svc/log/*mahi-server*.log 1g
