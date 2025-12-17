@@ -1,0 +1,215 @@
+{
+  "description": "AWS Signature Version 4 test vectors for unit testing",
+  "vectors": [
+    {
+      "name": "get-vanilla",
+      "description": "Simple GET request with no query string or headers",
+      "request": {
+        "method": "GET",
+        "uri": "/",
+        "query": "",
+        "headers": {
+          "host": "examplebucket.s3.amazonaws.com",
+          "x-amz-date": "20130524T000000Z"
+        },
+        "signedHeaders": "host;x-amz-date",
+        "payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "credentials": {
+        "accessKeyId": "AKIA0000000000000001",
+        "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        "region": "us-east-1",
+        "service": "s3"
+      },
+      "canonicalRequest": "GET\n/\n\nhost:examplebucket.s3.amazonaws.com\nx-amz-date:20130524T000000Z\n\nhost;x-amz-date\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stringToSign": "AWS4-HMAC-SHA256\n20130524T000000Z\n20130524/us-east-1/s3/aws4_request\n7344ae5b7ee6c3e7e6b0fe0640412a37625d1fbfff95c48bbb2dc43964946972",
+      "expectedSignature": "f0e8bdb87c964420e857bd35b5d6ed310bd44f0170aba48dd91039c6036bdb41"
+    },
+    {
+      "name": "get-vanilla-query",
+      "description": "GET request with query string parameters",
+      "request": {
+        "method": "GET",
+        "uri": "/",
+        "query": "max-keys=100&prefix=photos/2023/",
+        "headers": {
+          "host": "examplebucket.s3.amazonaws.com",
+          "x-amz-date": "20130524T000000Z"
+        },
+        "signedHeaders": "host;x-amz-date",
+        "payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "credentials": {
+        "accessKeyId": "AKIA0000000000000001",
+        "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        "region": "us-east-1",
+        "service": "s3"
+      },
+      "canonicalRequest": "GET\n/\nmax-keys=100&prefix=photos%2F2023%2F\nhost:examplebucket.s3.amazonaws.com\nx-amz-date:20130524T000000Z\n\nhost;x-amz-date\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "put-object",
+      "description": "PUT request to upload an object",
+      "request": {
+        "method": "PUT",
+        "uri": "/test-object.txt",
+        "query": "",
+        "headers": {
+          "host": "examplebucket.s3.amazonaws.com",
+          "x-amz-date": "20130524T000000Z",
+          "x-amz-content-sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        },
+        "signedHeaders": "host;x-amz-content-sha256;x-amz-date",
+        "payloadHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "body": "hello world"
+      },
+      "credentials": {
+        "accessKeyId": "AKIA0000000000000001",
+        "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        "region": "us-east-1",
+        "service": "s3"
+      }
+    },
+    {
+      "name": "get-header-value-trim",
+      "description": "GET request with header values that need trimming",
+      "request": {
+        "method": "GET",
+        "uri": "/",
+        "query": "",
+        "headers": {
+          "host": "examplebucket.s3.amazonaws.com",
+          "x-amz-date": "20130524T000000Z",
+          "x-custom-header": "  value with spaces  "
+        },
+        "signedHeaders": "host;x-amz-date;x-custom-header",
+        "payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "credentials": {
+        "accessKeyId": "AKIA0000000000000001",
+        "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        "region": "us-east-1",
+        "service": "s3"
+      },
+      "canonicalRequest": "GET\n/\n\nhost:examplebucket.s3.amazonaws.com\nx-amz-date:20130524T000000Z\nx-custom-header:value with spaces\n\nhost;x-amz-date;x-custom-header\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "get-unreserved",
+      "description": "GET request with unreserved characters in URI",
+      "request": {
+        "method": "GET",
+        "uri": "/-._~0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+        "query": "",
+        "headers": {
+          "host": "examplebucket.s3.amazonaws.com",
+          "x-amz-date": "20130524T000000Z"
+        },
+        "signedHeaders": "host;x-amz-date",
+        "payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "credentials": {
+        "accessKeyId": "AKIA0000000000000001",
+        "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        "region": "us-east-1",
+        "service": "s3"
+      }
+    },
+    {
+      "name": "post-sts-token-request",
+      "description": "POST request for STS session token (GetSessionToken)",
+      "request": {
+        "method": "POST",
+        "uri": "/",
+        "query": "Action=GetSessionToken&DurationSeconds=3600&Version=2011-06-15",
+        "headers": {
+          "host": "sts.amazonaws.com",
+          "x-amz-date": "20130524T000000Z",
+          "content-type": "application/x-www-form-urlencoded; charset=utf-8"
+        },
+        "signedHeaders": "content-type;host;x-amz-date",
+        "payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "credentials": {
+        "accessKeyId": "AKIASTSTEMPORARY0001",
+        "secretAccessKey": "TemporarySessionKeySecretForSTSTesting12345",
+        "region": "us-east-1",
+        "service": "sts"
+      }
+    },
+    {
+      "name": "get-special-characters",
+      "description": "GET with special characters requiring encoding",
+      "request": {
+        "method": "GET",
+        "uri": "/photos/my photo.jpg",
+        "query": "prefix=photos/&delimiter=/",
+        "headers": {
+          "host": "examplebucket.s3.amazonaws.com",
+          "x-amz-date": "20130524T000000Z"
+        },
+        "signedHeaders": "host;x-amz-date",
+        "payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "credentials": {
+        "accessKeyId": "AKIASPECIALCHARS0001",
+        "secretAccessKey": "Special+Chars/Secret=Key!@#$%^&*()_-[]{};"
+,
+        "region": "us-east-1",
+        "service": "s3"
+      }
+    },
+    {
+      "name": "expired-timestamp",
+      "description": "Request with expired timestamp (for error testing)",
+      "request": {
+        "method": "GET",
+        "uri": "/",
+        "query": "",
+        "headers": {
+          "host": "examplebucket.s3.amazonaws.com",
+          "x-amz-date": "20130524T000000Z"
+        },
+        "signedHeaders": "host;x-amz-date",
+        "payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "credentials": {
+        "accessKeyId": "AKIA0000000000000001",
+        "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        "region": "us-east-1",
+        "service": "s3"
+      },
+      "expectedError": "RequestTimeTooSkewed",
+      "note": "Timestamp is >15 minutes from current time"
+    },
+    {
+      "name": "invalid-signature",
+      "description": "Request with intentionally invalid signature",
+      "request": {
+        "method": "GET",
+        "uri": "/",
+        "query": "",
+        "headers": {
+          "host": "examplebucket.s3.amazonaws.com",
+          "x-amz-date": "20130524T000000Z",
+          "authorization": "AWS4-HMAC-SHA256 Credential=AKIA0000000000000001/20130524/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-date, Signature=0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "signedHeaders": "host;x-amz-date",
+        "payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "credentials": {
+        "accessKeyId": "AKIA0000000000000001",
+        "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        "region": "us-east-1",
+        "service": "s3"
+      },
+      "expectedError": "SignatureDoesNotMatch",
+      "expectedSignature": "f0e8bdb87c964420e857bd35b5d6ed310bd44f0170aba48dd91039c6036bdb41",
+      "actualSignature": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "notes": {
+    "canonicalRequest": "Format: HTTP-Method\\nCanonical-URI\\nCanonical-QueryString\\nCanonical-Headers\\nSigned-Headers\\nPayload-Hash",
+    "stringToSign": "Format: Algorithm\\nTimestamp\\nScope\\nHash(Canonical-Request)",
+    "signatureCalculation": "Uses HMAC-SHA256 chain: kDate, kRegion, kService, kSigning"
+  }
+}
