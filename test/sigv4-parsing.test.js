@@ -265,7 +265,7 @@ exports.testEmptySignedHeaders = function (t) {
 
 exports.testLongSignature = function (t) {
     var longSig =
-        'a'.repeat(64);
+        new Array(64 + 1).join('a');
     var authHeader =
         'AWS4-HMAC-SHA256 Credential=AKIATEST/' +
         '20251217/us-east-1/s3/aws4_request, ' +

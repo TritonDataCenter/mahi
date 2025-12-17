@@ -279,9 +279,13 @@ exports.testCredentialScopeComponents = function (t) {
 /* --- Test with AWS test vectors --- */
 
 exports.testAWSVectorGetVanillaSignature = function (t) {
-    var vector = testVectors.vectors.find(function (v) {
-        return (v.name === 'get-vanilla');
-    });
+    var vector;
+    for (var i = 0; i < testVectors.vectors.length; i++) {
+        if (testVectors.vectors[i].name === 'get-vanilla') {
+            vector = testVectors.vectors[i];
+            break;
+        }
+    }
 
     if (!vector || !vector.expectedSignature ||
         !vector.canonicalRequest) {
@@ -312,9 +316,13 @@ exports.testAWSVectorGetVanillaSignature = function (t) {
 };
 
 exports.testStringToSignWithAWSVector = function (t) {
-    var vector = testVectors.vectors.find(function (v) {
-        return (v.name === 'get-vanilla');
-    });
+    var vector;
+    for (var i = 0; i < testVectors.vectors.length; i++) {
+        if (testVectors.vectors[i].name === 'get-vanilla') {
+            vector = testVectors.vectors[i];
+            break;
+        }
+    }
 
     if (!vector || !vector.stringToSign ||
         !vector.canonicalRequest) {
@@ -356,7 +364,7 @@ exports.testSignatureWithEmptyStringToSign = function (t) {
 };
 
 exports.testSignatureWithLongSecret = function (t) {
-    var longSecret = 'a'.repeat(200);
+    var longSecret = new Array(200 + 1).join('a');
     var signature = helper._calculateSignature(
         longSecret, '20251217', 'us-east-1', 's3',
         'AWS4-HMAC-SHA256\ntest');

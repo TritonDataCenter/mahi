@@ -353,9 +353,13 @@ exports.testHEADMethod = function (t) {
 /* --- Test with AWS test vectors --- */
 
 exports.testAWSVectorGetVanilla = function (t) {
-    var vector = testVectors.vectors.find(function (v) {
-        return (v.name === 'get-vanilla');
-    });
+    var vector;
+    for (var i = 0; i < testVectors.vectors.length; i++) {
+        if (testVectors.vectors[i].name === 'get-vanilla') {
+            vector = testVectors.vectors[i];
+            break;
+        }
+    }
 
     if (!vector || !vector.canonicalRequest) {
         t.skip('Test vector not available');
@@ -377,9 +381,13 @@ exports.testAWSVectorGetVanilla = function (t) {
 };
 
 exports.testAWSVectorGetVanillaQuery = function (t) {
-    var vector = testVectors.vectors.find(function (v) {
-        return (v.name === 'get-vanilla-query');
-    });
+    var vector;
+    for (var i = 0; i < testVectors.vectors.length; i++) {
+        if (testVectors.vectors[i].name === 'get-vanilla-query') {
+            vector = testVectors.vectors[i];
+            break;
+        }
+    }
 
     if (!vector || !vector.canonicalRequest) {
         t.skip('Test vector not available');
@@ -401,9 +409,13 @@ exports.testAWSVectorGetVanillaQuery = function (t) {
 };
 
 exports.testAWSVectorGetHeaderValueTrim = function (t) {
-    var vector = testVectors.vectors.find(function (v) {
-        return (v.name === 'get-header-value-trim');
-    });
+    var vector;
+    for (var i = 0; i < testVectors.vectors.length; i++) {
+        if (testVectors.vectors[i].name === 'get-header-value-trim') {
+            vector = testVectors.vectors[i];
+            break;
+        }
+    }
 
     if (!vector || !vector.canonicalRequest) {
         t.skip('Test vector not available');
