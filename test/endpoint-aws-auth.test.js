@@ -31,25 +31,19 @@ var redis;
 exports.setUp = function (cb) {
 	redis = fakeredis.createClient();
 
-	server.createServer({
+	testServer = server.createServer({
 		log: log,
 		redis: redis,
 		port: 0
-	}, function (err, s) {
-		if (err) {
-			cb(err);
-			return;
-		}
-
-		testServer = s;
-		var addr = testServer.address();
-		client = restify.createJsonClient({
-			url: 'http://127.0.0.1:' + addr.port,
-			retry: false
-		});
-
-		cb();
 	});
+
+	var addr = testServer.address();
+	client = restify.createJsonClient({
+		url: 'http://127.0.0.1:' + addr.port,
+		retry: false
+	});
+
+	cb();
 };
 
 exports.tearDown = function (cb) {
@@ -97,14 +91,15 @@ exports.testGetUserByValidAccessKey = function (t) {
 				t.ok(!err, 'should not error');
 				t.equal(res.statusCode, 200,
 				'should return 200');
-				t.ok(obj, 'should return user object');
-				t.equal(obj.uuid, testUserUuid,
+				t.ok(obj, 'should return response object');
+				t.ok(obj.user, 'should have user object');
+				t.equal(obj.user.uuid, testUserUuid,
 					'should return correct user UUID');
-				t.equal(obj.login, 'testuser',
+				t.equal(obj.user.login, 'testuser',
 					'should return user login');
-				t.equal(obj.email, 'test@example.com',
+				t.equal(obj.user.email, 'test@example.com',
 					'should return user email');
-				t.ok(obj.accesskeys,
+				t.ok(obj.user.accesskeys,
 				'should include access keys');
 				t.done();
 			});
@@ -139,11 +134,13 @@ exports.testUserInformationFields = function (t) {
 			client.get('/aws-auth/' + testAccessKeyId,
 				function (err, req, res, obj) {
 				t.ok(!err, 'should not error');
-				t.ok(obj.uuid, 'should have uuid field');
-				t.ok(obj.login, 'should have login field');
-				t.ok(obj.email, 'should have email field');
-				t.ok(obj.account, 'should have account field');
-				t.equal(obj.cn, 'Alice Smith',
+				t.ok(obj.user, 'should have user object');
+				t.ok(obj.user.uuid, 'should have uuid field');
+				t.ok(obj.user.login, 'should have login field');
+				t.ok(obj.user.email, 'should have email field');
+				t.ok(obj.user.account,
+				'should have account field');
+				t.equal(obj.user.cn, 'Alice Smith',
 					'should have cn field');
 				t.done();
 			});
@@ -161,8 +158,8 @@ exports.testNonexistentAccessKey = function (t) {
 		t.ok(err, 'should error');
 		t.equal(err.statusCode, 404,
 			'should return 404 for nonexistent key');
-		t.equal(err.restCode, 'ObjectDoesNotExist',
-			'should return ObjectDoesNotExist error');
+		t.equal(err.restCode, 'AccessKeyNotFound',
+			'should return AccessKeyNotFound error');
 		t.done();
 	});
 };
@@ -213,11 +210,12 @@ exports.testResponseFormat = function (t) {
 				t.ok(!err, 'should not error');
 				t.equal(typeof (obj), 'object',
 					'should return object');
-				t.equal(typeof (obj.uuid), 'string',
+				t.ok(obj.user, 'should have user object');
+				t.equal(typeof (obj.user.uuid), 'string',
 					'uuid should be string');
-				t.equal(typeof (obj.login), 'string',
+				t.equal(typeof (obj.user.login), 'string',
 					'login should be string');
-				t.equal(typeof (obj.accesskeys), 'object',
+				t.equal(typeof (obj.user.accesskeys), 'object',
 					'accesskeys should be object');
 				t.done();
 			});
@@ -259,9 +257,12 @@ exports.testTemporaryCredentialMSTS = function (t) {
 				t.ok(!err, 'should not error');
 				t.equal(res.statusCode, 200,
 				'should return 200');
-				t.equal(obj.uuid, testUserUuid,
+				t.ok(obj.user, 'should have user object');
+				t.equal(obj.user.uuid, testUserUuid,
 					'should return correct user');
-				t.ok(obj.accesskeys[testAccessKeyId],
+				t.equal(obj.isTemporaryCredential, true,
+					'should mark as temporary credential');
+				t.ok(obj.user.accesskeys[testAccessKeyId],
 					'should inject temp credential');
 				t.done();
 			});
@@ -328,34 +329,28 @@ exports.testRedisConnectionError = function (t) {
 		cb(new Error('Redis connection failed'));
 	};
 
-	server.createServer({
+	var s = server.createServer({
 		log: log,
 		redis: brokenRedis,
 		port: 0
-	}, function (err, s) {
-		if (err) {
-			t.ok(false, 'server creation should not fail');
+	});
+
+	var addr = s.address();
+	var errorClient = restify.createJsonClient({
+		url: 'http://127.0.0.1:' + addr.port,
+		retry: false
+	});
+
+	errorClient.get('/aws-auth/AKIATEST',
+		function (getErr, req, res, obj) {
+		t.ok(getErr, 'should error on Redis failure');
+		t.equal(getErr.statusCode, 503,
+			'should return 503 on service unavailable');
+
+		errorClient.close();
+		s.close(function () {
+			brokenRedis.quit();
 			t.done();
-			return;
-		}
-
-		var addr = s.address();
-		var errorClient = restify.createJsonClient({
-			url: 'http://127.0.0.1:' + addr.port,
-			retry: false
-		});
-
-		errorClient.get('/aws-auth/AKIATEST',
-			function (getErr, req, res, obj) {
-			t.ok(getErr, 'should error on Redis failure');
-			t.equal(getErr.statusCode, 500,
-				'should return 500 on internal error');
-
-			errorClient.close();
-			s.close(function () {
-				brokenRedis.quit();
-				t.done();
-			});
 		});
 	});
 };
