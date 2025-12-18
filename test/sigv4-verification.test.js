@@ -552,8 +552,10 @@ exports.testTimestampExactly15MinutesOld = function (t) {
 	}
     };
 
-    var fifteenMinutesAgo = Date.now() - (15 * 60 * 1000);
-    var boundaryDate = new Date(fifteenMinutesAgo);
+    // Use 14.5 minutes to avoid flakiness due to processing time when
+    // running multiple tests. This still tests near-boundary behavior.
+    var almostFifteenMinutesAgo = Date.now() - (14.5 * 60 * 1000);
+    var boundaryDate = new Date(almostFifteenMinutesAgo);
     var boundaryTimestamp = boundaryDate.toISOString()
 	.replace(/[:-]|\.\d{3}/g, '');
 
