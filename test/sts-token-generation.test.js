@@ -136,9 +136,9 @@ exports.testJWTEncodingAlgorithm = function (t) {
         sessionData,
         secretKey);
 
-    // Decode header to verify algorithm
+    // Decode header to verify algorithm (Node v0.10.48 compatible)
     var header = JSON.parse(
-        Buffer.from(token.split('.')[0], 'base64').toString('utf8'));
+        new Buffer(token.split('.')[0], 'base64').toString('utf8'));
 
     t.equal(header.alg, 'HS256',
         'should use HMAC-SHA256 algorithm');
@@ -165,11 +165,11 @@ exports.testJWTPayloadEncoding = function (t) {
         secretKey,
         {issuer: 'test-issuer', audience: 'test-audience'});
 
-    // Manually decode payload
+    // Manually decode payload (Node v0.10.48 compatible)
     var payloadB64 = token.split('.')[1];
     payloadB64 += '==='.slice(0, (4 - payloadB64.length % 4) % 4);
     payloadB64 = payloadB64.replace(/-/g, '+').replace(/_/g, '/');
-    var payload = JSON.parse(Buffer.from(payloadB64,
+    var payload = JSON.parse(new Buffer(payloadB64,
         'base64').toString('utf8'));
 
     t.equal(payload.uuid, sessionData.uuid,
@@ -352,7 +352,7 @@ exports.testSessionTokenAccessKeyIdGeneration = function (t) {
     t.ok(accessKeyId, 'should generate access key ID');
     t.equal(typeof (accessKeyId), 'string',
         'access key ID should be a string');
-    t.ok(accessKeyId.startsWith('MSTS'),
+    t.ok(accessKeyId.substring(0, 4) === 'MSTS',
         'GetSessionToken access key should start with MSTS');
     t.equal(accessKeyId.length, 20,
         'access key ID should be 20 characters (MSTS + 16 hex)');
@@ -371,7 +371,7 @@ exports.testAssumeRoleAccessKeyIdGeneration = function (t) {
     t.ok(accessKeyId, 'should generate access key ID');
     t.equal(typeof (accessKeyId), 'string',
         'access key ID should be a string');
-    t.ok(accessKeyId.startsWith('MSAR'),
+    t.ok(accessKeyId.substring(0, 4) === 'MSAR',
         'AssumeRole access key should start with MSAR');
     t.equal(accessKeyId.length, 20,
         'access key ID should be 20 characters (MSAR + 16 hex)');
@@ -385,7 +385,8 @@ exports.testAssumeRoleAccessKeyIdGeneration = function (t) {
 };
 
 exports.testAccessKeyIdUniqueness = function (t) {
-    var ids = new Set();
+    var ids = {};
+    var idCount = 0;
     var iterations = 1000;
 
     // Generate many access key IDs
@@ -393,16 +394,17 @@ exports.testAccessKeyIdUniqueness = function (t) {
         var sessionId = generateSessionTokenAccessKeyId();
         var roleId = generateAssumeRoleAccessKeyId();
 
-        t.ok(!ids.has(sessionId),
+        t.ok(!ids[sessionId],
             'SessionToken access key ID should be unique');
-        t.ok(!ids.has(roleId),
+        t.ok(!ids[roleId],
             'AssumeRole access key ID should be unique');
 
-        ids.add(sessionId);
-        ids.add(roleId);
+        ids[sessionId] = true;
+        ids[roleId] = true;
+        idCount += 2;
     }
 
-    t.equal(ids.size, iterations * 2,
+    t.equal(idCount, iterations * 2,
         'all generated IDs should be unique');
     t.done();
 };
@@ -444,9 +446,13 @@ exports.testSecretKeyRandomness = function (t) {
                 remaining--;
 
                 if (remaining === 0) {
-                    // Verify all keys are unique
-                    var uniqueKeys = new Set(keys);
-                    t.equal(uniqueKeys.size, iterations,
+                    // Verify all keys are unique (Node v0.10.48 compatible)
+                    var uniqueKeys = {};
+                    for (var j = 0; j < keys.length; j++) {
+                        uniqueKeys[keys[j]] = true;
+                    }
+                    var uniqueCount = Object.keys(uniqueKeys).length;
+                    t.equal(uniqueCount, iterations,
                         'all secret keys should be unique');
                     t.done();
                 }
@@ -532,16 +538,17 @@ exports.testUUIDGeneration = function (t) {
 };
 
 exports.testUUIDUniqueness = function (t) {
-    var uuids = new Set();
+    var uuids = {};
     var iterations = 10000;
 
     for (var i = 0; i < iterations; i++) {
         var uuid = generateUUID();
-        t.ok(!uuids.has(uuid), 'UUID should be unique');
-        uuids.add(uuid);
+        t.ok(!uuids[uuid], 'UUID should be unique');
+        uuids[uuid] = true;
     }
 
-    t.equal(uuids.size, iterations,
+    var uniqueCount = Object.keys(uuids).length;
+    t.equal(uniqueCount, iterations,
         'all generated UUIDs should be unique');
     t.done();
 };
