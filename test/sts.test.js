@@ -27,7 +27,7 @@ var validateSinglePrincipal = sts.internal.validateSinglePrincipal;
 var validateServicePrincipal = sts.internal.validateServicePrincipal;
 var statementMatchesAction = sts.internal.statementMatchesAction;
 var generateUUID = sts.internal.generateUUID;
-var generateTemporaryAccessKeyId = sts.internal.generateTemporaryAccessKeyId;
+var generateSessionTokenAccessKeyId = sts.internal.generateSessionTokenAccessKeyId;
 var accesskey = require('ufds/lib/accesskey');
 // Removed: generateSessionToken (insecure Base64 method)
 // Use session-token.js module for secure JWT generation
@@ -145,7 +145,7 @@ test('validateSinglePrincipal: does not match wrong user ARN', function (t) {
 
 test('credential generation functions work', function (t) {
     var uuid = generateUUID();
-    var tempAccessKey = generateTemporaryAccessKeyId();
+    var tempAccessKey = generateSessionTokenAccessKeyId();
 
     t.ok(uuid && uuid.length === 36, 'UUID should be 36 characters');
     t.ok(tempAccessKey.indexOf('MSTS') === 0,
@@ -734,10 +734,12 @@ test('principal validation: root principal format', function (t) {
     var normalUser = validateTrustPolicy(trustPolicy,
                                          MOCK_CALLERS.testUser, LOG);
 
-    // Note: In this simplified test, we're checking for login === 'root'
-    // In actual implementation, root validation might work differently
-    t.ok(rootUser, 'root user should be allowed by root principal');
-    t.ok(!normalUser, 'normal user should be denied by root-only principal');
+    // Note: In AWS, arn:aws:iam::ACCOUNT:root means "any principal in ACCOUNT"
+    // not specifically a user with login === 'root'. Both root and normal
+    // users in the same account should be allowed.
+    t.ok(rootUser, 'root user should be allowed by :root principal');
+    t.ok(normalUser, 'normal user should be allowed by :root principal ' +
+                     '(AWS semantics: :root = any principal in account)');
     t.end();
 });
 
