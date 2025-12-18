@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2025, Joyent, Inc.
+ * Copyright 2025 Edgecast Cloud LLC.
  */
 
 /**
