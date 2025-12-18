@@ -125,13 +125,16 @@ SigV4Helper.prototype.createHeaders = function createHeaders(opts) {
         payloadHash = crypto.createHash('sha256')
             .update(body, 'utf8').digest('hex');
         headers['content-type'] = 'application/json';
-        headers['content-length'] = Buffer.byteLength(body, 'utf8');
     } else {
         payloadHash = crypto.createHash('sha256')
             .update('', 'utf8').digest('hex');
     }
 
-    // Build signed headers list
+    // Add x-amz-content-sha256 header for payload hash
+    headers['x-amz-content-sha256'] = payloadHash;
+
+    // Build signed headers list (excluding content-length as HTTP module
+    // will calculate and set it automatically)
     var signedHeaders = Object.keys(headers).sort();
 
     // Create canonical request
@@ -235,7 +238,7 @@ SigV4Helper.prototype._createCanonicalRequest =
 
     sortedSignedHeaders.forEach(function (name) {
         var value = headers[name.toLowerCase()] || '';
-        value = value.replace(/\s+/g, ' ').trim();
+        value = String(value).replace(/\s+/g, ' ').trim();
         canonicalHeaders += name.toLowerCase() + ':' + value + '\n';
     });
 
