@@ -286,15 +286,15 @@ exports.testTamperedTokenRejection = function (t) {
         sessionData,
         secretKey);
 
-    // Tamper with the token by modifying the payload
+    // Tamper with the token by modifying the payload (Node v0.10.48 compatible)
     var parts = token.split('.');
     var payload = JSON.parse(
-        Buffer.from(parts[1], 'base64').toString('utf8'));
+        new Buffer(parts[1], 'base64').toString('utf8'));
     payload.uuid = 'tampered-uuid';
     var eqRegex = new RegExp('=', 'g');
     var plusRegex = new RegExp('\\+', 'g');
     var slashRegex = new RegExp('/', 'g');
-    parts[1] = Buffer.from(JSON.stringify(payload)).toString('base64')
+    parts[1] = new Buffer(JSON.stringify(payload)).toString('base64')
         .replace(eqRegex, '').replace(plusRegex, '-')
         .replace(slashRegex, '_');
     var tamperedToken = parts.join('.');
@@ -379,15 +379,15 @@ exports.testInvalidJSONPayloadRejection = function (t) {
     var eqRegex = new RegExp('=', 'g');
     var plusRegex = new RegExp('\\+', 'g');
     var slashRegex = new RegExp('/', 'g');
-    var header = Buffer.from(JSON.stringify({alg: 'HS256', typ: 'JWT'}))
+    var header = new Buffer(JSON.stringify({alg: 'HS256', typ: 'JWT'}))
         .toString('base64').replace(eqRegex, '').replace(plusRegex, '-')
         .replace(slashRegex, '_');
 
-    var invalidPayload = Buffer.from('not valid json {{{')
+    var invalidPayload = new Buffer('not valid json {{{')
         .toString('base64').replace(eqRegex, '').replace(plusRegex, '-')
         .replace(slashRegex, '_');
 
-    var signature = Buffer.from('fake-signature').toString('base64')
+    var signature = new Buffer('fake-signature').toString('base64')
         .replace(eqRegex, '').replace(plusRegex, '-')
         .replace(slashRegex, '_');
 
@@ -704,8 +704,10 @@ exports.testExpiredSecretRejection = function (t) {
 /* --- Test token decoding edge cases --- */
 
 exports.testDecodeTokenTooLarge = function (t) {
-    // Create an oversized token payload
-    var largePayload = Buffer.alloc(100000, 'x').toString('base64');
+    // Create an oversized token payload (Node v0.10.48 compatible)
+    var largeBuffer = new Buffer(100000);
+    largeBuffer.fill('x');
+    var largePayload = largeBuffer.toString('base64');
     var largeToken = 'header.' + largePayload + '.signature';
 
     t.throws(function () {

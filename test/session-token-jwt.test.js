@@ -180,8 +180,8 @@ exports.testDecodeRejectsInvalidBase64 = function (t) {
 };
 
 exports.testDecodeRejectsInvalidJSON = function (t) {
-    // Create token with non-JSON payload
-    var invalidPayload = Buffer.from('not valid json {{{').toString('base64')
+    // Create token with non-JSON payload (Node v0.10.48 compatible)
+    var invalidPayload = new Buffer('not valid json {{{').toString('base64')
         .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     var invalidToken = 'eyJhbGciOiJIUzI1NiJ9.' + invalidPayload +
         '.signature';
@@ -194,9 +194,9 @@ exports.testDecodeRejectsInvalidJSON = function (t) {
 };
 
 exports.testDecodeRejectsTooLargeToken = function (t) {
-    // Create a payload larger than 64KB
+    // Create a payload larger than 64KB (Node v0.10.48 compatible)
     var largeData = new Array(65537).join('x');
-    var largePayload = Buffer.from(JSON.stringify({data: largeData}))
+    var largePayload = new Buffer(JSON.stringify({data: largeData}))
         .toString('base64')
         .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     var largeToken = 'eyJhbGciOiJIUzI1NiJ9.' + largePayload + '.signature';
