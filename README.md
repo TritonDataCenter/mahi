@@ -162,33 +162,33 @@ sequenceDiagram
 
 The SigV4 authentication process in Mahi follows the AWS Signature Version 4 specification:
 
-1. **Authorization Header Parsing** (`lib/server/sigv4.js:27-58`):
+1. **Authorization Header Parsing** (`lib/server/sigv4.js`):
    - Extracts `accessKeyId`, `signature`, `signedHeaders`, and credential scope from the `AWS4-HMAC-SHA256` header
    - Validates the header format and structure
 
-2. **Access Key Lookup** (`lib/server/sigv4.js:160-172`):
+2. **Access Key Lookup** (`lib/server/sigv4.js`):
    - Uses Redis reverse lookup `/accesskey/{accessKeyId}` to find the user UUID
    - Retrieves the full user object from `/uuid/{userUuid}` containing access key secrets
 
-3. **Timestamp Validation** (`lib/server/sigv4.js:205-212`):
+3. **Timestamp Validation** (`lib/server/sigv4.js`):
    - Validates the `x-amz-date` or `date` header is within ±15 minutes of current time
    - Prevents replay attacks with old signatures
 
-4. **Canonical Request Creation** (`lib/server/sigv4.js:63-98`):
+4. **Canonical Request Creation** (`lib/server/sigv4.js`):
    - Builds a canonical representation of the HTTP request
    - Includes HTTP method, URI, query string, canonical headers, signed headers, and payload hash
    - Follows AWS SigV4 specification for string formatting
 
-5. **String to Sign Creation** (`lib/server/sigv4.js:103-111`):
+5. **String to Sign Creation** (`lib/server/sigv4.js`):
    - Creates the string that will be signed using the canonical request
    - Format: `"AWS4-HMAC-SHA256\n" + timestamp + "\n" + credentialScope + "\n" + hash(canonicalRequest)`
 
-6. **Signature Calculation** (`lib/server/sigv4.js:116-127`):
+6. **Signature Calculation** (`lib/server/sigv4.js`):
    - Implements the AWS SigV4 signing process using HMAC-SHA256
    - Creates a signing key through a chain of HMAC operations: `kDate -> kRegion -> kService -> kSigning`
    - Calculates the expected signature using the signing key and string to sign
 
-7. **Signature Verification** (`lib/server/sigv4.js:250-260`):
+7. **Signature Verification** (`lib/server/sigv4.js`):
    - Compares the calculated signature with the signature from the authorization header
    - Returns authentication result with user information if signatures match
 
@@ -213,7 +213,7 @@ Response:
 
 Verifies an AWS Signature Version 4 request signature. This endpoint is designed to be called by S3-compatible services that need to validate AWS SigV4 authentication.
 
-**Implementation Details** (`lib/server/server.js:303-324`):
+**Implementation Details** (`lib/server/server.js`):
 - Accepts the original HTTP request details as query parameters (`method`, `url`)
 - Validates the `Authorization` header containing the AWS4-HMAC-SHA256 signature
 - Performs comprehensive signature verification including timestamp validation
