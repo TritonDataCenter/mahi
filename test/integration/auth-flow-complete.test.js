@@ -20,15 +20,15 @@
  * - Various credential types (permanent, temporary, assumed role)
  */
 
-var nodeunit = require('nodeunit');
+var _nodeunit = require('nodeunit');
 var bunyan = require('bunyan');
-var crypto = require('crypto');
-var vasync = require('vasync');
+var _crypto = require('crypto');
+var _vasync = require('vasync');
 var fakeredis = require('fakeredis');
 var restify = require('restify');
 var server = require('../../lib/server/server');
-var sts = require('../../lib/server/sts');
-var sigv4 = require('../../lib/server/sigv4');
+var _sts = require('../../lib/server/sts');
+var _sigv4 = require('../../lib/server/sigv4');
 var sessionToken = require('../../lib/server/session-token');
 var SigV4Helper = require('../lib/sigv4-helper');
 
@@ -82,7 +82,8 @@ exports.setUp = function (cb) {
                         {
                                 Effect: 'Allow',
                                 Principal: {
-                                        AWS: 'arn:aws:iam::' + TEST_ACCOUNT_UUID + ':root'
+                                        AWS: 'arn:aws:iam::' +
+                                                TEST_ACCOUNT_UUID + ':root'
                                 },
                                 Action: 'sts:AssumeRole'
                         }]
@@ -155,7 +156,7 @@ exports.testCompleteSigV4Flow = function (t) {
         // returns user info
 
         var timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-        var dateStamp = timestamp.substr(0, 8);
+        var _dateStamp = timestamp.substr(0, 8);
 
         var headers = helper.createHeaders({
                 method: 'GET',
@@ -171,7 +172,7 @@ exports.testCompleteSigV4Flow = function (t) {
                 headers: headers
         };
 
-        client.get(opts, function (err, req, res, obj) {
+        client.get(opts, function (err, _req, _res, _obj) {
                 t.ok(!err, 'should not error on valid SigV4 auth');
                 t.equal(res.statusCode, 200, 'should return 200');
                 t.ok(obj.user, 'should return user object');
@@ -206,7 +207,7 @@ exports.testSessionTokenCredentialsFlow = function (t) {
         var token = sessionToken.generateSessionToken(
                 sessionData,
                 SESSION_SECRET
-       );
+        );
 
         t.ok(token, 'should generate session token');
 
@@ -241,7 +242,7 @@ exports.testSessionTokenCredentialsFlow = function (t) {
                         headers: headers
                 };
 
-                client.get(opts, function (getErr, req, res, obj) {
+                client.get(opts, function (getErr, _req, _res, _obj) {
                         t.ok(!getErr, 'should not error with session token');
                         t.equal(res.statusCode, 200,
                                 'should return 200 with temp creds');
@@ -275,7 +276,8 @@ exports.testSTSAssumeRoleFlow = function (t) {
                         3600,
                 assumedRole: {
                         roleUuid: TEST_ROLE_UUID,
-                        arn: 'arn:aws:iam::' + TEST_ACCOUNT_UUID + ':role/TestRole',
+                        arn: 'arn:aws:iam::' + TEST_ACCOUNT_UUID +
+                                ':role/TestRole',
                         policies: []
                 }
         };
@@ -301,7 +303,7 @@ exports.testSTSAssumeRoleFlow = function (t) {
                         headers: headers
                 };
 
-                client.get(opts, function (getErr, req, res, obj) {
+                client.get(opts, function (getErr, _req, _res, _obj) {
                         t.ok(!getErr, 'should not error with assumed role');
                         t.equal(res.statusCode, 200,
                                 'should return 200');
@@ -321,7 +323,8 @@ exports.testErrorPropagation = function (t) {
         // Test that errors propagate correctly:
         // Nonexistent access key should return 404
 
-        client.get('/aws-auth/AKIANONEXISTENT', function (err, req, res, obj) {
+        client.get('/aws-auth/AKIANONEXISTENT',
+                function (err, _req, _res, _obj) {
                 t.ok(err, 'should error on nonexistent access key');
                 t.equal(err.statusCode, 404,
                         'should return 404 for nonexistent key');
@@ -340,7 +343,7 @@ exports.testOrphanedAccessKey = function (t) {
                 t.ok(!err, 'should set orphaned access key');
 
                 client.get('/aws-auth/' + orphanedKey,
-                        function (getErr, req, res, obj) {
+                        function (getErr, _req, _res, _obj) {
                         t.ok(getErr, 'should error on orphaned key');
                         t.equal(getErr.statusCode, 404,
                                 'should return 404 for missing user');
@@ -354,7 +357,7 @@ exports.testInvalidAccessKeyFormat = function (t) {
         var invalidKey = 'AKIA!@#$%^&*()';
 
         client.get('/aws-auth/' + encodeURIComponent(invalidKey),
-                function (err, req, res, obj) {
+                function (err, _req, _res, _obj) {
                 t.ok(err, 'should error on invalid key format');
                 t.equal(err.statusCode, 404,
                         'should return 404 for invalid format');
@@ -384,7 +387,7 @@ exports.testConcurrentAuthRequests = function (t) {
         // Make 3 parallel requests
         for (var i = 0; i < numRequests; i++) {
                 client.get('/aws-auth/' + TEST_ACCESS_KEY,
-                        function (err, req, res, obj) {
+                        function (err, _req, _res, _obj) {
                         if (!err && obj && obj.user) {
                                 successes++;
                         }
@@ -415,7 +418,7 @@ exports.testPermanentCredentials = function (t) {
                 headers: headers
         };
 
-        client.get(opts, function (err, req, res, obj) {
+        client.get(opts, function (err, _req, _res, _obj) {
                 t.ok(!err, 'should not error with permanent credentials');
                 t.equal(res.statusCode, 200, 'should return 200');
                 t.ok(obj.user, 'should return user object');
@@ -460,7 +463,7 @@ exports.testTemporaryCredentialsWithExpiration = function (t) {
                         headers: headers
                 };
 
-                client.get(opts, function (getErr, req, res, obj) {
+                client.get(opts, function (getErr, _req, _res, _obj) {
                         t.ok(!getErr,
                                 'should not error with valid temp credentials');
                         t.equal(res.statusCode, 200, 'should return 200');
@@ -494,8 +497,9 @@ exports.testExpiredTemporaryCredentials = function (t) {
                 // The /aws-auth endpoint returns credential data
                 // without verifying expiration (done in /aws-verify)
                 client.get('/aws-auth/' + expiredAccessKey,
-                        function (getErr, req, res, obj) {
-                        t.ok(!getErr, 'aws-auth returns data for expired creds');
+                        function (getErr, _req, _res, _obj) {
+                        t.ok(!getErr,
+                                'aws-auth returns data for expired creds');
                         t.ok(obj.user, 'should have user');
                         t.equal(obj.isTemporaryCredential, true,
                                 'should be marked as temporary');
@@ -522,7 +526,7 @@ exports.testRequestStateIsolation = function (t) {
 
                 // Request 2: Invalid request
                 client.get('/aws-auth/AKIAFAKE',
-                        function (err2, req2, res2, obj2) {
+                        function (err2, _req2, _res2, _obj2) {
                         t.ok(err2, 'request 2 should fail');
                         t.equal(err2.statusCode, 404, 'request 2 returns 404');
                         completed++;
@@ -536,7 +540,8 @@ exports.testRequestStateIsolation = function (t) {
                                         'request 3 returns correct user');
                                 completed++;
 
-                                t.equal(completed, 3, 'all 3 requests completed');
+                                t.equal(completed, 3,
+                                        'all 3 requests completed');
                                 t.done();
                         });
                 });

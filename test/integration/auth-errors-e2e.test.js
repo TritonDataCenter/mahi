@@ -233,7 +233,8 @@ exports.testMalformedAuthHeader = function (t) {
                 'content-type': 'application/json'
         };
 
-        signedPost('/aws-verify', '{}', headers, function (err, _req, _res, _obj) {
+        signedPost('/aws-verify', '{}', headers,
+                function (err, _req, _res, _obj) {
                 t.ok(err, 'should error on malformed auth header');
                 t.ok(err.statusCode === 400 || err.statusCode === 403,
                         'should return 400 or 403');
@@ -247,7 +248,8 @@ exports.testMissingAuthHeader = function (t) {
                 'content-type': 'application/json'
         };
 
-        signedPost('/aws-verify', '{}', headers, function (err, _req, _res, _obj) {
+        signedPost('/aws-verify', '{}', headers,
+                function (err, _req, _res, _obj) {
                 t.ok(err, 'should error on missing auth header');
                 t.ok(err.statusCode === 401 || err.statusCode === 403,
                         'should return 401 or 403');
