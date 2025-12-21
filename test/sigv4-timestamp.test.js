@@ -338,10 +338,7 @@ exports.testEmptyTimestamp = function (t) {
 
 exports.testPartialTimestamp = function (t) {
     var partialTimestamp = '20251217';
-    void new Date(partialTimestamp);
-
-    // Partial timestamps may or may not parse depending on
-    // JavaScript engine - just verify it doesn't throw
+    var _result = new Date(partialTimestamp);
     t.ok(true,
         'partial timestamp handled without error');
     t.done();
