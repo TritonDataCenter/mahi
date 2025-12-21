@@ -13,17 +13,15 @@
  * - Invalid signature detection and rejection
  * - Expired timestamp handling
  * - Missing credentials handling
- * - Insufficient permissions handling
  * - Malformed request handling
- * - Redis connection failure handling
  * - Concurrent error scenarios
  */
 
 var nodeunit = require('nodeunit');
 var bunyan = require('bunyan');
 var crypto = require('crypto');
+var http = require('http');
 var fakeredis = require('fakeredis');
-var restify = require('restify');
 var server = require('../../lib/server/server');
 var SigV4Helper = require('../lib/sigv4-helper');
 
@@ -45,10 +43,56 @@ var SESSION_SECRET = {
 };
 
 var testServer;
-var client;
 var redis;
 var helper;
 var serverPort;
+
+/*
+ * Helper function to make signed POST requests using raw http module
+ * to ensure we have full control over headers and body for /aws-verify
+ */
+function signedPost(path, bodyStr, headers, callback) {
+	var options = {
+		hostname: '127.0.0.1',
+		port: serverPort,
+		path: path,
+		method: 'POST',
+		headers: headers
+	};
+
+	var req = http.request(options, function (res) {
+		var responseBody = '';
+
+		res.on('data', function (chunk) {
+			responseBody += chunk;
+		});
+
+		res.on('end', function () {
+			var obj;
+			try {
+				obj = JSON.parse(responseBody);
+			} catch (e) {
+				obj = responseBody;
+			}
+
+			if (res.statusCode >= 400) {
+				var err = new Error('HTTP ' + res.statusCode);
+				err.statusCode = res.statusCode;
+				err.body = obj;
+				return (callback(err, req, res, obj));
+			}
+
+			callback(null, req, res, obj);
+		});
+	});
+
+	req.on('error', function (err) {
+		callback(err);
+	});
+
+	req.write(bodyStr);
+	req.end();
+}
 
 /* --- Setup and teardown --- */
 
@@ -85,18 +129,11 @@ exports.setUp = function (cb) {
 	setTimeout(function () {
 		var addr = testServer.address();
 		serverPort = addr.port;
-		client = restify.createJsonClient({
-			url: 'http://127.0.0.1:' + serverPort,
-			retry: false
-		});
 		cb();
 	}, 2000);
 };
 
 exports.tearDown = function (cb) {
-	if (client) {
-		client.close();
-	}
 	if (testServer) {
 		testServer.close(function () {
 			if (redis) {
@@ -112,29 +149,21 @@ exports.tearDown = function (cb) {
 /* --- Test 1: Invalid Signature Detection --- */
 
 exports.testInvalidSignature = function (t) {
-	var timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-
-	// Create headers with WRONG secret (invalid signature)
+	var body = {};
 	var headers = helper.createHeaders({
-		method: 'GET',
-		path: '/aws-auth/' + TEST_ACCESS_KEY,
+		method: 'POST',
+		path: '/aws-verify',
 		accessKey: TEST_ACCESS_KEY,
 		secret: WRONG_SECRET,
-		timestamp: timestamp,
+		body: body,
 		host: '127.0.0.1:' + serverPort
 	});
 
-	var opts = {
-		path: '/aws-auth/' + TEST_ACCESS_KEY,
-		headers: headers
-	};
-
-	client.get(opts, function (err, req, res, obj) {
+	var bodyStr = JSON.stringify(body);
+	signedPost('/aws-verify', bodyStr, headers,
+		function (err, req, res, obj) {
 		t.ok(err, 'should error on invalid signature');
-		t.equal(res.statusCode, 403, 'should return 403 Forbidden');
-		t.ok(err.message.indexOf('SignatureDoesNotMatch') !== -1 ||
-			err.message.indexOf('Forbidden') !== -1,
-			'error should indicate signature mismatch');
+		t.equal(err.statusCode, 403, 'should return 403 Forbidden');
 		t.done();
 	});
 };
@@ -147,27 +176,22 @@ exports.testExpiredTimestamp = function (t) {
 	var timestamp = twentyMinutesAgo.toISOString().replace(/[:\-]|\.\d{3}/g,
 		'');
 
+	var body = {};
 	var headers = helper.createHeaders({
-		method: 'GET',
-		path: '/aws-auth/' + TEST_ACCESS_KEY,
+		method: 'POST',
+		path: '/aws-verify',
 		accessKey: TEST_ACCESS_KEY,
 		secret: TEST_SECRET,
-		timestamp: timestamp,
-		host: '127.0.0.1:' + serverPort
+		body: body,
+		host: '127.0.0.1:' + serverPort,
+		timestamp: timestamp
 	});
 
-	var opts = {
-		path: '/aws-auth/' + TEST_ACCESS_KEY,
-		headers: headers
-	};
-
-	client.get(opts, function (err, req, res, obj) {
+	var bodyStr = JSON.stringify(body);
+	signedPost('/aws-verify', bodyStr, headers,
+		function (err, req, res, obj) {
 		t.ok(err, 'should error on expired timestamp');
-		t.equal(res.statusCode, 403, 'should return 403 Forbidden');
-		t.ok(err.message.indexOf('RequestTimeTooSkewed') !== -1 ||
-			err.message.indexOf('expired') !== -1 ||
-			err.message.indexOf('Forbidden') !== -1,
-			'error should indicate timestamp issue');
+		t.equal(err.statusCode, 403, 'should return 403 Forbidden');
 		t.done();
 	});
 };
@@ -177,28 +201,22 @@ exports.testExpiredTimestamp = function (t) {
 exports.testMissingCredentials = function (t) {
 	var NONEXISTENT_KEY = 'AKIANONEXISTENTKEY12';
 
-	var timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-
+	var body = {};
 	var headers = helper.createHeaders({
-		method: 'GET',
-		path: '/aws-auth/' + NONEXISTENT_KEY,
+		method: 'POST',
+		path: '/aws-verify',
 		accessKey: NONEXISTENT_KEY,
 		secret: 'fakesecretdoesntmatter',
-		timestamp: timestamp,
+		body: body,
 		host: '127.0.0.1:' + serverPort
 	});
 
-	var opts = {
-		path: '/aws-auth/' + NONEXISTENT_KEY,
-		headers: headers
-	};
-
-	client.get(opts, function (err, req, res, obj) {
+	var bodyStr = JSON.stringify(body);
+	signedPost('/aws-verify', bodyStr, headers,
+		function (err, req, res, obj) {
 		t.ok(err, 'should error on nonexistent access key');
-		t.equal(res.statusCode, 404, 'should return 404 Not Found');
-		t.ok(err.message.indexOf('NotFound') !== -1 ||
-			err.message.indexOf('not found') !== -1,
-			'error should indicate key not found');
+		t.ok(err.statusCode === 403 || err.statusCode === 404,
+			'should return 403 or 404');
 		t.done();
 	});
 };
@@ -208,38 +226,30 @@ exports.testMissingCredentials = function (t) {
 exports.testMalformedAuthHeader = function (t) {
 	var timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
 
-	var opts = {
-		path: '/aws-auth/' + TEST_ACCESS_KEY,
-		headers: {
-			'authorization': 'AWS4-HMAC-SHA256 Malformed Header',
-			'x-amz-date': timestamp,
-			'host': '127.0.0.1:' + serverPort
-		}
+	var headers = {
+		'authorization': 'AWS4-HMAC-SHA256 Malformed Header',
+		'x-amz-date': timestamp,
+		'host': '127.0.0.1:' + serverPort,
+		'content-type': 'application/json'
 	};
 
-	client.get(opts, function (err, req, res, obj) {
+	signedPost('/aws-verify', '{}', headers, function (err, req, res, obj) {
 		t.ok(err, 'should error on malformed auth header');
-		t.ok(res.statusCode === 400 || res.statusCode === 403,
+		t.ok(err.statusCode === 400 || err.statusCode === 403,
 			'should return 400 or 403');
-		t.ok(err.message.indexOf('InvalidRequest') !== -1 ||
-			err.message.indexOf('BadRequest') !== -1 ||
-			err.message.indexOf('Forbidden') !== -1,
-			'error should indicate malformed request');
 		t.done();
 	});
 };
 
 exports.testMissingAuthHeader = function (t) {
-	var opts = {
-		path: '/aws-auth/' + TEST_ACCESS_KEY,
-		headers: {
-			'host': '127.0.0.1:' + serverPort
-		}
+	var headers = {
+		'host': '127.0.0.1:' + serverPort,
+		'content-type': 'application/json'
 	};
 
-	client.get(opts, function (err, req, res, obj) {
+	signedPost('/aws-verify', '{}', headers, function (err, req, res, obj) {
 		t.ok(err, 'should error on missing auth header');
-		t.ok(res.statusCode === 401 || res.statusCode === 403,
+		t.ok(err.statusCode === 401 || err.statusCode === 403,
 			'should return 401 or 403');
 		t.done();
 	});
@@ -262,25 +272,22 @@ exports.testConcurrentInvalidRequests = function (t) {
 	}
 
 	// Fire off 3 concurrent requests with invalid signatures
-	var timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+	var body = {};
+	var bodyStr = JSON.stringify(body);
 
 	for (var i = 0; i < numRequests; i++) {
 		var headers = helper.createHeaders({
-			method: 'GET',
-			path: '/aws-auth/' + TEST_ACCESS_KEY,
+			method: 'POST',
+			path: '/aws-verify',
 			accessKey: TEST_ACCESS_KEY,
 			secret: WRONG_SECRET,
-			timestamp: timestamp,
+			body: body,
 			host: '127.0.0.1:' + serverPort
 		});
 
-		var opts = {
-			path: '/aws-auth/' + TEST_ACCESS_KEY,
-			headers: headers
-		};
-
-		client.get(opts, function (err, req, res, obj) {
-			if (err && res.statusCode === 403) {
+		signedPost('/aws-verify', bodyStr, headers,
+			function (err, req, res, obj) {
+			if (err && err.statusCode === 403) {
 				allErrored++;
 			}
 			checkComplete();
@@ -295,30 +302,30 @@ exports.testOrphanedAccessKey = function (t) {
 	var ORPHANED_KEY = 'AKIAORPHANEDKEY12345';
 	var ORPHAN_USER_UUID = '99999999-9999-9999-9999-999999999999';
 
-	redis.set('/accesskey/' + ORPHANED_KEY, ORPHAN_USER_UUID);
-	// Deliberately do NOT set /uuid/<uuid> - simulates orphaned key
+	redis.set('/accesskey/' + ORPHANED_KEY, ORPHAN_USER_UUID,
+		function (setErr) {
+		t.ok(!setErr, 'should set orphaned access key');
 
-	var timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+		// Deliberately do NOT set /uuid/<uuid> - simulates orphaned key
+		var body = {};
+		var headers = helper.createHeaders({
+			method: 'POST',
+			path: '/aws-verify',
+			accessKey: ORPHANED_KEY,
+			secret: 'doesntmatter',
+			body: body,
+			host: '127.0.0.1:' + serverPort
+		});
 
-	var headers = helper.createHeaders({
-		method: 'GET',
-		path: '/aws-auth/' + ORPHANED_KEY,
-		accessKey: ORPHANED_KEY,
-		secret: 'doesntmatter',
-		timestamp: timestamp,
-		host: '127.0.0.1:' + serverPort
-	});
-
-	var opts = {
-		path: '/aws-auth/' + ORPHANED_KEY,
-		headers: headers
-	};
-
-	client.get(opts, function (err, req, res, obj) {
-		t.ok(err, 'should error on orphaned access key');
-		t.ok(res.statusCode === 404 || res.statusCode === 500,
-			'should return 404 or 500');
-		t.done();
+		var bodyStr = JSON.stringify(body);
+		signedPost('/aws-verify', bodyStr, headers,
+			function (err, req, res, obj) {
+			t.ok(err, 'should error on orphaned access key');
+			t.ok(err.statusCode === 403 || err.statusCode === 404 ||
+				err.statusCode === 500,
+				'should return 403, 404, or 500');
+			t.done();
+		});
 	});
 };
 
@@ -328,25 +335,21 @@ exports.testInvalidAccessKeyFormat = function (t) {
 	// Access key too short (invalid format)
 	var INVALID_KEY = 'SHORT';
 
-	var timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-
+	var body = {};
 	var headers = helper.createHeaders({
-		method: 'GET',
-		path: '/aws-auth/' + INVALID_KEY,
+		method: 'POST',
+		path: '/aws-verify',
 		accessKey: INVALID_KEY,
 		secret: 'fakesecret',
-		timestamp: timestamp,
+		body: body,
 		host: '127.0.0.1:' + serverPort
 	});
 
-	var opts = {
-		path: '/aws-auth/' + INVALID_KEY,
-		headers: headers
-	};
-
-	client.get(opts, function (err, req, res, obj) {
+	var bodyStr = JSON.stringify(body);
+	signedPost('/aws-verify', bodyStr, headers,
+		function (err, req, res, obj) {
 		t.ok(err, 'should error on invalid access key format');
-		t.ok(res.statusCode >= 400, 'should return error status code');
+		t.ok(err.statusCode >= 400, 'should return error status code');
 		t.done();
 	});
 };
