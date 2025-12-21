@@ -14,13 +14,13 @@
  * with SigV4 authentication.
  */
 
-var nodeunit = require('nodeunit');
+var _nodeunit = require('nodeunit');
 var bunyan = require('bunyan');
 var fakeredis = require('fakeredis');
-var crypto = require('crypto');
+var _crypto = require('crypto');
 var sts = require('../lib/server/sts.js');
-var sigv4 = require('../lib/server/sigv4');
-var sessionTokenModule = require('../lib/server/session-token');
+var _sigv4 = require('../lib/server/sigv4');
+var _sessionTokenModule = require('../lib/server/session-token');
 var SigV4Helper = require('./lib/sigv4-helper');
 
 var log = bunyan.createLogger({
@@ -29,7 +29,7 @@ var log = bunyan.createLogger({
 });
 
 var redis;
-var helper;
+var _helper;
 
 // Test accounts and users (using proper UUIDs)
 var TEST_ACCOUNT_UUID = '12345678-1234-1234-1234-123456789012';
@@ -164,7 +164,7 @@ function createMockUfdsPool() {
                 callback(null, mockClient);
             });
         },
-        release: function (client) {
+        release: function (_client) {
             // No-op for mock
         },
         getAddedEntries: function () {
@@ -316,7 +316,7 @@ exports.testAssumeRoleNonexistentRole = function (t) {
 
     var res = createMockResponse();
 
-    sts.assumeRole(req, res, function (err) {
+    sts.assumeRole(req, res, function (_err) {
         // Should get 404 response for nonexistent role (via res.send)
         var status = res.getStatus();
         t.ok(status === 404 || !status,
@@ -382,7 +382,7 @@ exports.testAssumeRoleTrustPolicyDenial = function (t) {
 
     var res = createMockResponse();
 
-    sts.assumeRole(req, res, function (err) {
+    sts.assumeRole(req, res, function (_err) {
         // Should get 403 response for trust policy denial (via res.send)
         var status = res.getStatus();
         t.ok(status === 403 || !status,
@@ -507,7 +507,7 @@ exports.testGetSessionTokenMissingCaller = function (t) {
     // The function uses assert.object(req.body.caller) which throws
     // if caller is missing, so we need to catch the assertion error
     try {
-        sts.getSessionToken(req, res, function (err) {
+        sts.getSessionToken(req, res, function (_err) {
             // Should not reach here
             t.ok(false, 'should have thrown assertion error');
             t.done();

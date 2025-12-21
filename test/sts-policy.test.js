@@ -15,9 +15,9 @@
  * policy size limits, invalid policy rejection, and policy retrieval.
  */
 
-var nodeunit = require('nodeunit');
-var jwt = require('jsonwebtoken');
-var crypto = require('crypto');
+var _nodeunit = require('nodeunit');
+var _jwt = require('jsonwebtoken');
+var _crypto = require('crypto');
 
 // Import modules for testing
 var sessionTokenModule = require('../lib/server/session-token.js');

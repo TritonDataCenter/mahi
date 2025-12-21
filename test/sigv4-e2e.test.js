@@ -288,7 +288,7 @@ exports.testInvalidSignatureRejection = function (t) {
                                 accessKey: accessKeyId,
                                 secret: wrongSecret,
                                 host: 'bucket.s3.amazonaws.com'
-                        }, function (err, result) {
+                        }, function (err, _result) {
                                 t.ok(err, 'should reject invalid signature');
                                 t.equal(err.name, 'InvalidSignatureError');
                                 t.done();
@@ -306,7 +306,7 @@ exports.testNonexistentAccessKey = function (t) {
                 accessKey: 'AKIANONEXIST999',
                 secret: 'anysecret',
                 host: 'bucket.s3.amazonaws.com'
-        }, function (err, result) {
+        }, function (err, _result) {
                 t.ok(err, 'should reject nonexistent key');
                 t.equal(err.name, 'InvalidSignatureError');
                 t.done();
@@ -346,7 +346,7 @@ exports.testExpiredRequestRejection = function (t) {
                                 secret: secret,
                                 host: 'bucket.s3.amazonaws.com',
                                 timestamp: timestamp
-                        }, function (err, result) {
+                        }, function (err, _result) {
                                 t.ok(err, 'should reject expired request');
                                 t.equal(err.name, 'InvalidSignatureError');
                                 t.done();
