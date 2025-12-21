@@ -172,7 +172,7 @@ exports.testCompleteSigV4Flow = function (t) {
                 headers: headers
         };
 
-        client.get(opts, function (err, _req, _res, _obj) {
+        client.get(opts, function (err, _req, res, obj) {
                 t.ok(!err, 'should not error on valid SigV4 auth');
                 t.equal(res.statusCode, 200, 'should return 200');
                 t.ok(obj.user, 'should return user object');
@@ -240,7 +240,7 @@ exports.testSessionTokenCredentialsFlow = function (t) {
                         headers: headers
                 };
 
-                client.get(opts, function (getErr, _req, _res, _obj) {
+                client.get(opts, function (getErr, _req, res, obj) {
                         t.ok(!getErr, 'should not error with session token');
                         t.equal(res.statusCode, 200,
                                 'should return 200 with temp creds');
@@ -301,7 +301,7 @@ exports.testSTSAssumeRoleFlow = function (t) {
                         headers: headers
                 };
 
-                client.get(opts, function (getErr, _req, _res, _obj) {
+                client.get(opts, function (getErr, _req, res, obj) {
                         t.ok(!getErr, 'should not error with assumed role');
                         t.equal(res.statusCode, 200,
                                 'should return 200');
@@ -322,7 +322,7 @@ exports.testErrorPropagation = function (t) {
         // Nonexistent access key should return 404
 
         client.get('/aws-auth/AKIANONEXISTENT',
-                function (err, _req, _res, _obj) {
+                function (err, _req, res, obj) {
                 t.ok(err, 'should error on nonexistent access key');
                 t.equal(err.statusCode, 404,
                         'should return 404 for nonexistent key');
@@ -341,7 +341,7 @@ exports.testOrphanedAccessKey = function (t) {
                 t.ok(!err, 'should set orphaned access key');
 
                 client.get('/aws-auth/' + orphanedKey,
-                        function (getErr, _req, _res, _obj) {
+                        function (getErr, _req, res, obj) {
                         t.ok(getErr, 'should error on orphaned key');
                         t.equal(getErr.statusCode, 404,
                                 'should return 404 for missing user');
@@ -355,7 +355,7 @@ exports.testInvalidAccessKeyFormat = function (t) {
         var invalidKey = 'AKIA!@#$%^&*()';
 
         client.get('/aws-auth/' + encodeURIComponent(invalidKey),
-                function (err, _req, _res, _obj) {
+                function (err, _req, res, obj) {
                 t.ok(err, 'should error on invalid key format');
                 t.equal(err.statusCode, 404,
                         'should return 404 for invalid format');
@@ -385,7 +385,7 @@ exports.testConcurrentAuthRequests = function (t) {
         // Make 3 parallel requests
         for (var i = 0; i < numRequests; i++) {
                 client.get('/aws-auth/' + TEST_ACCESS_KEY,
-                        function (err, _req, _res, _obj) {
+                        function (err, _req, res, obj) {
                         if (!err && obj && obj.user) {
                                 successes++;
                         }
@@ -416,7 +416,7 @@ exports.testPermanentCredentials = function (t) {
                 headers: headers
         };
 
-        client.get(opts, function (err, _req, _res, _obj) {
+        client.get(opts, function (err, _req, res, obj) {
                 t.ok(!err, 'should not error with permanent credentials');
                 t.equal(res.statusCode, 200, 'should return 200');
                 t.ok(obj.user, 'should return user object');
@@ -461,7 +461,7 @@ exports.testTemporaryCredentialsWithExpiration = function (t) {
                         headers: headers
                 };
 
-                client.get(opts, function (getErr, _req, _res, _obj) {
+                client.get(opts, function (getErr, _req, res, obj) {
                         t.ok(!getErr,
                                 'should not error with valid temp credentials');
                         t.equal(res.statusCode, 200, 'should return 200');
@@ -495,7 +495,7 @@ exports.testExpiredTemporaryCredentials = function (t) {
                 // The /aws-auth endpoint returns credential data
                 // without verifying expiration (done in /aws-verify)
                 client.get('/aws-auth/' + expiredAccessKey,
-                        function (getErr, _req, _res, _obj) {
+                        function (getErr, _req, res, obj) {
                         t.ok(!getErr,
                                 'aws-auth returns data for expired creds');
                         t.ok(obj.user, 'should have user');
