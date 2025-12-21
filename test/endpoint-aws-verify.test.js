@@ -302,7 +302,7 @@ exports.testWithQueryParameters = function (t) {
                         var bodyStr = JSON.stringify(body);
                         var path = '/aws-verify?param1=value1&param2=value2';
                         signedPost(path, bodyStr, headers,
-                                function (err, _req, _res, _obj) {
+                                function (err, _req, _res, obj) {
                                 t.ok(!err,
                                         'should not error with query params');
                                 t.equal(obj.valid, true,
@@ -348,7 +348,7 @@ exports.testPostRequestWithBody = function (t) {
 
                         var bodyStr = JSON.stringify(body);
                         signedPost('/aws-verify', bodyStr, headers,
-                                function (err, _req, _res, _obj) {
+                                function (err, _req, _res, obj) {
                                 t.ok(!err,
                                         'should not error for POST with body');
                                 t.equal(obj.valid, true,
@@ -416,7 +416,7 @@ exports.testTemporaryCredentials = function (t) {
 
                         var bodyStr = JSON.stringify(body);
                         signedPost('/aws-verify', bodyStr, headers,
-                                function (err, _req, _res, _obj) {
+                                function (err, _req, _res, obj) {
                                 t.ok(!err, 'should not error for temp creds');
                                 t.equal(obj.valid, true,
                                         'should verify temporary credentials');
