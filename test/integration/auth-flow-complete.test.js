@@ -156,7 +156,6 @@ exports.testCompleteSigV4Flow = function (t) {
         // returns user info
 
         var timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-        var _dateStamp = timestamp.substr(0, 8);
 
         var headers = helper.createHeaders({
                 method: 'GET',

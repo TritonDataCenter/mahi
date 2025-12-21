@@ -370,11 +370,6 @@ exports.testMalformedTokenRejection = function (t) {
 };
 
 exports.testInvalidJSONPayloadRejection = function (t) {
-    var secretKey = {
-        key: crypto.randomBytes(32).toString('hex'),
-        keyId: 'test-key-008'
-    };
-
     // Create a JWT-like token with invalid JSON payload
     var eqRegex = new RegExp('=', 'g');
     var plusRegex = new RegExp('\\+', 'g');

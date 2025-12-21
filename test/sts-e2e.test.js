@@ -29,7 +29,7 @@ var log = bunyan.createLogger({
 });
 
 var redis;
-var _helper;
+var helper;
 
 // Test accounts and users (using proper UUIDs)
 var TEST_ACCOUNT_UUID = '12345678-1234-1234-1234-123456789012';

@@ -338,7 +338,7 @@ exports.testEmptyTimestamp = function (t) {
 
 exports.testPartialTimestamp = function (t) {
     var partialTimestamp = '20251217';
-    var _date = new Date(partialTimestamp);
+    new Date(partialTimestamp);
 
     // Partial timestamps may or may not parse depending on
     // JavaScript engine - just verify it doesn't throw
