@@ -204,10 +204,8 @@ exports.testSessionTokenCredentialsFlow = function (t) {
                 expires: now + 3600
         };
 
-        var token = sessionToken.generateSessionToken(
-                sessionData,
-                SESSION_SECRET
-        );
+        var token = sessionToken.generateSessionToken(sessionData,
+                SESSION_SECRET);
 
         t.ok(token, 'should generate session token');
 

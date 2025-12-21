@@ -159,7 +159,7 @@ exports.testValidSignatureVerification = function (t) {
 
                         var bodyStr = JSON.stringify(body);
                         signedPost('/aws-verify', bodyStr, headers,
-                                function (err, _req, _res, _obj) {
+                                function (err, _req, res, obj) {
                                 t.ok(!err, 'should not error');
                                 t.equal(res.statusCode, 200,
                                         'should return 200');

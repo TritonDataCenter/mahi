@@ -456,20 +456,18 @@ exports.testPolicyRetrievalAfterVerification = function (t) {
                                 t.ifError(err, 'should verify token');
 
                                 if (verified && verified.policies) {
-                                        t.ok(
-                                                Array.isArray(verified.policies),
-                                                'verified policies should be array'
-                                        );
-                                        t.deepEqual(
-                                                verified.policies[0],
+                                        t.ok(Array.isArray(
+                                                verified.policies),
+                                                'verified policies ' +
+                                                'should be array');
+                                        t.deepEqual(verified.policies[0],
                                                 testPolicy,
-                                                'policy should match after verification'
-                                        );
+                                                'policy should match after ' +
+                                                'verification');
                                 } else {
-                                        t.ok(
-                                                true,
-                                                'policies not in verified payload'
-                                        );
+                                        t.ok(true,
+                                                'policies not in verified ' +
+                                                'payload');
                                 }
 
                                 t.done();
