@@ -133,6 +133,8 @@ MockUfdsServer.prototype.start = function start(callback) {
         self.log.error({err: err}, 'LDAP server error');
         self.emit('error', err);
     });
+
+    return;
 };
 
 /**
@@ -165,6 +167,8 @@ MockUfdsServer.prototype.stop = function stop(callback) {
         self.emit('close');
         callback();
     });
+
+    return;
 };
 
 /**
@@ -209,9 +213,9 @@ MockUfdsServer.prototype.loadLdif = function loadLdif(filepath, callback) {
 
             self.log.info({file: filepath, count: entries.length},
                 'LDIF file loaded');
-            callback();
-        } catch (parseErr) {
-            callback(parseErr);
+            return callback();
+        } catch (_parseErr) {
+            return callback(parseErr);
         }
     });
 };

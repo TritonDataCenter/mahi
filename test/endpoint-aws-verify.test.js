@@ -10,7 +10,7 @@
  * test/endpoint-aws-verify.test.js: Unit tests for /aws-verify endpoint
  */
 
-var nodeunit = require('nodeunit');
+var _nodeunit = require('nodeunit');
 var restify = require('restify');
 var http = require('http');
 var bunyan = require('bunyan');
@@ -100,7 +100,7 @@ function signedPost(path, bodyStr, headers, callback) {
                         var obj;
                         try {
                                 obj = JSON.parse(responseBody);
-                        } catch (e) {
+                        } catch (_e) {
                                 obj = responseBody;
                         }
 
@@ -111,7 +111,7 @@ function signedPost(path, bodyStr, headers, callback) {
                                 return (callback(err, req, res, obj));
                         }
 
-                        callback(null, req, res, obj);
+                        return callback(null, req, res, obj);
                 });
         });
 
@@ -159,7 +159,7 @@ exports.testValidSignatureVerification = function (t) {
 
                         var bodyStr = JSON.stringify(body);
                         signedPost('/aws-verify', bodyStr, headers,
-                                function (err, req, res, obj) {
+                                function (err, _req, _res, _obj) {
                                 t.ok(!err, 'should not error');
                                 t.equal(res.statusCode, 200,
                                         'should return 200');
@@ -212,7 +212,7 @@ exports.testInvalidSignature = function (t) {
 
                         var bodyStr = JSON.stringify(body);
                         signedPost('/aws-verify', bodyStr, headers,
-                                function (err, req, res, obj) {
+                                function (err, _req, _res, _obj) {
                                 t.ok(err, 'should error on invalid signature');
                                 t.equal(err.statusCode, 403,
                                         'should return 403 Forbidden');
@@ -225,7 +225,7 @@ exports.testInvalidSignature = function (t) {
 /* --- Test missing authorization header --- */
 
 exports.testMissingAuthorizationHeader = function (t) {
-        signedPost('/aws-verify', '{}', {}, function (err, req, res, obj) {
+        signedPost('/aws-verify', '{}', {}, function (err, _req, _res, _obj) {
                 t.ok(err, 'should error without authorization');
                 t.equal(err.statusCode, 403,
                         'should return 403 for missing authorization');
@@ -254,7 +254,7 @@ exports.testNonexistentAccessKey = function (t) {
 
         var bodyStr = JSON.stringify(body);
         signedPost('/aws-verify', bodyStr, headers,
-                function (err, req, res, obj) {
+                function (err, _req, _res, _obj) {
                 t.ok(err, 'should error for nonexistent key');
                 t.equal(err.statusCode, 403,
                         'should return 403 for invalid access key');
@@ -302,7 +302,7 @@ exports.testWithQueryParameters = function (t) {
                         var bodyStr = JSON.stringify(body);
                         var path = '/aws-verify?param1=value1&param2=value2';
                         signedPost(path, bodyStr, headers,
-                                function (err, req, res, obj) {
+                                function (err, _req, _res, _obj) {
                                 t.ok(!err,
                                         'should not error with query params');
                                 t.equal(obj.valid, true,
@@ -348,7 +348,7 @@ exports.testPostRequestWithBody = function (t) {
 
                         var bodyStr = JSON.stringify(body);
                         signedPost('/aws-verify', bodyStr, headers,
-                                function (err, req, res, obj) {
+                                function (err, _req, _res, _obj) {
                                 t.ok(!err,
                                         'should not error for POST with body');
                                 t.equal(obj.valid, true,
@@ -416,7 +416,7 @@ exports.testTemporaryCredentials = function (t) {
 
                         var bodyStr = JSON.stringify(body);
                         signedPost('/aws-verify', bodyStr, headers,
-                                function (err, req, res, obj) {
+                                function (err, _req, _res, _obj) {
                                 t.ok(!err, 'should not error for temp creds');
                                 t.equal(obj.valid, true,
                                         'should verify temporary credentials');
@@ -468,7 +468,7 @@ exports.testExpiredTimestamp = function (t) {
 
                         var bodyStr = JSON.stringify(body);
                         signedPost('/aws-verify', bodyStr, headers,
-                                function (err, req, res, obj) {
+                                function (err, _req, _res, _obj) {
                                 t.ok(err, 'should error for expired timestamp');
                                 t.equal(err.statusCode, 403,
                                         'should return 403 for expired');

@@ -12,15 +12,15 @@
  * AWS Signature Version 4 verification workflow
  */
 
-var nodeunit = require('nodeunit');
+var _nodeunit = require('nodeunit');
 var bunyan = require('bunyan');
-var crypto = require('crypto');
+var _crypto = require('crypto');
 var fakeredis = require('fakeredis');
-var sigv4 = require('../lib/server/sigv4');
+var _sigv4 = require('../lib/server/sigv4');
 var SigV4Helper = require('./lib/sigv4-helper');
 var TimeMock = require('./lib/time-mock');
 
-var helper = new SigV4Helper({region: 'us-east-1', service: 's3'});
+var _helper = new SigV4Helper({region: 'us-east-1', service: 's3'});
 var timeMock;
 var redis;
 var log;
@@ -59,7 +59,7 @@ function setupUserAndVerify(opts, t, callback) {
         if (err1) {
             return (callback(err1));
         }
-        redis.set('/accesskey/' + accessKeyId, user.uuid,
+        return redis.set('/accesskey/' + accessKeyId, user.uuid,
             function (err2) {
             if (err2) {
                 return (callback(err2));
@@ -99,7 +99,7 @@ function setupUserAndVerify(opts, t, callback) {
                 query: opts.reqQuery || {}
             };
 
-            sigv4.verifySigV4({
+            return sigv4.verifySigV4({
                 req: req,
                 log: log,
                 redis: redis

@@ -14,7 +14,7 @@
  * generation.
  */
 
-var nodeunit = require('nodeunit');
+var _nodeunit = require('nodeunit');
 var bunyan = require('bunyan');
 var fakeredis = require('fakeredis');
 var sts = require('../lib/server/sts.js');
@@ -104,7 +104,7 @@ function setupRoleData(roleUuid, roleName, accountId, trustPolicy, cb) {
     var roleNameKey = '/role/' + accountId + '/' + roleName;
     var roleDataKey = '/uuid/' + roleUuid;
 
-    var roleData = {
+    var _roleData = {
         uuid: roleUuid,
         name: roleName,
         account: accountId,
@@ -116,12 +116,12 @@ function setupRoleData(roleUuid, roleName, accountId, trustPolicy, cb) {
             return (cb(err1));
         }
 
-        redis.set(roleDataKey, JSON.stringify(roleData), function (err2) {
+        return redis.set(roleDataKey, JSON.stringify(roleData), function (err2) {
             if (err2) {
                 return (cb(err2));
             }
 
-            cb(null);
+            return cb(null);
         });
     });
 }
@@ -139,13 +139,13 @@ function setupRoleWithPolicies(roleUuid, roleName, accountId, trustPolicy,
         }
 
         var policiesKey = '/role-permissions/' + roleUuid;
-        redis.set(policiesKey, JSON.stringify(permissionPolicies),
+        return redis.set(policiesKey, JSON.stringify(permissionPolicies),
             function (policyErr) {
             if (policyErr) {
                 return (cb(policyErr));
             }
 
-            cb(null);
+            return cb(null);
         });
     });
 }
@@ -193,7 +193,7 @@ exports.testValidRoleAssumption = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             if (assumeErr) {
                 t.ok(false, 'AssumeRole should not error: ' +
                     assumeErr.message);
@@ -278,7 +278,7 @@ exports.testRoleAssumptionWithSpecificUser = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 200,
                 'should allow assumption by specific user');
@@ -333,7 +333,7 @@ exports.testTrustPolicyDenial = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 403,
                 'should deny access with 403 when trust policy denies');
@@ -397,7 +397,7 @@ exports.testTrustPolicyExplicitDeny = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 403,
                 'should deny when explicit Deny statement matches');
@@ -461,7 +461,7 @@ exports.testRoleWithPermissionPolicies = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             t.ok(!assumeErr, 'should not error');
 
             var status = res.getStatus();
@@ -510,7 +510,7 @@ exports.testRoleWithoutPermissionPolicies = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             t.ok(!assumeErr, 'should not error');
 
             var status = res.getStatus();
@@ -550,7 +550,7 @@ exports.testNonexistentRole = function (t) {
 
     var res = createMockResponse();
 
-    sts.assumeRole(req, res, function (assumeErr) {
+    sts.assumeRole(req, res, function (_assumeErr) {
         var status = res.getStatus();
         t.equal(status, 404, 'should return 404 for nonexistent role');
 
@@ -582,7 +582,7 @@ exports.testInvalidRoleArn = function (t) {
 
     var res = createMockResponse();
 
-    sts.assumeRole(req, res, function (assumeErr) {
+    sts.assumeRole(req, res, function (_assumeErr) {
         var status = res.getStatus();
         t.ok(status === 400 || assumeErr,
             'should reject invalid ARN format');
@@ -610,7 +610,7 @@ exports.testRoleArnNotForRole = function (t) {
 
     var res = createMockResponse();
 
-    sts.assumeRole(req, res, function (assumeErr) {
+    sts.assumeRole(req, res, function (_assumeErr) {
         var status = res.getStatus();
         t.ok(assumeErr || status === 400,
             'should reject ARN that does not specify a role');
@@ -651,7 +651,7 @@ exports.testMissingRoleData = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 404,
                 'should return 404 when role data is missing');
@@ -704,7 +704,7 @@ exports.testCrossAccountRoleAssumption = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             t.ok(!assumeErr, 'should not error');
 
             var status = res.getStatus();
@@ -757,7 +757,7 @@ exports.testCrossAccountDenied = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 403,
                 'should deny cross-account access when not in trust policy');
@@ -800,7 +800,7 @@ exports.testMalformedRoleData = function (t) {
 
             var res = createMockResponse();
 
-            sts.assumeRole(req, res, function (assumeErr) {
+            sts.assumeRole(req, res, function (_assumeErr) {
                 var status = res.getStatus();
                 t.equal(status, 500,
                     'should return 500 for malformed role data');
@@ -852,7 +852,7 @@ exports.testInvalidPermissionPoliciesData = function (t) {
 
             var res = createMockResponse();
 
-            sts.assumeRole(req, res, function (assumeErr) {
+            sts.assumeRole(req, res, function (_assumeErr) {
                 var status = res.getStatus();
                 t.equal(status, 500,
                     'should return 500 for invalid policies JSON');
@@ -883,7 +883,7 @@ exports.testInvalidDuration = function (t) {
 
     var res = createMockResponse();
 
-    sts.assumeRole(req, res, function (assumeErr) {
+    sts.assumeRole(req, res, function (_assumeErr) {
         t.ok(assumeErr || res.getStatus() >= 400,
             'should reject invalid duration (too short)');
 
@@ -910,7 +910,7 @@ exports.testMissingSessionName = function (t) {
 
     var res = createMockResponse();
 
-    sts.assumeRole(req, res, function (assumeErr) {
+    sts.assumeRole(req, res, function (_assumeErr) {
         t.ok(assumeErr || res.getStatus() >= 400,
             'should reject missing RoleSessionName');
 

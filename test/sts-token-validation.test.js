@@ -15,9 +15,9 @@
  * format validation, and rejection of invalid tokens.
  */
 
-var nodeunit = require('nodeunit');
-var jwt = require('jsonwebtoken');
-var crypto = require('crypto');
+var _nodeunit = require('nodeunit');
+var _jwt = require('jsonwebtoken');
+var _crypto = require('crypto');
 
 // Import session token module for testing
 var sessionTokenModule = require('../lib/server/session-token.js');
@@ -33,7 +33,7 @@ exports.testJWTDecoding = function (t) {
         expires: now + 3600
     };
 
-    var secretKey = {
+    var _secretKey = {
         key: crypto.randomBytes(32).toString('hex'),
         keyId: 'test-key-001'
     };
@@ -69,7 +69,7 @@ exports.testJWTVerification = function (t) {
         expires: now + 3600
     };
 
-    var secretKey = {
+    var _secretKey = {
         key: crypto.randomBytes(32).toString('hex'),
         keyId: 'test-key-002'
     };
@@ -120,7 +120,7 @@ exports.testExpiredTokenRejection = function (t) {
         expires: now - 3600  // Expired 1 hour ago
     };
 
-    var secretKey = {
+    var _secretKey = {
         key: crypto.randomBytes(32).toString('hex'),
         keyId: 'test-key-003'
     };
@@ -172,7 +172,7 @@ exports.testExpiredTokenRejection = function (t) {
 
 exports.testNotYetValidTokenRejection = function (t) {
     var now = Math.floor(Date.now() / 1000);
-    var secretKey = {
+    var _secretKey = {
         key: crypto.randomBytes(32).toString('hex'),
         keyId: 'test-key-004'
     };
@@ -277,7 +277,7 @@ exports.testTamperedTokenRejection = function (t) {
         expires: now + 3600
     };
 
-    var secretKey = {
+    var _secretKey = {
         key: crypto.randomBytes(32).toString('hex'),
         keyId: 'test-key-006'
     };
@@ -324,7 +324,7 @@ exports.testTamperedTokenRejection = function (t) {
 /* --- Test token format validation --- */
 
 exports.testMalformedTokenRejection = function (t) {
-    var secretKey = {
+    var _secretKey = {
         key: crypto.randomBytes(32).toString('hex'),
         keyId: 'test-key-007'
     };
@@ -453,7 +453,7 @@ exports.testUnknownVersionRejection = function (t) {
 
 exports.testInvalidTokenTypeRejection = function (t) {
     var now = Math.floor(Date.now() / 1000);
-    var secretKey = {
+    var _secretKey = {
         key: crypto.randomBytes(32).toString('hex'),
         keyId: 'test-key-010'
     };
@@ -511,7 +511,7 @@ exports.testInvalidIssuerRejection = function (t) {
         expires: now + 3600
     };
 
-    var secretKey = {
+    var _secretKey = {
         key: crypto.randomBytes(32).toString('hex'),
         keyId: 'test-key-011'
     };
@@ -555,7 +555,7 @@ exports.testInvalidAudienceRejection = function (t) {
         expires: now + 3600
     };
 
-    var secretKey = {
+    var _secretKey = {
         key: crypto.randomBytes(32).toString('hex'),
         keyId: 'test-key-012'
     };

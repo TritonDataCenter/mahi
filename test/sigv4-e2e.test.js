@@ -14,8 +14,8 @@
  * by calling verifySigV4 directly with mock request objects.
  */
 
-var nodeunit = require('nodeunit');
-var crypto = require('crypto');
+var _nodeunit = require('nodeunit');
+var _crypto = require('crypto');
 var bunyan = require('bunyan');
 var fakeredis = require('fakeredis');
 var sigv4 = require('../lib/server/sigv4');
@@ -105,7 +105,7 @@ function verifyS3Request(opts, callback) {
                 if (err) {
                         return (callback(err));
                 }
-                callback(null, result);
+                return callback(null, result);
         });
 }
 

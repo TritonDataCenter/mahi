@@ -19,7 +19,7 @@
 var assert = require('assert-plus');
 var fs = require('fs');
 var path = require('path');
-var bunyan = require('bunyan');
+var _bunyan = require('bunyan');
 var Transform = require('../../lib/replicator/transform.js');
 var jsonstream = require('../jsonparsestream.js');
 
@@ -110,7 +110,7 @@ RedisFixture.prototype.loadScenario = function loadScenario(scenarioName,
     }
 
     this.log.debug({scenario: scenarioName}, 'loading Redis scenario');
-    loader(callback);
+    return loader(callback);
 };
 
 /**
@@ -229,6 +229,8 @@ RedisFixture.prototype._loadFromJson = function _loadFromJson(filepath,
     });
 
     data.pipe(json).pipe(transform);
+
+    return;
 };
 
 /**
@@ -309,7 +311,7 @@ RedisFixture.prototype.exists = function exists(key, callback) {
         if (err) {
             return (callback(err));
         }
-        callback(null, result === 1);
+        return callback(null, result === 1);
     });
 };
 

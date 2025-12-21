@@ -18,7 +18,7 @@
  */
 
 var assert = require('assert-plus');
-var crypto = require('crypto');
+var _crypto = require('crypto');
 
 /* --- STS Token Generation --- */
 
@@ -150,7 +150,7 @@ function decodeSessionToken(token) {
  * @example
  * var policy = buildPolicy()
  *     .allow(['s3:GetObject', 's3:PutObject'])
- *     .onResources(['arn:aws:s3:::mybucket/*'])
+ *     .onResources(['arn:aws:s3:::mybucket/\*'])
  *     .build();
  *
  * @since 1.0.0
@@ -240,7 +240,7 @@ PolicyBuilder.prototype.onResources =
  *
  * @example
  * builder.allow('s3:GetObject')
- *     .onResources('arn:aws:s3:::bucket/*')
+ *     .onResources('arn:aws:s3:::bucket/\*')
  *     .withConditions({
  *         'StringEquals': {
  *             's3:x-amz-server-side-encryption': 'AES256'

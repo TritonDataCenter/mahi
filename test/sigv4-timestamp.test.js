@@ -12,7 +12,7 @@
  * Version 4 timestamp validation
  */
 
-var nodeunit = require('nodeunit');
+var _nodeunit = require('nodeunit');
 var TimeMock = require('./lib/time-mock');
 
 var timeMock;

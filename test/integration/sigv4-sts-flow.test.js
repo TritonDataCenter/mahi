@@ -178,7 +178,7 @@ test('time mocking - signature expiration', function (t) {
     t.equal(now1, baseTime, 'time should be frozen at base time');
 
     // Step 2: Create signature at base time
-    harness.createUser({
+    return harness.createUser({
         login: 'expiryuser',
         account: harness._generateUuid()
     }, function (err, user) {
@@ -219,7 +219,7 @@ test('time mocking - signature expiration', function (t) {
         var now3 = Date.now();
         t.ok(now3 > now2, 'time should be restored to real time');
 
-        t.end();
+        return t.end();
     });
 });
 

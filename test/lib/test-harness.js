@@ -144,7 +144,7 @@ TestHarness.prototype.setup = function setup(callback) {
                     port: self.ufdsPort
                 });
 
-                self.mockUfds.start(cb);
+                return self.mockUfds.start(cb);
             },
 
             // Step 2: Create Redis client and fixtures
@@ -169,7 +169,7 @@ TestHarness.prototype.setup = function setup(callback) {
                 }
 
                 self.time = new TimeMock();
-                cb();
+                return cb();
             },
 
             // Step 5: Start Mahi server
@@ -204,7 +204,7 @@ TestHarness.prototype.setup = function setup(callback) {
         }
 
         self.log.debug('test harness setup complete');
-        callback();
+        return callback();
     });
 };
 
@@ -362,7 +362,7 @@ TestHarness.prototype.createUser = function createUser(opts, callback) {
         if (err) {
             return (callback(err));
         }
-        callback(null, user);
+        return callback(null, user);
     });
 };
 
