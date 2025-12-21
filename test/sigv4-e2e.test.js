@@ -105,7 +105,7 @@ function verifyS3Request(opts, callback) {
                 if (err) {
                         return (callback(err));
                 }
-                return callback(null, result);
+                return (callback(null, result));
         });
 }
 

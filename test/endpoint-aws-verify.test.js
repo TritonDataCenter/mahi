@@ -111,7 +111,7 @@ function signedPost(path, bodyStr, headers, callback) {
                                 return (callback(err, req, res, obj));
                         }
 
-                        return callback(null, req, res, obj);
+                        return (callback(null, req, res, obj));
                 });
         });
 

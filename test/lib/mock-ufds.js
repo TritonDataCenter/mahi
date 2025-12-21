@@ -213,9 +213,9 @@ MockUfdsServer.prototype.loadLdif = function loadLdif(filepath, callback) {
 
             self.log.info({file: filepath, count: entries.length},
                 'LDIF file loaded');
-            return callback();
+            return (callback());
         } catch (_parseErr) {
-            return callback(parseErr);
+            return (callback(parseErr));
         }
     });
 };

@@ -116,12 +116,13 @@ function setupRoleData(roleUuid, roleName, accountId, trustPolicy, cb) {
             return (cb(err1));
         }
 
-        return redis.set(roleDataKey, JSON.stringify(roleData), function (err2) {
+        var roleDataStr = JSON.stringify(roleData);
+        return redis.set(roleDataKey, roleDataStr, function (err2) {
             if (err2) {
                 return (cb(err2));
             }
 
-            return cb(null);
+            return (cb(null));
         });
     });
 }
@@ -145,7 +146,7 @@ function setupRoleWithPolicies(roleUuid, roleName, accountId, trustPolicy,
                 return (cb(policyErr));
             }
 
-            return cb(null);
+            return (cb(null));
         });
     });
 }

@@ -110,7 +110,7 @@ RedisFixture.prototype.loadScenario = function loadScenario(scenarioName,
     }
 
     this.log.debug({scenario: scenarioName}, 'loading Redis scenario');
-    return loader(callback);
+    return (loader(callback));
 };
 
 /**
@@ -311,7 +311,7 @@ RedisFixture.prototype.exists = function exists(key, callback) {
         if (err) {
             return (callback(err));
         }
-        return callback(null, result === 1);
+        return (callback(null, result === 1));
     });
 };
 

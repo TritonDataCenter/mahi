@@ -219,7 +219,7 @@ test('time mocking - signature expiration', function (t) {
         var now3 = Date.now();
         t.ok(now3 > now2, 'time should be restored to real time');
 
-        return t.end();
+        return (t.end());
     });
 });
 
