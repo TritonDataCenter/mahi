@@ -96,7 +96,8 @@ MockUfdsServer.prototype.start = function start(callback) {
     assert.func(callback, 'callback');
 
     if (this._running) {
-        return (callback(new Error('Server already running')));
+        callback(new Error('Server already running'));
+        return;
     }
 
     var self = this;
@@ -133,8 +134,6 @@ MockUfdsServer.prototype.start = function start(callback) {
         self.log.error({err: err}, 'LDAP server error');
         self.emit('error', err);
     });
-
-    return;
 };
 
 /**
@@ -157,7 +156,8 @@ MockUfdsServer.prototype.stop = function stop(callback) {
     assert.func(callback, 'callback');
 
     if (!this._running) {
-        return (callback());
+        callback();
+        return;
     }
 
     var self = this;
@@ -167,8 +167,6 @@ MockUfdsServer.prototype.stop = function stop(callback) {
         self.emit('close');
         callback();
     });
-
-    return;
 };
 
 /**
@@ -495,6 +493,9 @@ MockUfdsServer.prototype._handleModify = function _handleModify(req, res,
             break;
         case 'delete':
             delete this._directory[dn][attr];
+            break;
+        default:
+            // Unknown operation - ignore
             break;
         }
     }.bind(this));

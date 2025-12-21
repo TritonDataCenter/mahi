@@ -17,9 +17,9 @@
  * - Concurrent error scenarios
  */
 
-var nodeunit = require('nodeunit');
+var _nodeunit = require('nodeunit');
 var bunyan = require('bunyan');
-var crypto = require('crypto');
+var _crypto = require('crypto');
 var http = require('http');
 var fakeredis = require('fakeredis');
 var server = require('../../lib/server/server');
@@ -71,7 +71,7 @@ function signedPost(path, bodyStr, headers, callback) {
                         var obj;
                         try {
                                 obj = JSON.parse(responseBody);
-                        } catch (e) {
+                        } catch (_e) {
                                 obj = responseBody;
                         }
 
@@ -82,7 +82,7 @@ function signedPost(path, bodyStr, headers, callback) {
                                 return (callback(err, req, res, obj));
                         }
 
-                        callback(null, req, res, obj);
+                        return (callback(null, req, res, obj));
                 });
         });
 
@@ -161,7 +161,7 @@ exports.testInvalidSignature = function (t) {
 
         var bodyStr = JSON.stringify(body);
         signedPost('/aws-verify', bodyStr, headers,
-                function (err, req, res, obj) {
+                function (err, _req, _res, _obj) {
                 t.ok(err, 'should error on invalid signature');
                 t.equal(err.statusCode, 403, 'should return 403 Forbidden');
                 t.done();
@@ -189,7 +189,7 @@ exports.testExpiredTimestamp = function (t) {
 
         var bodyStr = JSON.stringify(body);
         signedPost('/aws-verify', bodyStr, headers,
-                function (err, req, res, obj) {
+                function (err, _req, _res, _obj) {
                 t.ok(err, 'should error on expired timestamp');
                 t.equal(err.statusCode, 403, 'should return 403 Forbidden');
                 t.done();
@@ -213,7 +213,7 @@ exports.testMissingCredentials = function (t) {
 
         var bodyStr = JSON.stringify(body);
         signedPost('/aws-verify', bodyStr, headers,
-                function (err, req, res, obj) {
+                function (err, _req, _res, _obj) {
                 t.ok(err, 'should error on nonexistent access key');
                 t.ok(err.statusCode === 403 || err.statusCode === 404,
                         'should return 403 or 404');
@@ -233,7 +233,7 @@ exports.testMalformedAuthHeader = function (t) {
                 'content-type': 'application/json'
         };
 
-        signedPost('/aws-verify', '{}', headers, function (err, req, res, obj) {
+        signedPost('/aws-verify', '{}', headers, function (err, _req, _res, _obj) {
                 t.ok(err, 'should error on malformed auth header');
                 t.ok(err.statusCode === 400 || err.statusCode === 403,
                         'should return 400 or 403');
@@ -247,7 +247,7 @@ exports.testMissingAuthHeader = function (t) {
                 'content-type': 'application/json'
         };
 
-        signedPost('/aws-verify', '{}', headers, function (err, req, res, obj) {
+        signedPost('/aws-verify', '{}', headers, function (err, _req, _res, _obj) {
                 t.ok(err, 'should error on missing auth header');
                 t.ok(err.statusCode === 401 || err.statusCode === 403,
                         'should return 401 or 403');
@@ -286,7 +286,7 @@ exports.testConcurrentInvalidRequests = function (t) {
                 });
 
                 signedPost('/aws-verify', bodyStr, headers,
-                        function (err, req, res, obj) {
+                        function (err, _req, _res, _obj) {
                         if (err && err.statusCode === 403) {
                                 allErrored++;
                         }
@@ -319,7 +319,7 @@ exports.testOrphanedAccessKey = function (t) {
 
                 var bodyStr = JSON.stringify(body);
                 signedPost('/aws-verify', bodyStr, headers,
-                        function (err, req, res, obj) {
+                        function (err, _req, _res, _obj) {
                         t.ok(err, 'should error on orphaned access key');
                         t.ok(err.statusCode === 403 || err.statusCode === 404 ||
                                 err.statusCode === 500,
@@ -347,7 +347,7 @@ exports.testInvalidAccessKeyFormat = function (t) {
 
         var bodyStr = JSON.stringify(body);
         signedPost('/aws-verify', bodyStr, headers,
-                function (err, req, res, obj) {
+                function (err, _req, _res, _obj) {
                 t.ok(err, 'should error on invalid access key format');
                 t.ok(err.statusCode >= 400, 'should return error status code');
                 t.done();

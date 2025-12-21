@@ -370,7 +370,7 @@ exports.testMalformedTokenRejection = function (t) {
 };
 
 exports.testInvalidJSONPayloadRejection = function (t) {
-    var secretKey = {
+    var _secretKey = {
         key: crypto.randomBytes(32).toString('hex'),
         keyId: 'test-key-008'
     };
@@ -723,4 +723,4 @@ exports.testDecodeTokenInvalidFormat = function (t) {
     }, /Invalid JWT format/, 'should reject invalid token format');
 
     t.done();
-}
+};

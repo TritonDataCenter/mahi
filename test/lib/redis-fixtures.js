@@ -206,7 +206,8 @@ RedisFixture.prototype._loadFromJson = function _loadFromJson(filepath,
     var self = this;
 
     if (!fs.existsSync(filepath)) {
-        return (callback(new Error('Fixture file not found: ' + filepath)));
+        callback(new Error('Fixture file not found: ' + filepath));
+        return;
     }
 
     var data = fs.createReadStream(filepath);
@@ -229,8 +230,6 @@ RedisFixture.prototype._loadFromJson = function _loadFromJson(filepath,
     });
 
     data.pipe(json).pipe(transform);
-
-    return;
 };
 
 /**
