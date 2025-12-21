@@ -26,6 +26,7 @@
 ## Tools
 #
 NODEUNIT	:= ./node_modules/.bin/nodeunit
+ISTANBUL	:= ./node_modules/.bin/istanbul
 NAME		:= mahi
 
 #
@@ -87,12 +88,25 @@ all: $(SMF_MANIFESTS) | $(NODEUNIT) scripts
 $(NODEUNIT): | $(NPM_EXEC)
 	$(NPM) install
 
-CLEAN_FILES += $(NODEUNIT) ./node_modules/nodeunit
+CLEAN_FILES += $(NODEUNIT) ./node_modules/nodeunit coverage
 DISTCLEAN_FILES += node_modules
 
 .PHONY: test
 test: $(NODEUNIT)
 	find test -name '*.test.js' | xargs -n 1 $(NODEUNIT)
+
+.PHONY: coverage
+coverage: $(NODEUNIT)
+	@rm -rf coverage
+	find test -name '*.test.js' | \
+		xargs $(ISTANBUL) cover --dir coverage --print detail \
+		$(NODEUNIT) --
+
+.PHONY: coverage-html
+coverage-html: coverage
+	@echo "Opening coverage report in browser..."
+	@open coverage/lcov-report/index.html || \
+		echo "Coverage report generated at coverage/lcov-report/index.html"
 
 .PHONY: setup
 setup: | $(NPM_EXEC)
