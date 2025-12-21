@@ -17,7 +17,7 @@
 
 var _nodeunit = require('nodeunit');
 var _jwt = require('jsonwebtoken');
-var _crypto = require('crypto');
+var crypto = require('crypto');
 
 // Import modules for testing
 var sessionTokenModule = require('../lib/server/session-token.js');

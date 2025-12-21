@@ -22,7 +22,7 @@
 
 var _nodeunit = require('nodeunit');
 var bunyan = require('bunyan');
-var _crypto = require('crypto');
+var crypto = require('crypto');
 var _vasync = require('vasync');
 var fakeredis = require('fakeredis');
 var restify = require('restify');

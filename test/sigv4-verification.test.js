@@ -14,13 +14,13 @@
 
 var _nodeunit = require('nodeunit');
 var bunyan = require('bunyan');
-var _crypto = require('crypto');
+var crypto = require('crypto');
 var fakeredis = require('fakeredis');
-var _sigv4 = require('../lib/server/sigv4');
+var sigv4 = require('../lib/server/sigv4');
 var SigV4Helper = require('./lib/sigv4-helper');
 var TimeMock = require('./lib/time-mock');
 
-var _helper = new SigV4Helper({region: 'us-east-1', service: 's3'});
+var helper = new SigV4Helper({region: 'us-east-1', service: 's3'});
 var timeMock;
 var redis;
 var log;

@@ -15,7 +15,7 @@
  */
 
 var _nodeunit = require('nodeunit');
-var _crypto = require('crypto');
+var crypto = require('crypto');
 var bunyan = require('bunyan');
 var fakeredis = require('fakeredis');
 var sigv4 = require('../lib/server/sigv4');
