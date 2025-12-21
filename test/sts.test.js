@@ -27,7 +27,8 @@ var validateSinglePrincipal = sts.internal.validateSinglePrincipal;
 var validateServicePrincipal = sts.internal.validateServicePrincipal;
 var statementMatchesAction = sts.internal.statementMatchesAction;
 var generateUUID = sts.internal.generateUUID;
-var generateSessionTokenAccessKeyId = sts.internal.generateSessionTokenAccessKeyId;
+var generateSessionTokenAccessKeyId =
+        sts.internal.generateSessionTokenAccessKeyId;
 var accesskey = require('ufds/lib/accesskey');
 // Removed: generateSessionToken (insecure Base64 method)
 // Use session-token.js module for secure JWT generation
