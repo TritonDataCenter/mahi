@@ -47,14 +47,16 @@ exports.setUp = function (cb) {
 		}
 	});
 
-	var addr = testServer.address();
-	serverPort = addr.port;
-	client = restify.createJsonClient({
-		url: 'http://127.0.0.1:' + addr.port,
-		retry: false
-	});
-
-	cb();
+	// Wait for server to be listening and replicator to be ready
+	setTimeout(function () {
+		var addr = testServer.address();
+		serverPort = addr.port;
+		client = restify.createJsonClient({
+			url: 'http://127.0.0.1:' + addr.port,
+			retry: false
+		});
+		cb();
+	}, 2000);
 };
 
 exports.tearDown = function (cb) {
