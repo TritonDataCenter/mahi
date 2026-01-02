@@ -50,7 +50,7 @@ var jsonstream = require('../jsonparsestream.js');
  *     // Redis now populated with test users and accounts
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function RedisFixture(opts) {
     assert.object(opts, 'opts');
@@ -89,7 +89,7 @@ function RedisFixture(opts) {
  *     // Redis now has accounts with IAM roles
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 RedisFixture.prototype.loadScenario = function loadScenario(scenarioName,
     callback) {
@@ -122,7 +122,7 @@ RedisFixture.prototype.loadScenario = function loadScenario(scenarioName,
  *
  * @return {void}
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 RedisFixture.prototype._loadEmpty = function _loadEmpty(callback) {
     this.redis.flushdb(callback);
@@ -140,7 +140,7 @@ RedisFixture.prototype._loadEmpty = function _loadEmpty(callback) {
  *
  * @note Uses existing Transform pipeline from replicator
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 RedisFixture.prototype._loadBasicAuth = function _loadBasicAuth(callback) {
     var dataPath = path.resolve(__dirname, '../data/test-nodeletes.json');
@@ -160,7 +160,7 @@ RedisFixture.prototype._loadBasicAuth = function _loadBasicAuth(callback) {
  * @note Currently uses test-nodeletes.json; can be extended with
  *       dedicated STS fixture file
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 RedisFixture.prototype._loadStsRoles = function _loadStsRoles(callback) {
     var dataPath = path.resolve(__dirname, '../data/test-nodeletes.json');
@@ -179,7 +179,7 @@ RedisFixture.prototype._loadStsRoles = function _loadStsRoles(callback) {
  *
  * @note Uses test-nodeletes.json which includes access key data
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 RedisFixture.prototype._loadSigv4Users = function _loadSigv4Users(callback) {
     var dataPath = path.resolve(__dirname, '../data/test-nodeletes.json');
@@ -199,7 +199,7 @@ RedisFixture.prototype._loadSigv4Users = function _loadSigv4Users(callback) {
  *
  * @note Uses Transform from replicator to populate Redis
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 RedisFixture.prototype._loadFromJson = function _loadFromJson(filepath,
     callback) {
@@ -248,7 +248,7 @@ RedisFixture.prototype._loadFromJson = function _loadFromJson(filepath,
  *     t.done();
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 RedisFixture.prototype.get = function get(key, callback) {
     assert.string(key, 'key');
@@ -273,7 +273,7 @@ RedisFixture.prototype.get = function get(key, callback) {
  *     // Account mapping now in Redis
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 RedisFixture.prototype.set = function set(key, value, callback) {
     assert.string(key, 'key');
@@ -300,7 +300,7 @@ RedisFixture.prototype.set = function set(key, value, callback) {
  *     t.done();
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 RedisFixture.prototype.exists = function exists(key, callback) {
     assert.string(key, 'key');
@@ -328,7 +328,7 @@ RedisFixture.prototype.exists = function exists(key, callback) {
  *     this.fixture.flush(cb);
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 RedisFixture.prototype.flush = function flush(callback) {
     assert.func(callback, 'callback');

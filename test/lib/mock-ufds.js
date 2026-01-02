@@ -51,7 +51,7 @@ var CHANGELOG_DN = 'cn=changelog';
  *     ufds.loadLdif('./test/data/test.ldif', callback);
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function MockUfdsServer(opts) {
     assert.object(opts, 'opts');
@@ -90,7 +90,7 @@ util.inherits(MockUfdsServer, EventEmitter);
  *     console.log('LDAP server listening on port 1389');
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype.start = function start(callback) {
     assert.func(callback, 'callback');
@@ -150,7 +150,7 @@ MockUfdsServer.prototype.start = function start(callback) {
  *     ufds.stop(cb);
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype.stop = function stop(callback) {
     assert.func(callback, 'callback');
@@ -188,7 +188,7 @@ MockUfdsServer.prototype.stop = function stop(callback) {
  *     // Directory now populated with test data
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype.loadLdif = function loadLdif(filepath, callback) {
     assert.string(filepath, 'filepath');
@@ -229,7 +229,7 @@ MockUfdsServer.prototype.loadLdif = function loadLdif(filepath, callback) {
  *
  * @note Supports multi-line attributes and base64 encoded values
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype._parseLdif = function _parseLdif(ldifText) {
     var entries = [];
@@ -307,7 +307,7 @@ MockUfdsServer.prototype._parseLdif = function _parseLdif(ldifText) {
  *
  * @return {void}
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype._addEntry = function _addEntry(dn, entry) {
     this._directory[dn] = entry;
@@ -335,7 +335,7 @@ MockUfdsServer.prototype._addEntry = function _addEntry(dn, entry) {
  *
  * @return {void}
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype._handleSearch = function _handleSearch(req, res,
     next) {
@@ -394,7 +394,7 @@ MockUfdsServer.prototype._handleSearch = function _handleSearch(req, res,
  *
  * @return {boolean} True if DN matches scope
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype._dnMatchesScope = function _dnMatchesScope(dn,
     baseDN, scope) {
@@ -430,7 +430,7 @@ MockUfdsServer.prototype._dnMatchesScope = function _dnMatchesScope(dn,
  *
  * @return {void}
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype._handleAdd = function _handleAdd(req, res, next) {
     var dn = req.dn.toString();
@@ -457,7 +457,7 @@ MockUfdsServer.prototype._handleAdd = function _handleAdd(req, res, next) {
  *
  * @return {void}
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype._handleModify = function _handleModify(req, res,
     next) {
@@ -525,7 +525,7 @@ MockUfdsServer.prototype._handleModify = function _handleModify(req, res,
  *
  * @return {void}
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype._handleDelete = function _handleDelete(req, res,
     next) {
@@ -559,7 +559,7 @@ MockUfdsServer.prototype._handleDelete = function _handleDelete(req, res,
  *
  * @return {number} Current changenumber
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype.getChangenumber = function getChangenumber() {
     return (this._changenumber);
@@ -572,7 +572,7 @@ MockUfdsServer.prototype.getChangenumber = function getChangenumber() {
  *
  * @return {array} Changelog entries
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 MockUfdsServer.prototype.getChangelog = function getChangelog() {
     return (this._changelog.slice()); // Return copy

@@ -43,7 +43,7 @@ var crypto = require('crypto');
  *     body: {RoleArn: 'arn:aws:iam::...'}
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function SigV4Helper(opts) {
     opts = opts || {};
@@ -86,7 +86,7 @@ function SigV4Helper(opts) {
  *
  * client.post('/sts/AssumeRole', headers, body, callback);
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 SigV4Helper.prototype.createHeaders = function createHeaders(opts) {
     assert.object(opts, 'opts');
@@ -185,7 +185,7 @@ SigV4Helper.prototype.createHeaders = function createHeaders(opts) {
  *
  * @note Encodes each path segment separately
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 SigV4Helper.prototype._encodeRfc3986 = function _encodeRfc3986(path) {
     return (path.split('/').map(function (segment) {
@@ -211,7 +211,7 @@ SigV4Helper.prototype._encodeRfc3986 = function _encodeRfc3986(path) {
  *
  * @return {string} Canonical request string
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 SigV4Helper.prototype._createCanonicalRequest =
     function _createCanonicalRequest(method, uri, queryString, headers,
@@ -264,7 +264,7 @@ SigV4Helper.prototype._createCanonicalRequest =
  *
  * @return {string} String-to-sign
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 SigV4Helper.prototype._createStringToSign =
     function _createStringToSign(timestamp, credentialScope,
@@ -292,7 +292,7 @@ SigV4Helper.prototype._createStringToSign =
  *
  * @return {string} Hexadecimal signature
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 SigV4Helper.prototype._calculateSignature =
     function _calculateSignature(secretKey, dateStamp, region, service,
@@ -324,7 +324,7 @@ SigV4Helper.prototype._calculateSignature =
  * @example
  * var headers = helper.get('/accounts/uuid', 'AKIATEST', 'secret');
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 SigV4Helper.prototype.get = function get(path, accessKey, secret, opts) {
     opts = opts || {};
@@ -352,7 +352,7 @@ SigV4Helper.prototype.get = function get(path, accessKey, secret, opts) {
  * var headers = helper.post('/sts/AssumeRole', 'AKIATEST', 'secret',
  *     {RoleArn: 'arn:aws:iam::...'});
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 SigV4Helper.prototype.post = function post(path, accessKey, secret, body,
     opts) {

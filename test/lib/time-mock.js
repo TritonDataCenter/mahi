@@ -46,7 +46,7 @@ var assert = require('assert-plus');
  *       tests
  * @note Not thread-safe - intended for sequential test execution
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function TimeMock() {
     this._originalDate = Date;
@@ -77,7 +77,7 @@ function TimeMock() {
  * var now = new Date();
  * console.log(now.toISOString()); // "2025-01-16T12:00:00.000Z"
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TimeMock.prototype.freeze = function freeze(timestamp) {
     var self = this;
@@ -148,7 +148,7 @@ TimeMock.prototype.freeze = function freeze(timestamp) {
  * console.log(new Date().toISOString());
  * // "2025-01-16T13:00:00.000Z"
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TimeMock.prototype.advance = function advance(milliseconds) {
     assert.number(milliseconds, 'milliseconds must be a number');
@@ -179,7 +179,7 @@ TimeMock.prototype.advance = function advance(milliseconds) {
  *     cb();
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TimeMock.prototype.restore = function restore() {
     if (!this._isFrozen) {
@@ -201,7 +201,7 @@ TimeMock.prototype.restore = function restore() {
  *
  * @return {number} Current timestamp in milliseconds
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TimeMock.prototype.now = function now() {
     if (this._isFrozen) {
@@ -215,7 +215,7 @@ TimeMock.prototype.now = function now() {
  *
  * @return {boolean} True if time is frozen, false otherwise
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TimeMock.prototype.isFrozen = function isFrozen() {
     return (this._isFrozen);

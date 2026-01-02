@@ -195,7 +195,8 @@ exports.testMalformedCredential = function (t) {
 
 exports.testIncompleteDateStamp = function (t) {
     var authHeader =
-        'AWS4-HMAC-SHA256 Credential=6ea33abf502acd6ee6cbe5534e1fe4e0/202512, ' +
+        'AWS4-HMAC-SHA256 ' +
+        'Credential=6ea33abf502acd6ee6cbe5534e1fe4e0/202512, ' +
         'SignedHeaders=host, Signature=abc123';
 
     var result = sigv4.parseAuthHeader(authHeader);
@@ -343,7 +344,9 @@ exports.testEmptyCredentialPart = function (t) {
 
 exports.testWhitespaceOnlyCredentialPart = function (t) {
     var authHeader =
-        'AWS4-HMAC-SHA256 Credential=6ea33abf502acd6ee6cbe5534e1fe4e0/20251217/ /s3/aws4_request, ' +
+        'AWS4-HMAC-SHA256 ' +
+        'Credential=6ea33abf502acd6ee6cbe5534e1fe4e0/20251217/ /' +
+        's3/aws4_request, ' +
         'SignedHeaders=host, ' +
         'Signature=abc123';
 

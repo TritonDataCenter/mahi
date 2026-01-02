@@ -52,7 +52,7 @@ var _crypto = require('crypto');
  * // creds.accessKeyId = 'ASIATEMPORARY...'
  * // creds.sessionToken = 'FwoGZXIv...'
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function generateSTSToken(opts) {
     opts = opts || {};
@@ -102,7 +102,7 @@ function generateSTSToken(opts) {
  *
  * @return {string} Base64-encoded session token
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function _encodeSessionToken(data) {
     var json = JSON.stringify(data);
@@ -125,7 +125,7 @@ function _encodeSessionToken(data) {
  * var data = decodeSessionToken(token.sessionToken);
  * console.log(data.expiration);
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function decodeSessionToken(token) {
     assert.string(token, 'token');
@@ -153,7 +153,7 @@ function decodeSessionToken(token) {
  *     .onResources(['arn:aws:s3:::mybucket/\*'])
  *     .build();
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function buildPolicy() {
     return (new PolicyBuilder());
@@ -166,7 +166,7 @@ function buildPolicy() {
  *
  * @constructor
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function PolicyBuilder() {
     this.statements = [];
@@ -181,7 +181,7 @@ function PolicyBuilder() {
  *
  * @return {PolicyBuilder} this (for chaining)
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 PolicyBuilder.prototype.allow = function allow(actions) {
     this._finishStatement();
@@ -201,7 +201,7 @@ PolicyBuilder.prototype.allow = function allow(actions) {
  *
  * @return {PolicyBuilder} this (for chaining)
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 PolicyBuilder.prototype.deny = function deny(actions) {
     this._finishStatement();
@@ -220,7 +220,7 @@ PolicyBuilder.prototype.deny = function deny(actions) {
  *
  * @return {PolicyBuilder} this (for chaining)
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 PolicyBuilder.prototype.onResources =
     function onResources(resources) {
@@ -247,7 +247,7 @@ PolicyBuilder.prototype.onResources =
  *         }
  *     });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 PolicyBuilder.prototype.withConditions =
     function withConditions(conditions) {
@@ -262,7 +262,7 @@ PolicyBuilder.prototype.withConditions =
  *
  * @return {object} IAM policy document
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 PolicyBuilder.prototype.build = function build() {
     this._finishStatement();
@@ -277,7 +277,7 @@ PolicyBuilder.prototype.build = function build() {
  *
  * @return {string} JSON-encoded policy document
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 PolicyBuilder.prototype.toJSON = function toJSON() {
     return (JSON.stringify(this.build()));
@@ -286,7 +286,7 @@ PolicyBuilder.prototype.toJSON = function toJSON() {
 /**
  * @brief Internal: Finish current statement
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 PolicyBuilder.prototype._finishStatement =
     function _finishStatement() {
@@ -309,7 +309,7 @@ PolicyBuilder.prototype._finishStatement =
  * @example
  * var policy = s3ReadOnlyPolicy('mybucket');
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function s3ReadOnlyPolicy(bucket) {
     assert.string(bucket, 'bucket');
@@ -332,7 +332,7 @@ function s3ReadOnlyPolicy(bucket) {
  *
  * @return {object} IAM policy document
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function s3FullAccessPolicy(bucket) {
     assert.string(bucket, 'bucket');
@@ -368,7 +368,7 @@ function s3FullAccessPolicy(bucket) {
  *     headers: {'x-amz-date': '20250116T120000Z'}
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function buildRequest(opts) {
     assert.object(opts, 'opts');
@@ -410,7 +410,7 @@ function buildRequest(opts) {
  *
  * @return {object} Mock response object
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function buildResponse(opts) {
     opts = opts || {};
@@ -460,7 +460,7 @@ function buildResponse(opts) {
  *     console.error(result.errors);
  * }
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function validateAuthResponse(response, expected) {
     assert.object(response, 'response');
@@ -503,7 +503,7 @@ function validateAuthResponse(response, expected) {
  *
  * @return {object} Validation result
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function validateSTSResponse(response) {
     assert.object(response, 'response');
@@ -554,7 +554,7 @@ function validateSTSResponse(response) {
  * var ts = generateTimestamp();
  * // "20250116T120000Z"
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function generateTimestamp(timestamp) {
     var date = timestamp ? new Date(timestamp) : new Date();
@@ -583,7 +583,7 @@ function generateTimestamp(timestamp) {
  * var date = generateDateString();
  * // "20250116"
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function generateDateString(timestamp) {
     var date = timestamp ? new Date(timestamp) : new Date();
@@ -611,7 +611,7 @@ function generateDateString(timestamp) {
  * var expired = expiredTimestamp();
  * // Returns timestamp >15 minutes in the past
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function expiredTimestamp(baseTime, future) {
     var base = baseTime || Date.now();
@@ -635,7 +635,7 @@ function expiredTimestamp(baseTime, future) {
  *
  * @return {string} Random alphanumeric string
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function _randomString(length) {
     var chars =
@@ -658,7 +658,7 @@ function _randomString(length) {
  *
  * @return {string} Zero-padded string
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function _pad(num) {
     return ((num < 10 ? '0' : '') + num);

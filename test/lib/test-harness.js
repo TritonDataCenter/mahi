@@ -69,7 +69,7 @@ var SigV4Helper = require('./sigv4-helper.js');
  *     this.harness.client.get('/accounts/uuid', ...);
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 function TestHarness(opts) {
     opts = opts || {};
@@ -121,7 +121,7 @@ function TestHarness(opts) {
  *     this.harness.setup(cb);
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TestHarness.prototype.setup = function setup(callback) {
     assert.func(callback, 'callback');
@@ -226,7 +226,7 @@ TestHarness.prototype.setup = function setup(callback) {
  *     this.harness.teardown(cb);
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TestHarness.prototype.teardown = function teardown(callback) {
     assert.func(callback, 'callback');
@@ -314,7 +314,7 @@ TestHarness.prototype.teardown = function teardown(callback) {
  *     // user.accessKey and user.secret now available
  * });
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TestHarness.prototype.createUser = function createUser(opts, callback) {
     assert.object(opts, 'opts');
@@ -373,7 +373,7 @@ TestHarness.prototype.createUser = function createUser(opts, callback) {
  *
  * @return {string} UUID string
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TestHarness.prototype._generateUuid = function _generateUuid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,
@@ -391,7 +391,7 @@ TestHarness.prototype._generateUuid = function _generateUuid() {
  *
  * @return {string} Access key ID
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TestHarness.prototype._generateAccessKey = function _generateAccessKey() {
     var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -409,7 +409,7 @@ TestHarness.prototype._generateAccessKey = function _generateAccessKey() {
  *
  * @return {string} Secret key
  *
- * @since 1.0.0
+ * @since 2.1.0
  */
 TestHarness.prototype._generateSecret = function _generateSecret() {
     var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' +
