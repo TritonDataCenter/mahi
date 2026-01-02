@@ -674,3 +674,39 @@ exports.testQueryParamWithSpecialChars = function (t) {
         t.done();
     });
 };
+
+/* --- Test accessKeyId validation --- */
+
+exports.testOversizedAccessKeyId = function (t) {
+    // Generate an accessKeyId that exceeds the 1024 character limit
+    var oversizedAccessKeyId = '';
+    for (var i = 0; i < 1025; i++) {
+        oversizedAccessKeyId += 'A';
+    }
+
+    var testUser = {
+        uuid: 'test-user-oversized',
+        login: 'testuserOversized',
+        accesskeys: {}
+    };
+    testUser.accesskeys[oversizedAccessKeyId] = 'secret999';
+
+    var timestamp = new Date().toISOString();
+
+    setupUserAndVerify({
+        user: testUser,
+        accessKeyId: oversizedAccessKeyId,
+        secret: 'secret999',
+        method: 'GET',
+        path: '/bucket/key',
+        timestamp: timestamp
+    }, t, function (err, result) {
+        t.ok(err, 'should return error for oversized accessKeyId');
+        t.equal(err.name, 'InvalidSignatureError',
+            'should be InvalidSignatureError');
+        t.ok(err.message.indexOf('Access key ID too long') !== -1,
+            'error message should mention "Access key ID too long"');
+        t.ok(!result, 'should not return result');
+        t.done();
+    });
+};
