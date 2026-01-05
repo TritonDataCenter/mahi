@@ -8,7 +8,7 @@ markdown2extras: tables, code-friendly
     file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <!--
-    Copyright 2025 Edgecast Cloud LLC.
+    Copyright 2026 Edgecast Cloud LLC.
 -->
 
 # STS (Security Token Service)
