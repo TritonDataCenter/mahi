@@ -663,9 +663,10 @@ exports.testQueryParamWithSpecialChars = function (t) {
 /* --- Test accessKeyId validation --- */
 
 exports.testOversizedAccessKeyId = function (t) {
-    // Generate an accessKeyId that exceeds the 1024 character limit
+    // Generate an accessKeyId that exceeds the 128 character limit
+    // per sdc-ufds schema
     var oversizedAccessKeyId = '';
-    for (var i = 0; i < 1025; i++) {
+    for (var i = 0; i < 129; i++) {
         oversizedAccessKeyId += 'A';
     }
 
