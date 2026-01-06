@@ -113,7 +113,7 @@ function verifyS3Request(opts, callback) {
 
 exports.testS3GetObjectOperation = function (t) {
         var userUuid = 'user-s3-get';
-        var accessKeyId = 'AKIAS3GET123456';
+        var accessKeyId = 'AKIAS3GET1234567';
         var secret = 's3getsecret';
 
         var userData = {
@@ -151,7 +151,7 @@ exports.testS3GetObjectOperation = function (t) {
 
 exports.testS3PutObjectOperation = function (t) {
         var userUuid = 'user-s3-put';
-        var accessKeyId = 'AKIAS3PUT123456';
+        var accessKeyId = 'AKIAS3PUT1234567';
         var secret = 's3putsecret';
 
         var userData = {
@@ -188,7 +188,7 @@ exports.testS3PutObjectOperation = function (t) {
 
 exports.testS3DeleteObjectOperation = function (t) {
         var userUuid = 'user-s3-delete';
-        var accessKeyId = 'AKIAS3DEL123456';
+        var accessKeyId = 'AKIAS3DEL1234567';
         var secret = 's3delsecret';
 
         var userData = {
@@ -225,7 +225,7 @@ exports.testS3DeleteObjectOperation = function (t) {
 
 exports.testS3ListObjectsOperation = function (t) {
         var userUuid = 'user-s3-list';
-        var accessKeyId = 'AKIAS3LIST12345';
+        var accessKeyId = 'AKIAS3LIST123456';
         var secret = 's3listsecret';
 
         var userData = {
@@ -264,7 +264,7 @@ exports.testS3ListObjectsOperation = function (t) {
 
 exports.testInvalidSignatureRejection = function (t) {
         var userUuid = 'user-invalid-sig';
-        var accessKeyId = 'AKIAINVALID1234';
+        var accessKeyId = 'AKIAINVALID12345';
         var correctSecret = 'correctsecret';
         var wrongSecret = 'wrongsecret';
 
@@ -317,7 +317,7 @@ exports.testNonexistentAccessKey = function (t) {
 
 exports.testExpiredRequestRejection = function (t) {
         var userUuid = 'user-expired';
-        var accessKeyId = 'AKIAEXPIRED1234';
+        var accessKeyId = 'AKIAEXPIRED12345';
         var secret = 'expiredsecret';
 
         var userData = {
@@ -359,7 +359,7 @@ exports.testExpiredRequestRejection = function (t) {
 
 exports.testSignedPayloadRequest = function (t) {
         var userUuid = 'user-signed-payload';
-        var accessKeyId = 'AKIASIGNED12345';
+        var accessKeyId = 'AKIASIGNED123456';
         var secret = 'signedsecret';
 
         var userData = {

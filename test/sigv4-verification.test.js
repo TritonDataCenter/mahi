@@ -115,7 +115,7 @@ exports.testSuccessfulVerification = function (t) {
         uuid: 'test-user-uuid',
         login: 'testuser',
         accesskeys: {
-            'AKIATEST123': 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'
+            'AKIATEST12345678': 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'
         }
     };
 
@@ -123,7 +123,7 @@ exports.testSuccessfulVerification = function (t) {
 
     setupUserAndVerify({
         user: testUser,
-        accessKeyId: 'AKIATEST123',
+        accessKeyId: 'AKIATEST12345678',
         secret: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
         method: 'GET',
         path: '/bucket/key',
@@ -132,7 +132,7 @@ exports.testSuccessfulVerification = function (t) {
     }, t, function (err, result) {
         t.ok(!err, 'should not error');
         t.ok(result, 'should return result');
-        t.equal(result.accessKeyId, 'AKIATEST123',
+        t.equal(result.accessKeyId, 'AKIATEST12345678',
             'should have access key ID');
         t.ok(result.user, 'should have user object');
         t.equal(result.user.uuid, 'test-user-uuid',
@@ -146,13 +146,13 @@ exports.testVerificationWithEmptyQuery = function (t) {
         uuid: 'test-user-2',
         login: 'testuser2',
         accesskeys: {
-            'AKIATEST456': 'secretkey456'
+            'AKIATEST45678901': 'secretkey456'
         }
     };
 
     setupUserAndVerify({
         user: testUser,
-        accessKeyId: 'AKIATEST456',
+        accessKeyId: 'AKIATEST45678901',
         secret: 'secretkey456',
         method: 'GET',
         path: '/',
@@ -160,7 +160,7 @@ exports.testVerificationWithEmptyQuery = function (t) {
     }, t, function (err, result) {
         t.ok(!err, 'should not error');
         t.ok(result, 'should return result');
-        t.equal(result.accessKeyId, 'AKIATEST456');
+        t.equal(result.accessKeyId, 'AKIATEST45678901');
         t.done();
     });
 };
@@ -217,7 +217,7 @@ exports.testNonexistentAccessKey = function (t) {
     var headers = helper.createHeaders({
         method: 'GET',
         path: '/bucket/key',
-        accessKey: 'AKIANONEXISTENT',
+        accessKey: 'AKIANONEXISTENT1',
         secret: 'fakesecret',
         timestamp: new Date().toISOString()
     });
@@ -254,7 +254,7 @@ exports.testUserNotFoundInRedis = function (t) {
         var headers = helper.createHeaders({
             method: 'GET',
             path: '/bucket/key',
-            accessKey: 'AKIAORPHANED',
+            accessKey: 'AKIAORPHANED1234',
             secret: 'fakesecret',
             timestamp: new Date().toISOString()
         });
@@ -289,7 +289,7 @@ exports.testAccessKeyNotInUserKeys = function (t) {
         uuid: 'test-user-3',
         login: 'testuser3',
         accesskeys: {
-            'AKIAOTHER': 'othersecret'
+            'AKIAOTHER1234567': 'othersecret'
         }
     };
 
@@ -303,7 +303,7 @@ exports.testAccessKeyNotInUserKeys = function (t) {
             var headers = helper.createHeaders({
                 method: 'GET',
                 path: '/bucket/key',
-                accessKey: 'AKIAWRONG',
+                accessKey: 'AKIAWRONG1234567',
                 secret: 'fakesecret',
                 timestamp: new Date().toISOString()
             });
@@ -341,7 +341,7 @@ exports.testSignatureMismatch = function (t) {
         uuid: 'test-user-4',
         login: 'testuser4',
         accesskeys: {
-            'AKIATEST789': 'correctsecret'
+            'AKIATEST78901234': 'correctsecret'
         }
     };
 
@@ -355,7 +355,7 @@ exports.testSignatureMismatch = function (t) {
             var headers = helper.createHeaders({
                 method: 'GET',
                 path: '/bucket/key',
-                accessKey: 'AKIATEST789',
+                accessKey: 'AKIATEST78901234',
                 secret: 'wrongsecret',
                 timestamp: new Date().toISOString()
             });
@@ -391,7 +391,7 @@ exports.testModifiedPath = function (t) {
         uuid: 'test-user-5',
         login: 'testuser5',
         accesskeys: {
-            'AKIATEST999': 'mysecret'
+            'AKIATEST99901234': 'mysecret'
         }
     };
 
@@ -405,7 +405,7 @@ exports.testModifiedPath = function (t) {
             var headers = helper.createHeaders({
                 method: 'GET',
                 path: '/original/path',
-                accessKey: 'AKIATEST999',
+                accessKey: 'AKIATEST99901234',
                 secret: 'mysecret',
                 timestamp: new Date().toISOString()
             });
@@ -443,7 +443,7 @@ exports.testMissingTimestamp = function (t) {
         uuid: 'test-user-6',
         login: 'testuser6',
         accesskeys: {
-            'AKIATEST111': 'secret111'
+            'AKIATEST11112345': 'secret111'
         }
     };
 
@@ -457,7 +457,7 @@ exports.testMissingTimestamp = function (t) {
             var headers = helper.createHeaders({
                 method: 'GET',
                 path: '/bucket/key',
-                accessKey: 'AKIATEST111',
+                accessKey: 'AKIATEST11112345',
                 secret: 'secret111',
                 timestamp: new Date().toISOString()
             });
@@ -491,7 +491,7 @@ exports.testExpiredTimestamp = function (t) {
         uuid: 'test-user-7',
         login: 'testuser7',
         accesskeys: {
-            'AKIATEST222': 'secret222'
+            'AKIATEST22212345': 'secret222'
         }
     };
 
@@ -501,7 +501,7 @@ exports.testExpiredTimestamp = function (t) {
 
     setupUserAndVerify({
         user: testUser,
-        accessKeyId: 'AKIATEST222',
+        accessKeyId: 'AKIATEST22212345',
         secret: 'secret222',
         method: 'GET',
         path: '/bucket/key',
@@ -520,7 +520,7 @@ exports.testFutureTimestampWithinWindow = function (t) {
         uuid: 'test-user-8',
         login: 'testuser8',
         accesskeys: {
-            'AKIATEST333': 'secret333'
+            'AKIATEST33312345': 'secret333'
         }
     };
 
@@ -531,7 +531,7 @@ exports.testFutureTimestampWithinWindow = function (t) {
 
     setupUserAndVerify({
         user: testUser,
-        accessKeyId: 'AKIATEST333',
+        accessKeyId: 'AKIATEST33312345',
         secret: 'secret333',
         method: 'GET',
         path: '/bucket/key',
@@ -548,7 +548,7 @@ exports.testTimestampExactly15MinutesOld = function (t) {
         uuid: 'test-user-9',
         login: 'testuser9',
         accesskeys: {
-            'AKIATEST444': 'secret444'
+            'AKIATEST44412345': 'secret444'
         }
     };
 
@@ -561,7 +561,7 @@ exports.testTimestampExactly15MinutesOld = function (t) {
 
     setupUserAndVerify({
         user: testUser,
-        accessKeyId: 'AKIATEST444',
+        accessKeyId: 'AKIATEST44412345',
         secret: 'secret444',
         method: 'GET',
         path: '/bucket/key',
@@ -580,7 +580,7 @@ exports.testPUTRequest = function (t) {
         uuid: 'test-user-10',
         login: 'testuser10',
         accesskeys: {
-            'AKIATEST555': 'secret555'
+            'AKIATEST55512345': 'secret555'
         }
     };
 
@@ -588,7 +588,7 @@ exports.testPUTRequest = function (t) {
 
     setupUserAndVerify({
         user: testUser,
-        accessKeyId: 'AKIATEST555',
+        accessKeyId: 'AKIATEST55512345',
         secret: 'secret555',
         method: 'PUT',
         path: '/bucket/key',
@@ -605,13 +605,13 @@ exports.testDELETERequest = function (t) {
         uuid: 'test-user-11',
         login: 'testuser11',
         accesskeys: {
-            'AKIATEST666': 'secret666'
+            'AKIATEST66612345': 'secret666'
         }
     };
 
     setupUserAndVerify({
         user: testUser,
-        accessKeyId: 'AKIATEST666',
+        accessKeyId: 'AKIATEST66612345',
         secret: 'secret666',
         method: 'DELETE',
         path: '/bucket/key',
@@ -630,14 +630,14 @@ exports.testComplexQueryString = function (t) {
         uuid: 'test-user-12',
         login: 'testuser12',
         accesskeys: {
-            'AKIATEST777': 'secret777'
+            'AKIATEST77712345': 'secret777'
         }
     };
 
     var query = 'prefix=photos&delimiter=/&max-keys=1000';
     setupUserAndVerify({
         user: testUser,
-        accessKeyId: 'AKIATEST777',
+        accessKeyId: 'AKIATEST77712345',
         secret: 'secret777',
         method: 'GET',
         path: '/bucket',
@@ -655,14 +655,14 @@ exports.testQueryParamWithSpecialChars = function (t) {
         uuid: 'test-user-13',
         login: 'testuser13',
         accesskeys: {
-            'AKIATEST888': 'secret888'
+            'AKIATEST88812345': 'secret888'
         }
     };
 
     var query = 'marker=file%20with%20spaces.txt';
     setupUserAndVerify({
         user: testUser,
-        accessKeyId: 'AKIATEST888',
+        accessKeyId: 'AKIATEST88812345',
         secret: 'secret888',
         method: 'GET',
         path: '/bucket',
