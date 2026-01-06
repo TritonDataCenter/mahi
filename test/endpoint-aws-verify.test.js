@@ -269,7 +269,7 @@ exports.testNonexistentAccessKey = function (t) {
 
 exports.testWithQueryParameters = function (t) {
         var testUserUuid = 'test-user-uuid-003';
-        var testAccessKeyId = 'AKIAQUERY123456';
+        var testAccessKeyId = 'AKIAQUERY1234567';
         var testSecret = 'querysecret1234';
 
         var userData = {
