@@ -119,15 +119,12 @@ exports.testSuccessfulVerification = function (t) {
         }
     };
 
-    var timestamp = new Date().toISOString();
-
     setupUserAndVerify({
         user: testUser,
         accessKeyId: 'AKIATEST12345678',
         secret: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
         method: 'GET',
         path: '/bucket/key',
-        timestamp: timestamp,
         query: 'prefix=photos'
     }, t, function (err, result) {
         t.ok(!err, 'should not error');
@@ -155,8 +152,7 @@ exports.testVerificationWithEmptyQuery = function (t) {
         accessKeyId: 'AKIATEST45678901',
         secret: 'secretkey456',
         method: 'GET',
-        path: '/',
-        timestamp: new Date().toISOString()
+        path: '/'
     }, t, function (err, result) {
         t.ok(!err, 'should not error');
         t.ok(result, 'should return result');
@@ -218,8 +214,7 @@ exports.testNonexistentAccessKey = function (t) {
         method: 'GET',
         path: '/bucket/key',
         accessKey: 'AKIANONEXISTENT1',
-        secret: 'fakesecret',
-        timestamp: new Date().toISOString()
+        secret: 'fakesecret'
     });
 
     var payloadHash = crypto.createHash('sha256')
@@ -247,7 +242,7 @@ exports.testNonexistentAccessKey = function (t) {
 };
 
 exports.testUserNotFoundInRedis = function (t) {
-    redis.set('/accesskey/AKIAORPHANED', 'missing-user-uuid',
+    redis.set('/accesskey/AKIAORPHANED1234', 'missing-user-uuid',
         function (setErr) {
         t.ok(!setErr, 'should set access key');
 
@@ -255,8 +250,7 @@ exports.testUserNotFoundInRedis = function (t) {
             method: 'GET',
             path: '/bucket/key',
             accessKey: 'AKIAORPHANED1234',
-            secret: 'fakesecret',
-            timestamp: new Date().toISOString()
+            secret: 'fakesecret'
         });
 
         var payloadHash = crypto.createHash('sha256')
@@ -296,7 +290,7 @@ exports.testAccessKeyNotInUserKeys = function (t) {
     redis.set('/uuid/test-user-3', JSON.stringify(testUser),
         function (err1) {
         t.ok(!err1, 'should set user');
-        redis.set('/accesskey/AKIAWRONG', 'test-user-3',
+        redis.set('/accesskey/AKIAWRONG1234567', 'test-user-3',
             function (err2) {
             t.ok(!err2, 'should set access key');
 
@@ -304,8 +298,7 @@ exports.testAccessKeyNotInUserKeys = function (t) {
                 method: 'GET',
                 path: '/bucket/key',
                 accessKey: 'AKIAWRONG1234567',
-                secret: 'fakesecret',
-                timestamp: new Date().toISOString()
+                secret: 'fakesecret'
             });
 
             var payloadHash = crypto.createHash('sha256')
@@ -348,7 +341,7 @@ exports.testSignatureMismatch = function (t) {
     redis.set('/uuid/test-user-4', JSON.stringify(testUser),
         function (err1) {
         t.ok(!err1, 'should set user');
-        redis.set('/accesskey/AKIATEST789', 'test-user-4',
+        redis.set('/accesskey/AKIATEST78901234', 'test-user-4',
             function (err2) {
             t.ok(!err2, 'should set access key');
 
@@ -356,8 +349,7 @@ exports.testSignatureMismatch = function (t) {
                 method: 'GET',
                 path: '/bucket/key',
                 accessKey: 'AKIATEST78901234',
-                secret: 'wrongsecret',
-                timestamp: new Date().toISOString()
+                secret: 'wrongsecret'
             });
 
             var payloadHash = crypto.createHash('sha256')
@@ -398,7 +390,7 @@ exports.testModifiedPath = function (t) {
     redis.set('/uuid/test-user-5', JSON.stringify(testUser),
         function (err1) {
         t.ok(!err1, 'should set user');
-        redis.set('/accesskey/AKIATEST999', 'test-user-5',
+        redis.set('/accesskey/AKIATEST99901234', 'test-user-5',
             function (err2) {
             t.ok(!err2, 'should set access key');
 
@@ -406,8 +398,7 @@ exports.testModifiedPath = function (t) {
                 method: 'GET',
                 path: '/original/path',
                 accessKey: 'AKIATEST99901234',
-                secret: 'mysecret',
-                timestamp: new Date().toISOString()
+                secret: 'mysecret'
             });
 
             var payloadHash = crypto.createHash('sha256')
@@ -450,7 +441,7 @@ exports.testMissingTimestamp = function (t) {
     redis.set('/uuid/test-user-6', JSON.stringify(testUser),
         function (err1) {
         t.ok(!err1, 'should set user');
-        redis.set('/accesskey/AKIATEST111', 'test-user-6',
+        redis.set('/accesskey/AKIATEST11112345', 'test-user-6',
             function (err2) {
             t.ok(!err2, 'should set access key');
 
@@ -458,8 +449,7 @@ exports.testMissingTimestamp = function (t) {
                 method: 'GET',
                 path: '/bucket/key',
                 accessKey: 'AKIATEST11112345',
-                secret: 'secret111',
-                timestamp: new Date().toISOString()
+                secret: 'secret111'
             });
 
             delete headers['x-amz-date'];
@@ -497,7 +487,8 @@ exports.testExpiredTimestamp = function (t) {
 
     var twentyMinutesAgo = Date.now() - (20 * 60 * 1000);
     var expiredDate = new Date(twentyMinutesAgo);
-    var expiredTimestamp = expiredDate.toISOString();
+    var expiredTimestamp = expiredDate.toISOString()
+        .replace(/[:-]|\.\d{3}/g, '');
 
     setupUserAndVerify({
         user: testUser,
@@ -584,15 +575,12 @@ exports.testPUTRequest = function (t) {
         }
     };
 
-    var timestamp = new Date().toISOString();
-
     setupUserAndVerify({
         user: testUser,
         accessKeyId: 'AKIATEST55512345',
         secret: 'secret555',
         method: 'PUT',
-        path: '/bucket/key',
-        timestamp: timestamp
+        path: '/bucket/key'
     }, t, function (err, result) {
         t.ok(!err, 'should not error');
         t.ok(result, 'should verify PUT request');
@@ -614,8 +602,7 @@ exports.testDELETERequest = function (t) {
         accessKeyId: 'AKIATEST66612345',
         secret: 'secret666',
         method: 'DELETE',
-        path: '/bucket/key',
-        timestamp: new Date().toISOString()
+        path: '/bucket/key'
     }, t, function (err, result) {
         t.ok(!err, 'should not error');
         t.ok(result, 'should verify DELETE request');
@@ -641,7 +628,6 @@ exports.testComplexQueryString = function (t) {
         secret: 'secret777',
         method: 'GET',
         path: '/bucket',
-        timestamp: new Date().toISOString(),
         query: query
     }, t, function (err, result) {
         t.ok(!err, 'should not error');
@@ -666,7 +652,6 @@ exports.testQueryParamWithSpecialChars = function (t) {
         secret: 'secret888',
         method: 'GET',
         path: '/bucket',
-        timestamp: new Date().toISOString(),
         query: query
     }, t, function (err, result) {
         t.ok(!err, 'should not error');
@@ -691,21 +676,18 @@ exports.testOversizedAccessKeyId = function (t) {
     };
     testUser.accesskeys[oversizedAccessKeyId] = 'secret999';
 
-    var timestamp = new Date().toISOString();
-
     setupUserAndVerify({
         user: testUser,
         accessKeyId: oversizedAccessKeyId,
         secret: 'secret999',
         method: 'GET',
-        path: '/bucket/key',
-        timestamp: timestamp
+        path: '/bucket/key'
     }, t, function (err, result) {
         t.ok(err, 'should return error for oversized accessKeyId');
         t.equal(err.name, 'InvalidSignatureError',
             'should be InvalidSignatureError');
-        t.ok(err.message.indexOf('Access key ID too long') !== -1,
-            'error message should mention "Access key ID too long"');
+        t.equal(err.message, 'Invalid Authorization header format',
+            'should reject with Invalid Authorization header format');
         t.ok(!result, 'should not return result');
         t.done();
     });
