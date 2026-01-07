@@ -310,6 +310,12 @@ exports.testRoleAssumptionWithSpecificUser = function (t) {
 
         var res = createMockResponse();
 
+        /*
+         * Note: assumeRole communicates errors primarily via HTTP status codes
+         * (res.send(statusCode)). Early validation errors use next(err), but
+         * runtime errors (trust policy failures, role not found, etc.) only set
+         * HTTP status. For success cases, checking res.getStatus() is sufficient.
+         */
         sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 200,
