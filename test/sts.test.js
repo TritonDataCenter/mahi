@@ -16,6 +16,7 @@
 var bunyan = require('bunyan');
 var nodeunit = require('nodeunit-plus');
 var test = nodeunit.test;
+var uuid = require('uuid');
 
 // Import the STS functions directly for unit testing
 var sts = require('../lib/server/sts.js');
@@ -26,7 +27,7 @@ var validatePrincipal = sts.internal.validatePrincipal;
 var validateSinglePrincipal = sts.internal.validateSinglePrincipal;
 var validateServicePrincipal = sts.internal.validateServicePrincipal;
 var statementMatchesAction = sts.internal.statementMatchesAction;
-var generateUUID = sts.internal.generateUUID;
+// Note: generateUUID is now provided by the uuid package
 var generateSessionTokenAccessKeyId =
         sts.internal.generateSessionTokenAccessKeyId;
 var accesskey = require('ufds/lib/accesskey');
@@ -145,10 +146,10 @@ test('validateSinglePrincipal: does not match wrong user ARN', function (t) {
 });
 
 test('credential generation functions work', function (t) {
-    var uuid = generateUUID();
+    var id = uuid.v4();
     var tempAccessKey = generateSessionTokenAccessKeyId();
 
-    t.ok(uuid && uuid.length === 36, 'UUID should be 36 characters');
+    t.ok(id && id.length === 36, 'UUID should be 36 characters');
     t.ok(tempAccessKey.indexOf('MSTS') === 0,
          'temp access key should start with MSTS');
 

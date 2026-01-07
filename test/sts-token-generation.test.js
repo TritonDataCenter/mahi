@@ -21,13 +21,14 @@ var nodeunit = require('nodeunit');
 var jwt = require('jsonwebtoken');
 var crypto = require('crypto');
 var accesskey = require('ufds/lib/accesskey');
+var uuid = require('uuid');
 
 // Import STS functions for testing
 var sts = require('../lib/server/sts.js');
 var sessionTokenModule = require('../lib/server/session-token.js');
 
 // Access internal STS functions
-var generateUUID = sts.internal.generateUUID;
+// Note: generateUUID is now provided by the uuid package
 var generateSessionTokenAccessKeyId =
     sts.internal.generateSessionTokenAccessKeyId;
 var generateAssumeRoleAccessKeyId =
@@ -524,15 +525,15 @@ exports.testSessionTokenLength = function (t) {
 /* --- Test UUID generation --- */
 
 exports.testUUIDGeneration = function (t) {
-    var uuid = generateUUID();
+    var id = uuid.v4();
 
-    t.ok(uuid, 'should generate UUID');
-    t.equal(typeof (uuid), 'string', 'UUID should be a string');
+    t.ok(id, 'should generate UUID');
+    t.equal(typeof (id), 'string', 'UUID should be a string');
 
     // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
     var uuidPattern =
         /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
-    t.ok(uuidPattern.test(uuid), 'should match UUID v4 format');
+    t.ok(uuidPattern.test(id), 'should match UUID v4 format');
 
     t.done();
 };
@@ -542,9 +543,9 @@ exports.testUUIDUniqueness = function (t) {
     var iterations = 10000;
 
     for (var i = 0; i < iterations; i++) {
-        var uuid = generateUUID();
-        t.ok(!uuids[uuid], 'UUID should be unique');
-        uuids[uuid] = true;
+        var id = uuid.v4();
+        t.ok(!uuids[id], 'UUID should be unique');
+        uuids[id] = true;
     }
 
     var uniqueCount = Object.keys(uuids).length;
@@ -554,8 +555,8 @@ exports.testUUIDUniqueness = function (t) {
 };
 
 exports.testUUIDCryptographicRandomness = function (t) {
-    var uuid = generateUUID();
-    var parts = uuid.split('-');
+    var id = uuid.v4();
+    var parts = id.split('-');
 
     // Verify version bits (4xxx means version 4)
     t.equal(parts[2][0], '4', 'should have version 4 identifier');
