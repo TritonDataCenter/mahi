@@ -29,7 +29,7 @@ var log = bunyan.createLogger({
 });
 
 var redis;
-var helper;
+var _helper;
 
 // Test accounts and users (using proper UUIDs)
 var TEST_ACCOUNT_UUID = '12345678-1234-1234-1234-123456789012';
@@ -49,7 +49,7 @@ var SESSION_SECRET = {
 
 exports.setUp = function (cb) {
     redis = fakeredis.createClient();
-    helper = new SigV4Helper({region: 'us-east-1', service: 's3'});
+    _helper = new SigV4Helper({region: 'us-east-1', service: 's3'});
 
     // Set up test data in Redis
     var testUser = {

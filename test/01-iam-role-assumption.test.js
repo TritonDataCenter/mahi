@@ -54,6 +54,36 @@ exports.tearDown = function (cb) {
 /* --- Helper functions --- */
 
 /*
+ * Create a mock UFDS pool for testing
+ */
+function createMockUfdsPool() {
+    var addedEntries = [];
+
+    var mockClient = {
+        add: function (dn, entry, callback) {
+            addedEntries.push({dn: dn, entry: entry});
+            setImmediate(function () {
+                callback(null);
+            });
+        }
+    };
+
+    return {
+        acquire: function (callback) {
+            setImmediate(function () {
+                callback(null, mockClient);
+            });
+        },
+        release: function (_client) {
+            // No-op for mock
+        },
+        getAddedEntries: function () {
+            return (addedEntries);
+        }
+    };
+}
+
+/*
  * Create a mock request object for AssumeRole
  */
 function createMockRequest(opts) {
@@ -68,7 +98,8 @@ function createMockRequest(opts) {
             audience: 'manta-s3'
         },
         body: opts.body || {},
-        params: opts.params || {}
+        params: opts.params || {},
+        ufdsPool: createMockUfdsPool()
     };
 
     return (req);
@@ -279,7 +310,7 @@ exports.testRoleAssumptionWithSpecificUser = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 200,
                 'should allow assumption by specific user');
@@ -334,7 +365,7 @@ exports.testTrustPolicyDenial = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 403,
                 'should deny access with 403 when trust policy denies');
@@ -398,7 +429,7 @@ exports.testTrustPolicyExplicitDeny = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 403,
                 'should deny when explicit Deny statement matches');
@@ -551,7 +582,7 @@ exports.testNonexistentRole = function (t) {
 
     var res = createMockResponse();
 
-    sts.assumeRole(req, res, function (assumeErr) {
+    sts.assumeRole(req, res, function (_assumeErr) {
         var status = res.getStatus();
         t.equal(status, 404, 'should return 404 for nonexistent role');
 
@@ -652,7 +683,7 @@ exports.testMissingRoleData = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 404,
                 'should return 404 when role data is missing');
@@ -758,7 +789,7 @@ exports.testCrossAccountDenied = function (t) {
 
         var res = createMockResponse();
 
-        sts.assumeRole(req, res, function (assumeErr) {
+        sts.assumeRole(req, res, function (_assumeErr) {
             var status = res.getStatus();
             t.equal(status, 403,
                 'should deny cross-account access when not in trust policy');
@@ -801,7 +832,7 @@ exports.testMalformedRoleData = function (t) {
 
             var res = createMockResponse();
 
-            sts.assumeRole(req, res, function (assumeErr) {
+            sts.assumeRole(req, res, function (_assumeErr) {
                 var status = res.getStatus();
                 t.equal(status, 500,
                     'should return 500 for malformed role data');
@@ -853,7 +884,7 @@ exports.testInvalidPermissionPoliciesData = function (t) {
 
             var res = createMockResponse();
 
-            sts.assumeRole(req, res, function (assumeErr) {
+            sts.assumeRole(req, res, function (_assumeErr) {
                 var status = res.getStatus();
                 t.equal(status, 500,
                     'should return 500 for invalid policies JSON');
