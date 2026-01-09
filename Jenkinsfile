@@ -6,6 +6,7 @@
 
 /*
  * Copyright 2021 Joyent, Inc.
+ * Copyright 2025 MNX Cloud, Inc.
  * Copyright 2026 Edgecast Cloud LLC.
  */
 
