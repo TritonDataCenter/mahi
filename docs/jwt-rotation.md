@@ -5,6 +5,141 @@
 This document describes the JWT secret rotation system implemented for mahi's session token management for S3 STS requests.
 The solution provides zero-downtime secret rotation through a grace period mechanism that allows old and new secrets to coexist temporarily.
 
+## What is JWT (JSON Web Token)?
+
+JWT (JSON Web Token) is an open standard (RFC 7519) for securely
+transmitting information between parties as a JSON object. JWTs are
+commonly used for authentication and authorization in distributed systems.
+
+### JWT Structure
+
+A JWT consists of three parts separated by dots (.):
+
+```
+header.payload.signature
+```
+
+#### 1. Header
+The header contains metadata about the token, including the algorithm
+used for signing:
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+This is Base64URL encoded to form the first part of the token.
+
+#### 2. Payload
+The payload contains claims (statements about the user and additional
+data):
+
+```json
+{
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "roleArn": "arn:aws:iam::123456789:role/MyRole",
+  "sessionName": "my-session",
+  "iat": 1516239022,
+  "exp": 1516242622
+}
+```
+
+Claims include:
+- **Registered claims**: Predefined claims like `iat` (issued at), `exp`
+(expiration time)
+- **Public claims**: Custom claims agreed upon between parties
+- **Private claims**: Custom claims for specific use cases
+
+The payload is Base64URL encoded to form the second part of the token.
+
+#### 3. Signature
+The signature ensures token integrity and authenticity. It is created
+by:
+
+1. Taking the encoded header and payload
+2. Combining them with a dot: `encodedHeader.encodedPayload`
+3. Signing this string with a secret key using the specified algorithm
+
+For HMAC-SHA256:
+```
+signature = HMAC-SHA256(
+  base64UrlEncode(header) + "." + base64UrlEncode(payload),
+  secret_key
+)
+```
+
+The signature is then Base64URL encoded to form the third part.
+
+### Example JWT Token
+
+A complete JWT looks like:
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiNTUwZTg0MDAtZTI5Yi00MWQ0LWE3MTYtNDQ2NjU1NDQwMDAwIiwicm9sZUFybiI6ImFybjphd3M6aWFtOjoxMjM0NTY3ODk6cm9sZS9NeVJvbGUiLCJpYXQiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+
+Each part is separated by a dot (.).
+
+### How JWT Authentication Works
+
+1. **Token Generation**: Server creates JWT with user claims and signs
+it with a secret key
+2. **Token Distribution**: JWT is sent to the client (typically in
+response to login)
+3. **Token Storage**: Client stores JWT (often in memory or secure
+storage)
+4. **Token Usage**: Client includes JWT in request headers
+(Authorization: Bearer <token>)
+5. **Token Verification**: Server verifies signature using the same
+secret key
+6. **Authorization**: If signature is valid and token is not expired,
+server grants access
+
+### Why Mahi Uses JWT for STS Session Tokens
+
+In mahi's implementation for AWS Security Token Service (STS)
+compatibility:
+
+- **Stateless Authentication**: No need to store session data on server
+- **Distributed Systems**: JWT can be verified by any mahi instance
+without shared session storage
+- **AWS Compatibility**: Session tokens behave like AWS temporary
+credentials
+- **Self-Contained**: Token contains all necessary user identity and
+role information
+- **Performance**: Verification is fast (cryptographic signature check)
+- **Caching**: Redis caches user/role data, JWT references these
+through UUIDs
+
+### Security Properties
+
+JWTs provide several security properties when used correctly:
+
+1. **Integrity**: Signature ensures token has not been tampered with
+2. **Authenticity**: Only servers with the secret key can create valid
+tokens
+3. **Non-repudiation**: Signature proves the token came from trusted
+source
+4. **Expiration**: `exp` claim limits token lifetime
+5. **Self-Contained**: No need for session lookup (stateless)
+
+### Security Considerations
+
+However, JWTs also have important security considerations:
+
+1. **Secret Key Security**: If the secret key is compromised, attackers
+can forge tokens
+2. **Token Revocation**: JWTs cannot be revoked before expiration
+without additional infrastructure
+3. **Payload Visibility**: JWT payloads are Base64 encoded, not
+encrypted (readable by anyone)
+4. **Token Theft**: Stolen tokens are valid until expiration
+5. **Secret Rotation**: Changing the secret key invalidates all existing
+tokens immediately
+
+This last point is the core problem that the rotation system addresses.
+
 ## Background
 
 ### The Problem
