@@ -78,7 +78,7 @@ function set_sapi_metadata() {
 
 function generate_new_secret() {
     local secret
-    secret=$(xxd -p -c 64 -l 32 /dev/random)
+    secret=$(openssl rand -hex 32)
 
     if [[ -z "$secret" ]]; then
         log "ERROR: Failed to generate new secret"
