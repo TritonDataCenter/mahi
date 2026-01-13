@@ -9,6 +9,7 @@ This document describes the test organization, patterns, and how to run tests fo
 - [Test Helpers and Fixtures](#test-helpers-and-fixtures)
 - [Common Test Patterns](#common-test-patterns)
 - [Writing New Tests](#writing-new-tests)
+- [JWT Rotation Testing Strategy](#jwt-rotation-testing-strategy)
 - [Troubleshooting](#troubleshooting)
 
 ## Test Organization
@@ -827,6 +828,147 @@ exports.tearDown = function (cb) {
 # - Split long lines at logical breaks
 # - Remove trailing spaces: :%s/\s\+$//g (in vim)
 ```
+
+## JWT Rotation Testing Strategy
+
+This section describes the testing approach for JWT session token
+rotation features. For implementation details, see
+`docs/jwt-rotation.md`.
+
+### Unit Tests
+
+Unit tests for JWT rotation focus on individual components:
+
+- **Token generation with key IDs** (`session-token-jwt.test.js`)
+  - Verify tokens include `keyId` in payload
+  - Validate token version is always `1.1`
+  - Check `tokenType` field is set correctly
+  - Ensure all required claims are present
+
+- **Multi-secret verification** (`session-token-rotation.test.js`)
+  - Test verification with primary secret
+  - Test verification with old secret during grace period
+  - Verify fallback to trying all valid secrets
+  - Check key ID matching logic
+
+- **Grace period validation** (`session-token-rotation.test.js`)
+  - Test secret expiration after grace period
+  - Verify `isSecretValid()` function
+  - Check `getValidSecrets()` filtering
+  - Test grace period boundary conditions
+
+- **Secret expiration cleanup** (`session-token-rotation.test.js`)
+  - Verify expired secrets are rejected
+  - Test secret rotation without grace period overlap
+  - Check cleanup of old secrets after expiration
+
+### Integration Tests
+
+Integration tests verify complete rotation workflows:
+
+- **Full rotation workflow** (`test/integration/jwt-rotation-flow.test.js`)
+  - Generate token with primary secret
+  - Rotate secrets (primary becomes old, new secret generated)
+  - Verify old tokens still work during grace period
+  - Verify new tokens use new secret
+  - Confirm old tokens fail after grace period expiration
+
+- **Multi-secret verification during grace periods**
+(`test/integration/jwt-rotation-flow.test.js`)
+  - Multiple secrets active simultaneously
+  - Token verification tries correct secret first (by keyId)
+  - Fallback to all valid secrets if keyId lookup fails
+  - Performance with multiple secrets
+
+- **Token expiration and renewal**
+  - Token expiration independent of secret rotation
+  - Renewing tokens after rotation uses new secret
+  - Expired tokens rejected regardless of secret validity
+
+- **Error handling scenarios**
+  - Missing grace period configuration
+  - Invalid secret format
+  - Corrupted key IDs
+  - Malformed rotation metadata
+
+### Load Testing
+
+Load testing ensures rotation doesn't impact performance:
+
+- **Rotation under load**
+  - Measure impact of rotation on active requests
+  - Verify no dropped requests during rotation
+  - Check latency distribution during grace period
+  - Test multiple concurrent rotations (should be prevented)
+
+- **Performance impact measurement**
+  - Baseline: single-secret verification time
+  - Grace period: two-secret verification time
+  - Worst case: fallback through all secrets
+  - Memory overhead per additional secret
+
+- **Memory usage with multiple secrets**
+  - Track memory per secret configuration
+  - Verify cleanup releases memory
+  - Check for secret leaks in error paths
+  - Monitor long-running processes
+
+### Shell-Based Tests
+
+Shell tests verify operational rotation scripts:
+
+- **jwt-rotation-test.sh** - JWT secret rotation scenarios
+  - Test rotation script dry-run mode
+  - Verify secret generation produces valid format
+  - Check SAPI metadata updates
+  - Test grace period enforcement
+  - Verify cleanup of expired secrets
+
+- **jwt-rotation-awscli-test.sh** - AWS CLI compatibility
+  - Test tokens work with AWS CLI tools
+  - Verify rotation doesn't break AWS compatibility
+  - Check STS AssumeRole with rotated secrets
+  - Validate session token format after rotation
+
+### Running Rotation Tests
+
+```bash
+# Run all JWT/session token tests
+./node_modules/.bin/nodeunit test/session-token*.test.js
+
+# Run integration tests
+./node_modules/.bin/nodeunit test/integration/jwt-rotation-flow.test.js
+
+# Run shell-based rotation tests
+cd test && ./jwt-rotation-test.sh
+cd test && ./jwt-rotation-awscli-test.sh
+
+# Run with coverage
+./node_modules/.bin/istanbul cover ./node_modules/.bin/nodeunit -- \
+    test/session-token*.test.js
+```
+
+### Test Data Requirements
+
+Rotation tests require:
+
+- **Valid secrets**: 64-character hexadecimal strings (32 bytes)
+- **Key IDs**: Format `key-YYYYMMDD-HHMMSS-RRRRRRRR`
+- **Grace periods**: Test with various durations (60s minimum, 86400s
+default)
+- **Rotation timestamps**: Unix epoch seconds
+- **Mock SAPI**: For integration tests that update metadata
+
+### Continuous Integration
+
+Rotation tests run in CI pipeline:
+
+1. Unit tests run on every commit
+2. Integration tests run on pull requests
+3. Shell tests run in SmartOS zone (deployment environment)
+4. Load tests run nightly on staging
+
+See `.github/workflows/test.yml` (or equivalent CI config) for details.
 
 ## Additional Resources
 

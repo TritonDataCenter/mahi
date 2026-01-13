@@ -182,38 +182,37 @@ This last point is the core problem that the rotation system addresses.
 ### 1. Enhanced Session Token Module (`lib/server/session-token.js`)
 
 #### Key Changes:
-- **Backward compatible**: Supports both v1.0 (legacy) and v1.1 (rotation) tokens
-- **Key ID support**: Adds `kid` field to JWT header
-- **Multi-secret verification**: Three verification strategies:
-  - Single secret (current behavior)
-  - Array of secrets (simple fallback)
-  - Full rotation config (production mode)
+- **Key ID support**: Key ID stored in JWT payload (not header due to
+jsonwebtoken v1.1.0 limitations)
+- **Multi-secret verification**: Rotation-aware verification strategy
+supporting multiple secrets during grace periods
+- **Required rotation support**: All tokens are v1.1 with rotation
+support from the start
 
-#### Token Format Evolution:
+#### Token Format:
 
 **Important:** Due to limitations in `jsonwebtoken` v1.1.0 (which doesn't support custom headers), the key ID is stored in the JWT **payload** as `keyId`, not in the standard JWT header as `kid`. This is a non-standard approach but works for internal rotation purposes.
 
 ```javascript
-// JWT Header (same for both versions - no kid support)
+// JWT Header
 {
   "alg": "HS256",
   "typ": "JWT"
 }
 
-// Legacy v1.0 payload (no keyId)
+// JWT Payload (v1.1 - all tokens include rotation support)
 {
-  "uuid": "...",
-  "roleArn": "...",
-  "sessionName": "..."
-}
-
-// New v1.1 payload (with keyId in payload, not header)
-{
-  "uuid": "...",
-  "roleArn": "...",
-  "sessionName": "...",
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "roleArn": "arn:aws:iam::123456789:role/MyRole",
+  "sessionName": "my-session",
+  "tokenType": "sts-session",
   "tokenVersion": "1.1",
-  "keyId": "key-20250120-143022"  // Non-standard: in payload, not header
+  "keyId": "key-20250120-143022",  // In payload, not header
+  "iss": "manta-mahi",
+  "aud": "manta-s3",
+  "iat": 1516239022,
+  "exp": 1516242622,
+  "nbf": 1516239022
 }
 ```
 
@@ -247,11 +246,23 @@ This last point is the core problem that the rotation system addresses.
 
 ### 3. Server Integration (`lib/server/server.js`)
 
-#### New Function: `buildSecretConfig()`
-- Reads rotation configuration from environment/config
-- Builds multi-secret structure for verification
-- Handles both legacy and rotation modes
-- Supports graceful transition
+#### Function: `buildSecretConfig()`
+
+Builds rotation-aware secret configuration from sessionConfig or
+environment variables. Always creates multi-secret structure with grace
+period support.
+
+**Required parameters:**
+- `secretKey` (primary secret)
+- `gracePeriod` (minimum 60 seconds)
+
+**Optional parameters:**
+- `secretKeyId` (generated if not provided)
+- `oldSecretKey` and `oldSecretKeyId` (for grace period)
+- `rotationTime` (timestamp for old secret expiration)
+
+**Note:** Grace period is mandatory. Function throws error if missing
+or invalid.
 
 #### Secret Structure:
 ```javascript
@@ -307,10 +318,10 @@ This last point is the core problem that the rotation system addresses.
 ### 5. Enhanced Setup Process (`boot/setup.sh`)
 
 #### Enhancements:
-- **Backward compatibility**: Existing installations get rotation support
-- **Key ID assignment**: Legacy secrets get proper key IDs
+- **Key ID generation**: Generates key IDs for secrets if not present
 - **Automatic cleanup**: Boot process removes expired secrets
 - **Metadata initialization**: Sets up rotation tracking
+- **Grace period enforcement**: Validates rotation configuration
 
 ## Rotation Timeline
 
@@ -393,66 +404,87 @@ echo "0 2 1 * * /opt/smartdc/mahi/boot/scripts/rotate-session-secret.sh" >> /var
 
 ### Monitoring Rotation
 ```bash
-# Check current rotation status
-mdata-get sdc:application_metadata.SESSION_SECRET_KEY_ID
-mdata-get sdc:application_metadata.SESSION_SECRET_ROTATION_TIME
-mdata-get sdc:application_metadata.SESSION_SECRET_GRACE_PERIOD
+# Check current rotation status using SAPI API
+SAPI_URL=$(mdata-get SAPI_URL)
+
+# Get current key ID
+curl -sH 'application/json' \
+    "$SAPI_URL/services?name=authcache" | \
+    json -ga "metadata.SESSION_SECRET_KEY_ID"
+
+# Get rotation timestamp
+curl -sH 'application/json' \
+    "$SAPI_URL/services?name=authcache" | \
+    json -ga "metadata.SESSION_SECRET_ROTATION_TIME"
+
+# Get grace period
+curl -sH 'application/json' \
+    "$SAPI_URL/services?name=authcache" | \
+    json -ga "metadata.SESSION_SECRET_GRACE_PERIOD"
+
+# Or use helper function (from boot/setup.sh)
+get_sapi_metadata() {
+    local key="$1"
+    local sapi_url=$(mdata-get SAPI_URL)
+    curl -sH 'application/json' \
+        "$sapi_url/services?name=authcache" | \
+        json -ga "metadata.$key"
+}
+
+# Usage:
+get_sapi_metadata SESSION_SECRET_KEY_ID
+get_sapi_metadata SESSION_SECRET_ROTATION_TIME
 ```
 
 ### Rollback Procedure
 If rotation causes issues, can manually swap secrets:
 ```bash
 # Emergency rollback (swap current and old secrets)
-OLD_SECRET=$(mdata-get sdc:application_metadata.SESSION_SECRET_KEY_OLD)
-CURRENT_SECRET=$(mdata-get sdc:application_metadata.SESSION_SECRET_KEY)
+# Get secrets from SAPI API
+SAPI_URL=$(mdata-get SAPI_URL)
 
-set-sapi-metadata.sh SESSION_SECRET_KEY "$OLD_SECRET"
-set-sapi-metadata.sh SESSION_SECRET_KEY_OLD "$CURRENT_SECRET"
+OLD_SECRET=$(curl -sH 'application/json' \
+    "$SAPI_URL/services?name=authcache" | \
+    json -ga "metadata.SESSION_SECRET_KEY_OLD")
 
-# Signal mahi instances
-pkill -HUP -f "node.*mahi"
+CURRENT_SECRET=$(curl -sH 'application/json' \
+    "$SAPI_URL/services?name=authcache" | \
+    json -ga "metadata.SESSION_SECRET_KEY")
+
+# Swap secrets
+/opt/smartdc/boot/set-sapi-metadata.sh SESSION_SECRET_KEY "$OLD_SECRET"
+/opt/smartdc/boot/set-sapi-metadata.sh SESSION_SECRET_KEY_OLD \
+    "$CURRENT_SECRET"
+
+# Signal mahi instances to reload config
+svcadm refresh mahi-server
 ```
 
-## Testing Strategy
+## Testing
 
-### Unit Tests
-- Token generation with key IDs
-- Multi-secret verification
-- Grace period validation
-- Secret expiration cleanup
+For comprehensive testing strategy including unit tests, integration
+tests, load testing, and operational test scripts, see
+`test/README.md` section "JWT Rotation Testing Strategy".
 
-### Integration Tests  
-- Full rotation workflow
-- Backward compatibility
-- Cross-version token verification
-- Error handling scenarios
+## Deployment Plan
 
-### Load Testing
-- Rotation under load
-- Performance impact measurement
-- Memory usage with multiple secrets
+### Phase 1: Deploy Code with Rotation Support
+- Deploy session-token module (v1.1 tokens only)
+- Configure SAPI metadata with secretKey and gracePeriod
+- Generate initial keyId if not present
+- All new tokens include rotation support from start
 
-## Migration Plan
+### Phase 2: First Rotation
+- Test rotation with dry-run mode first
+- Perform actual rotation using rotate-session-secret.sh
+- Monitor instances during grace period
+- Verify both old and new tokens work
 
-### Phase 1: Deploy Code (Backward Compatible)
-- Deploy enhanced session-token module
-- No configuration changes needed
-- Existing tokens continue working
-
-### Phase 2: Enable Rotation Support
-- Run enhanced setup.sh
-- Adds key IDs to existing secrets
-- Makes rotation script executable
-
-### Phase 3: First Rotation
-- Test with dry-run first
-- Perform actual rotation
-- Monitor for issues
-
-### Phase 4: Automation
-- Set up scheduled rotation
+### Phase 3: Automation
+- Set up scheduled rotation (monthly or as needed)
 - Document operational procedures
-- Train operations team
+- Train operations team on rotation workflow
+- Establish monitoring for rotation events
 
 ## Benefits
 
@@ -464,13 +496,13 @@ pkill -HUP -f "node.*mahi"
 ### Operational Benefits
 - **Zero Downtime**: No service interruption during rotation
 - **Automatic Management**: Minimal manual intervention required
-- **Backward Compatible**: Works with existing deployments
+- **Grace Period Support**: Multiple secrets active during transition
 - **Audit Trail**: Track rotation history
 
 ### Development Benefits
-- **Gradual Migration**: No flag day deployments required
 - **Testing Support**: Dry-run mode for safe testing
 - **Error Recovery**: Rollback procedures available
+- **Rotation Automation**: Scriptable rotation process
 
 ## Future Enhancements
 
@@ -558,16 +590,72 @@ The `/home/build/S3-MANTA/mahi/sapi_manifests/mahi/template` file defines how SA
 #### Configuration Loading:
 
 ```javascript
-// lib/server/server.js - Enhanced with rotation support
+// lib/server/server.js - Rotation-aware secret configuration
 function buildSecretConfig(sessionConfig) {
-    // Handle both legacy and rotation configurations
-    if (sessionConfig.secretKeyId || sessionConfig.oldSecretKey) {
-        // Full rotation configuration
-        return buildRotationConfig(sessionConfig);
-    } else {
-        // Legacy single-secret mode
-        return buildLegacyConfig(sessionConfig);
+    // Get configuration from sessionConfig or environment
+    var primarySecret = sessionConfig ? sessionConfig.secretKey :
+        process.env.SESSION_SECRET_KEY;
+    var primaryKeyId = sessionConfig ? sessionConfig.secretKeyId :
+        process.env.SESSION_SECRET_KEY_ID;
+    var gracePeriod = sessionConfig ? sessionConfig.gracePeriod :
+        process.env.SESSION_SECRET_GRACE_PERIOD;
+
+    // Require primary secret
+    if (!primarySecret) {
+        throw new Error('Missing required session secret key');
     }
+
+    // Require valid grace period for rotation security
+    if (!gracePeriod) {
+        throw new Error('Missing required grace period configuration');
+    }
+
+    var gracePeriodInt = parseInt(gracePeriod, 10);
+    if (isNaN(gracePeriodInt) || gracePeriodInt < 60) {
+        throw new Error('Invalid grace period: must be >= 60 seconds');
+    }
+
+    // Generate key ID if not provided
+    if (!primaryKeyId) {
+        primaryKeyId = sessionToken.generateKeyId();
+    }
+
+    var config = {
+        primarySecret: {
+            key: primarySecret,
+            keyId: primaryKeyId
+        },
+        secrets: {},
+        gracePeriod: gracePeriodInt
+    };
+
+    // Add primary secret to secrets map
+    config.secrets[primaryKeyId] = {
+        key: primarySecret,
+        keyId: primaryKeyId,
+        isPrimary: true,
+        addedAt: Date.now()
+    };
+
+    // Add old secret for rotation grace period if available
+    var oldSecret = sessionConfig ? sessionConfig.oldSecretKey :
+        process.env.SESSION_SECRET_KEY_OLD;
+    var oldKeyId = sessionConfig ? sessionConfig.oldSecretKeyId :
+        process.env.SESSION_SECRET_KEY_OLD_ID;
+    var rotationTime = sessionConfig ? sessionConfig.rotationTime :
+        process.env.SESSION_SECRET_ROTATION_TIME;
+
+    if (oldSecret && oldSecret.trim() !== '' &&
+        oldKeyId && oldKeyId.trim() !== '') {
+        config.secrets[oldKeyId] = {
+            key: oldSecret,
+            keyId: oldKeyId,
+            isPrimary: false,
+            addedAt: rotationTime ?
+                parseInt(rotationTime, 10) * 1000 : Date.now()
+        };
+    }
+    return config;
 }
 ```
 
@@ -644,9 +732,15 @@ This JWT rotation implementation provides a robust, secure, and operationally fr
 The solution integrates deeply with SmartDataCenter's SAPI infrastructure for reliable metadata distribution and automatic configuration management across all service instances.
 
 Key architectural decisions:
-- **SAPI-First Design**: Leverages existing SDC infrastructure for configuration management
-- **Idempotent Operations**: Safe to run rotation scripts on boot without side effects  
-- **Graceful Transitions**: Multi-secret verification during grace periods prevents service disruption
-- **Backward Compatibility**: Supports existing JWT tokens while enabling rotation capabilities
+- **SAPI-First Design**: Leverages existing SDC infrastructure for
+configuration management
+- **Idempotent Operations**: Safe to run rotation scripts on boot
+without side effects
+- **Graceful Transitions**: Multi-secret verification during grace
+periods prevents service disruption
+- **Rotation-First Design**: All tokens include rotation support (v1.1)
+from the start
 
-The solution is fully backward compatible and can be deployed incrementally, making it suitable for production environments where service continuity is critical.
+The solution uses v1.1 tokens with built-in rotation support, ensuring
+secure secret management in production environments where service
+continuity is critical.
