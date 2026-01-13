@@ -3,13 +3,12 @@
 ## Overview
 
 This document describes the JWT secret rotation system implemented for mahi's session token management for S3 STS requests.
-The solution provides zero-downtime secret rotation through a grace period mechanism that allows old and new secrets to coexist temporarily.
+The implementation uses a grace period mechanism that allows old and new secrets to coexist temporarily.
 
 ## What is JWT (JSON Web Token)?
 
-JWT (JSON Web Token) is an open standard (RFC 7519) for securely
-transmitting information between parties as a JSON object. JWTs are
-commonly used for authentication and authorization in distributed systems.
+JWT (JSON Web Token) is an open standard (RFC 7519) for
+transmitting information between parties as a JSON object.
 
 ### JWT Structure
 
@@ -96,64 +95,6 @@ secret key
 6. **Authorization**: If signature is valid and token is not expired,
 server grants access
 
-### Why Mahi Uses JWT for STS Session Tokens
-
-In mahi's implementation for AWS Security Token Service (STS)
-compatibility:
-
-- **Stateless Authentication**: No need to store session data on server
-- **Distributed Systems**: JWT can be verified by any mahi instance
-without shared session storage
-- **AWS Compatibility**: Session tokens behave like AWS temporary
-credentials
-- **Self-Contained**: Token contains all necessary user identity and
-role information
-- **Performance**: Verification is fast (cryptographic signature check)
-- **Caching**: Redis caches user/role data, JWT references these
-through UUIDs
-
-### Security Properties
-
-JWTs provide several security properties when used correctly:
-
-1. **Integrity**: Signature ensures token has not been tampered with
-2. **Authenticity**: Only servers with the secret key can create valid
-tokens
-3. **Non-repudiation**: Signature proves the token came from trusted
-source
-4. **Expiration**: `exp` claim limits token lifetime
-5. **Self-Contained**: No need for session lookup (stateless)
-
-### Security Considerations
-
-However, JWTs also have important security considerations:
-
-1. **Secret Key Security**: If the secret key is compromised, attackers
-can forge tokens
-2. **Token Revocation**: JWTs cannot be revoked before expiration
-without additional infrastructure
-3. **Payload Visibility**: JWT payloads are Base64 encoded, not
-encrypted (readable by anyone)
-4. **Token Theft**: Stolen tokens are valid until expiration
-5. **Secret Rotation**: Changing the secret key invalidates all existing
-tokens immediately
-
-This last point is the core problem that the rotation system addresses.
-
-## Background
-
-### The Problem
-- JWT tokens are signed with HMAC-SHA256 using a secret key
-- When the secret changes, ALL existing tokens become invalid immediately
-- This causes authentication failures for active users
-- Traditional rotation is a breaking change requiring downtime
-
-### The Solution
-- **Key Versioning**: Each secret has a unique ID (`kid` in JWT header)
-- **Multi-Secret Support**: Server can verify tokens with multiple secrets
-- **Grace Period**: Old secrets remain valid for a configurable period
-- **Gradual Migration**: New tokens use new secret, old ones expire naturally
-
 ## Architecture
 
 ### Current Mahi JWT Flow
@@ -191,7 +132,7 @@ support from the start
 
 #### Token Format:
 
-**Important:** Due to limitations in `jsonwebtoken` v1.1.0 (which doesn't support custom headers), the key ID is stored in the JWT **payload** as `keyId`, not in the standard JWT header as `kid`. This is a non-standard approach but works for internal rotation purposes.
+Due to limitations in `jsonwebtoken` v1.1.0 (which doesn't support custom headers), the key ID is stored in the JWT **payload** as `keyId`, not in the standard JWT header as `kid`.
 
 ```javascript
 // JWT Header
@@ -486,23 +427,6 @@ tests, load testing, and operational test scripts, see
 - Train operations team on rotation workflow
 - Establish monitoring for rotation events
 
-## Benefits
-
-### Security Benefits
-- **Regular Key Rotation**: Reduces impact of key compromise
-- **Limited Blast Radius**: Old compromised keys expire automatically
-
-### Operational Benefits
-- **Zero Downtime**: No service interruption during rotation
-- **Automatic Management**: Minimal manual intervention required
-- **Grace Period Support**: Multiple secrets active during transition
-- **Audit Trail**: Track rotation history
-
-### Development Benefits
-- **Testing Support**: Dry-run mode for safe testing
-- **Error Recovery**: Rollback procedures available
-- **Rotation Automation**: Scriptable rotation process
-
 ## SAPI Integration Details
 
 ### SmartDataCenter SAPI Workflow
@@ -683,25 +607,25 @@ Note: The `mahi/boot` directory is copied to `/opt/smartdc/boot` during deployme
 
 Both templates now include all rotation variables for consistent behavior across service types.
 
-## Lessons Learned
+## Implementation Notes
 
-### SAPI Workflow Understanding:
+### SAPI Workflow:
 
 1. **Namespace Restrictions**: The `sdc:` namespace in zone metadata is read-only
-2. **Proper API Usage**: Must use SAPI REST API, not direct metadata manipulation
-3. **Service Discovery**: Use zone tags to find correct service for metadata updates
-4. **Config-Agent Integration**: Automatic template processing and configuration updates
+2. **API Usage**: Uses SAPI REST API, not direct metadata manipulation
+3. **Service Discovery**: Uses zone tags to find service for metadata updates
+4. **Config-Agent Integration**: Template processing and configuration updates
 
-### Boot Script Safety:
+### Boot Script Behavior:
 
-1. **Idempotent Design**: Scripts must be safe to run on every boot
-2. **State Checking**: Always check existing configuration before making changes
-3. **Graceful Degradation**: Handle missing dependencies in development environments
+1. **Idempotent Design**: Scripts run on every boot
+2. **State Checking**: Checks existing configuration before making changes
+3. **Development Environment**: Handles missing dependencies
 
-### Multi-Instance Challenges:
+### Multi-Instance Coordination:
 
-1. **Coordination**: All instances must transition together
-2. **Timing**: Grace periods must account for config propagation delays
+1. **Coordination**: All instances transition together
+2. **Timing**: Grace periods account for config propagation delays
 3. **Consistency**: SAPI provides single source of truth for configuration
 
 ### Path Management:
@@ -710,22 +634,12 @@ Both templates now include all rotation variables for consistent behavior across
 2. **Service Paths**: Configuration files in `/opt/smartdc/mahi/etc/`
 3. **Template Processing**: SAPI manifest templates define final configuration structure
 
-## Conclusion
+## Summary
 
-This JWT rotation implementation provides a robust, secure, and operationally friendly solution for managing JWT secrets in production. The grace period mechanism ensures zero-downtime rotations while maintaining strong security posture through regular key rotation.
-
-The solution integrates deeply with SmartDataCenter's SAPI infrastructure for reliable metadata distribution and automatic configuration management across all service instances.
-
-Key architectural decisions:
-- **SAPI-First Design**: Leverages existing SDC infrastructure for
-configuration management
-- **Idempotent Operations**: Safe to run rotation scripts on boot
-without side effects
-- **Graceful Transitions**: Multi-secret verification during grace
-periods prevents service disruption
-- **Rotation-First Design**: All tokens include rotation support (v1.1)
-from the start
-
-The solution uses v1.1 tokens with built-in rotation support, ensuring
-secure secret management in production environments where service
-continuity is critical.
+This implementation:
+- Uses v1.1 tokens with rotation support
+- Stores key ID in JWT payload (not header due to jsonwebtoken v1.1.0 limitations)
+- Supports multiple secrets during grace period
+- Integrates with SmartDataCenter SAPI for metadata distribution
+- Runs rotation scripts from `/opt/smartdc/boot`
+- Updates configuration via SAPI API and config-agent
