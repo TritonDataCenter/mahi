@@ -216,7 +216,7 @@ support from the start
 }
 ```
 
-**Limitation:** External JWT libraries expecting `kid` in the header won't find it. To support standard `kid` header claim, would need to upgrade `jsonwebtoken` to a newer version or use a different JWT library.
+**Limitation:** External JWT libraries expecting `kid` in the header won't find it. The implementation uses `jsonwebtoken` v1.1.0 which doesn't support custom headers.
 
 #### New Functions:
 - `generateKeyId()`: Creates versioned key IDs
@@ -491,7 +491,6 @@ tests, load testing, and operational test scripts, see
 ### Security Benefits
 - **Regular Key Rotation**: Reduces impact of key compromise
 - **Limited Blast Radius**: Old compromised keys expire automatically
-- **Crypto Agility**: Easy to change algorithms/key sizes in future
 
 ### Operational Benefits
 - **Zero Downtime**: No service interruption during rotation
@@ -503,20 +502,6 @@ tests, load testing, and operational test scripts, see
 - **Testing Support**: Dry-run mode for safe testing
 - **Error Recovery**: Rollback procedures available
 - **Rotation Automation**: Scriptable rotation process
-
-## Future Enhancements
-
-### Possible Improvements
-1. **Key Escrow**: Store encrypted copies of keys for disaster recovery
-2. **HSM Integration**: Use Hardware Security Modules for key storage
-3. **Automatic Detection**: Monitor for compromised keys
-4. **Policy-Based Rotation**: Different rotation schedules per environment
-5. **Metrics**: Detailed rotation metrics and alerting
-
-### Algorithm Evolution
-- **Modern Algorithms**: Easy migration to Ed25519 or other modern algorithms
-- **Key Size Changes**: Support for larger key sizes
-- **Multiple Algorithms**: Support different algorithms simultaneously
 
 ## SAPI Integration Details
 
