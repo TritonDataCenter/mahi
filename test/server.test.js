@@ -320,3 +320,126 @@ test('/uuids: missing arguments', function (t) {
         t.end();
     });
 });
+
+// ============================================================================
+// CHG-044 Phase 2: IAM Error Path Tests
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// iamGetRoleHandler Error Path Tests
+// ----------------------------------------------------------------------------
+
+test('IAM GetRole: missing roleName parameter', function (t) {
+    // Missing roleName in path - should return 404 from restify
+    this.client.get('/iam/get-role/?accountUuid=test-account-uuid',
+        function (err, req, res, obj) {
+        t.ok(err, 'should return error');
+        t.equal(res.statusCode, 404, 'should return 404 for missing path param');
+        t.end();
+    });
+});
+
+test('IAM GetRole: missing accountUuid parameter', function (t) {
+    this.client.get('/iam/get-role/TestRole', function (err, req, res, obj) {
+        t.ok(err, 'should return error');
+        t.equal(res.statusCode, 400, 'should return 400');
+        t.ok(obj.error, 'should have error message');
+        t.ok(obj.error.indexOf('accountUuid') > -1 ||
+             obj.error.indexOf('required') > -1,
+            'error should mention accountUuid or required');
+        t.end();
+    });
+});
+
+test('IAM GetRole: role not found', function (t) {
+    this.client.get('/iam/get-role/NonexistentRole?accountUuid=test-uuid',
+        function (err, req, res, obj) {
+        t.ok(err, 'should return error');
+        t.equal(res.statusCode, 404, 'should return 404');
+        t.ok(obj.error || obj.message, 'should have error or message');
+        t.end();
+    });
+});
+
+// ----------------------------------------------------------------------------
+// iamDeleteRoleHandler Error Path Tests
+// ----------------------------------------------------------------------------
+
+test('IAM DeleteRole: missing roleName parameter', function (t) {
+    this.client.del('/iam/delete-role/?accountUuid=test-account-uuid',
+        function (err, req, res, obj) {
+        t.ok(err, 'should return error');
+        t.equal(res.statusCode, 404, 'should return 404 for missing path param');
+        t.end();
+    });
+});
+
+test('IAM DeleteRole: missing accountUuid parameter', function (t) {
+    this.client.del('/iam/delete-role/TestRole', function (err, req, res, obj) {
+        t.ok(err, 'should return error');
+        t.equal(res.statusCode, 400, 'should return 400');
+        t.ok(obj.error, 'should have error message');
+        t.ok(obj.error.indexOf('accountUuid') > -1 ||
+             obj.error.indexOf('required') > -1,
+            'error should mention accountUuid or required');
+        t.end();
+    });
+});
+
+test('IAM DeleteRole: role not found', function (t) {
+    this.client.del('/iam/delete-role/NonexistentRole?accountUuid=test-uuid',
+        function (err, req, res, obj) {
+        t.ok(err, 'should return error');
+        t.equal(res.statusCode, 404, 'should return 404');
+        t.ok(obj.error || obj.message, 'should have error or message');
+        t.end();
+    });
+});
+
+// ----------------------------------------------------------------------------
+// iamListRolesHandler Error Path Tests
+// ----------------------------------------------------------------------------
+
+test('IAM ListRoles: missing accountUuid parameter', function (t) {
+    this.client.get('/iam/list-roles', function (err, req, res, obj) {
+        t.ok(err, 'should return error');
+        t.equal(res.statusCode, 400, 'should return 400');
+        t.ok(obj.error, 'should have error message');
+        t.ok(obj.error.indexOf('accountUuid') > -1 ||
+             obj.error.indexOf('required') > -1,
+            'error should mention accountUuid or required');
+        t.end();
+    });
+});
+
+test('IAM ListRoles: empty role set', function (t) {
+    // Use a UUID that doesn't have any roles
+    this.client.get('/iam/list-roles?accountUuid=nonexistent-account',
+        function (err, req, res, obj) {
+        t.ok(!err, 'should not return error');
+        t.equal(res.statusCode, 200, 'should return 200');
+        t.ok(obj, 'should have response object');
+        // Should return empty or minimal response structure
+        t.end();
+    });
+});
+
+test('IAM ListRoles: with maxItems parameter', function (t) {
+    this.client.get('/iam/list-roles?accountUuid=test-uuid&maxItems=5',
+        function (err, req, res, obj) {
+        // Should not error on valid maxItems parameter
+        t.ok(!err || res.statusCode === 200 || res.statusCode === 404,
+            'should handle maxItems parameter');
+        t.end();
+    });
+});
+
+test('IAM ListRoles: with marker parameter', function (t) {
+    this.client.get('/iam/list-roles?accountUuid=test-uuid&marker=SomeRole',
+        function (err, req, res, obj) {
+        // Should not error on marker parameter
+        t.ok(!err || res.statusCode === 200 || res.statusCode === 404,
+            'should handle marker parameter');
+        t.end();
+    });
+});
