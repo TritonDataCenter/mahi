@@ -337,7 +337,8 @@ test('IAM GetRole: missing roleName parameter', function (t) {
     this.client.get('/iam/get-role/?accountUuid=test-account-uuid',
         function (err, req, res, obj) {
         t.ok(err, 'should return error');
-        t.equal(res.statusCode, 404, 'should return 404 for missing path param');
+        t.equal(res.statusCode, 404,
+            'should return 404 for missing path param');
         t.end();
     });
 });
@@ -375,7 +376,8 @@ test('IAM DeleteRole: missing roleName parameter', function (t) {
     this.client.del('/iam/delete-role/?accountUuid=test-account-uuid',
         function (err, req, res, obj) {
         t.ok(err, 'should return error');
-        t.equal(res.statusCode, 404, 'should return 404 for missing path param');
+        t.equal(res.statusCode, 404,
+            'should return 404 for missing path param');
         t.end();
     });
 });
@@ -426,7 +428,8 @@ test('IAM ListRoles: empty role set', function (t) {
     this.client.get('/iam/list-roles?accountUuid=nonexistent-account',
         function (err, req, res, obj) {
         t.ok(err, 'should return error');
-        // Without UFDS, returns 500. With UFDS, would return 200 with empty list.
+        // Without UFDS, returns 500. With UFDS, would return 200 with
+        // empty list.
         t.equal(res.statusCode, 500, 'should return 500 (UFDS not available)');
         t.ok(obj.error, 'should have error message');
         t.equal(obj.error, 'UFDS not available',

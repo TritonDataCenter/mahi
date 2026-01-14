@@ -749,10 +749,11 @@ test('principal validation: root principal format', function (t) {
 // CHG-044 Phase 3: Trust Policy Edge Case Tests
 //
 
-test('trust policy edge: multiple AWS accounts in principal array', function (t) {
+test('trust policy edge: multiple AWS accounts in principal array',
+    function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {
                 'AWS': [
@@ -770,16 +771,19 @@ test('trust policy edge: multiple AWS accounts in principal array', function (t)
                                     MOCK_CALLERS.otherAccountUser, LOG);
 
     t.ok(user1, 'user from first account should be allowed');
-    // Note: Current implementation limitation - only validates against first
-    // account in array. Full multi-account support should be added in future.
-    t.ok(!user2, 'user from second account NOT currently matched (known limitation)');
+    // Note: Current implementation limitation - only validates against
+    // first account in array. Full multi-account support should be added
+    // in future.
+    t.ok(!user2,
+        'user from second account NOT currently matched (known limitation)');
     t.end();
 });
 
-test('trust policy edge: mixed principal types in statement', function (t) {
+test('trust policy edge: mixed principal types in statement',
+    function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {
                 'AWS': 'arn:aws:iam::123456789012:root',
@@ -797,29 +801,31 @@ test('trust policy edge: mixed principal types in statement', function (t) {
 test('trust policy edge: action prefix matching', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {'AWS': '*'},
             'Action': 'sts:*'
-        }]
+        } ]
     });
 
     // This tests if wildcard action matching works correctly
     var result = validateTrustPolicy(trustPolicy, MOCK_CALLERS.testUser, LOG);
-    // Note: Current implementation limitation - prefix wildcards like 'sts:*'
-    // are not supported. Only exact match or full wildcard '*' work.
-    t.ok(!result, 'action prefix sts:* does NOT currently match (known limitation)');
+    // Note: Current implementation limitation - prefix wildcards like
+    // 'sts:*' are not supported. Only exact match or full wildcard '*' work.
+    t.ok(!result,
+        'action prefix sts:* does NOT currently match (known limitation)');
     t.end();
 });
 
 test('trust policy edge: multiple actions in array', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {'AWS': '*'},
-            'Action': ['sts:AssumeRole', 'sts:GetSessionToken', 'sts:GetCallerIdentity']
-        }]
+            'Action': ['sts:AssumeRole', 'sts:GetSessionToken',
+                'sts:GetCallerIdentity']
+        } ]
     });
 
     var result = validateTrustPolicy(trustPolicy, MOCK_CALLERS.testUser, LOG);
@@ -830,7 +836,7 @@ test('trust policy edge: multiple actions in array', function (t) {
 test('trust policy edge: action case sensitivity', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {'AWS': '*'},
             'Action': 'STS:AssumeRole'  // Different case
@@ -846,7 +852,7 @@ test('trust policy edge: action case sensitivity', function (t) {
 test('trust policy edge: missing Principal field', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Action': 'sts:AssumeRole'
             // Missing Principal field
@@ -861,7 +867,7 @@ test('trust policy edge: missing Principal field', function (t) {
 test('trust policy edge: null Principal', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': null,
             'Action': 'sts:AssumeRole'
@@ -876,7 +882,7 @@ test('trust policy edge: null Principal', function (t) {
 test('trust policy edge: empty Principal object', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {},
             'Action': 'sts:AssumeRole'
@@ -888,7 +894,8 @@ test('trust policy edge: empty Principal object', function (t) {
     t.end();
 });
 
-test('trust policy edge: multiple Allow statements same principal', function (t) {
+test('trust policy edge: multiple Allow statements same principal',
+    function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
         'Statement': [
@@ -928,14 +935,15 @@ test('trust policy edge: Allow + Deny for different actions', function (t) {
     });
 
     var result = validateTrustPolicy(trustPolicy, MOCK_CALLERS.testUser, LOG);
-    t.ok(result, 'Allow for AssumeRole should work when Deny is for different action');
+    t.ok(result,
+        'Allow for AssumeRole should work when Deny is for different action');
     t.end();
 });
 
 test('trust policy edge: empty Action string', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {'AWS': '*'},
             'Action': ''
@@ -961,7 +969,7 @@ test('trust policy edge: empty Statement array', function (t) {
 test('trust policy edge: statement with missing Effect', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Principal': {'AWS': '*'},
             'Action': 'sts:AssumeRole'
             // Missing Effect field
@@ -977,7 +985,7 @@ test('trust policy edge: statement with missing Effect', function (t) {
 test('trust policy edge: statement with missing Action', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {'AWS': '*'}
             // Missing Action field
@@ -992,7 +1000,7 @@ test('trust policy edge: statement with missing Action', function (t) {
 test('trust policy edge: Principal with empty AWS array', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {'AWS': []},
             'Action': 'sts:AssumeRole'
@@ -1007,14 +1015,16 @@ test('trust policy edge: Principal with empty AWS array', function (t) {
 test('trust policy edge: very long principal list', function (t) {
     var principals = [];
     for (var i = 0; i < 100; i++) {
-        principals.push('arn:aws:iam::' + i.toString().padStart(12, '0') + ':root');
+        var padded = '000000000000' + i.toString();
+        padded = padded.substr(padded.length - 12);
+        principals.push('arn:aws:iam::' + padded + ':root');
     }
     // Add our test account
     principals.push('arn:aws:iam::123456789012:root');
 
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {'AWS': principals},
             'Action': 'sts:AssumeRole'
@@ -1030,9 +1040,11 @@ test('trust policy edge: very long statement list', function (t) {
     var statements = [];
     // Create many statements with different accounts
     for (var i = 0; i < 50; i++) {
+        var padded = '000000000000' + i.toString();
+        padded = padded.substr(padded.length - 12);
         statements.push({
             'Effect': 'Allow',
-            'Principal': {'AWS': 'arn:aws:iam::' + i.toString().padStart(12, '0') + ':root'},
+            'Principal': {'AWS': 'arn:aws:iam::' + padded + ':root'},
             'Action': 'sts:AssumeRole'
         });
     }

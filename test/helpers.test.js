@@ -28,14 +28,14 @@ var stsHelpers = require('../lib/server/sts.js').helpers;
 // buildDefaultTrustPolicy() tests
 // ----------------------------------------------------------------------------
 
-test('buildDefaultTrustPolicy returns valid JSON string', function(t) {
+test('buildDefaultTrustPolicy returns valid JSON string', function (t) {
     var result = serverHelpers.buildDefaultTrustPolicy();
     t.ok(result, 'should return a value');
-    t.equal(typeof result, 'string', 'should return a string');
+    t.equal(typeof (result), 'string', 'should return a string');
 
     // Should be valid JSON
     var parsed;
-    t.doesNotThrow(function() {
+    t.doesNotThrow(function () {
         parsed = JSON.parse(result);
     }, 'should be valid JSON');
 
@@ -43,7 +43,7 @@ test('buildDefaultTrustPolicy returns valid JSON string', function(t) {
     t.done();
 });
 
-test('buildDefaultTrustPolicy has correct Version field', function(t) {
+test('buildDefaultTrustPolicy has correct Version field', function (t) {
     var result = serverHelpers.buildDefaultTrustPolicy();
     var parsed = JSON.parse(result);
 
@@ -51,7 +51,7 @@ test('buildDefaultTrustPolicy has correct Version field', function(t) {
     t.done();
 });
 
-test('buildDefaultTrustPolicy has Statement array', function(t) {
+test('buildDefaultTrustPolicy has Statement array', function (t) {
     var result = serverHelpers.buildDefaultTrustPolicy();
     var parsed = JSON.parse(result);
 
@@ -60,7 +60,7 @@ test('buildDefaultTrustPolicy has Statement array', function(t) {
     t.done();
 });
 
-test('buildDefaultTrustPolicy allows sts:AssumeRole', function(t) {
+test('buildDefaultTrustPolicy allows sts:AssumeRole', function (t) {
     var result = serverHelpers.buildDefaultTrustPolicy();
     var parsed = JSON.parse(result);
     var statement = parsed.Statement[0];
@@ -70,7 +70,7 @@ test('buildDefaultTrustPolicy allows sts:AssumeRole', function(t) {
     t.done();
 });
 
-test('buildDefaultTrustPolicy has wildcard AWS principal', function(t) {
+test('buildDefaultTrustPolicy has wildcard AWS principal', function (t) {
     var result = serverHelpers.buildDefaultTrustPolicy();
     var parsed = JSON.parse(result);
     var statement = parsed.Statement[0];
@@ -85,7 +85,7 @@ test('buildDefaultTrustPolicy has wildcard AWS principal', function(t) {
 // buildGetRoleResponse(params) tests
 // ----------------------------------------------------------------------------
 
-test('buildGetRoleResponse with complete role object', function(t) {
+test('buildGetRoleResponse with complete role object', function (t) {
     var params = {
         role: {
             name: 'TestRole',
@@ -104,7 +104,8 @@ test('buildGetRoleResponse with complete role object', function(t) {
     t.equal(result.Role.RoleName, 'TestRole', 'should have role name');
     t.equal(result.Role.RoleId, 'role-uuid-123', 'should have role id');
     t.equal(result.Role.Path, '/admin/', 'should have path');
-    t.equal(result.Role.CreateDate, '2024-01-13T10:00:00Z', 'should have create date');
+    t.equal(result.Role.CreateDate, '2024-01-13T10:00:00Z',
+        'should have create date');
     t.equal(result.Role.AssumeRolePolicyDocument, '{"Version":"2012-10-17"}',
         'should have trust policy');
     t.equal(result.Role.Description, 'Test role description',
@@ -112,7 +113,7 @@ test('buildGetRoleResponse with complete role object', function(t) {
     t.done();
 });
 
-test('buildGetRoleResponse with minimal role object', function(t) {
+test('buildGetRoleResponse with minimal role object', function (t) {
     var params = {
         role: {
             name: 'MinimalRole',
@@ -128,7 +129,7 @@ test('buildGetRoleResponse with minimal role object', function(t) {
     t.done();
 });
 
-test('buildGetRoleResponse defaults path to /', function(t) {
+test('buildGetRoleResponse defaults path to /', function (t) {
     var params = {
         role: {
             name: 'TestRole',
@@ -143,7 +144,7 @@ test('buildGetRoleResponse defaults path to /', function(t) {
     t.done();
 });
 
-test('buildGetRoleResponse defaults CreateDate to current date', function(t) {
+test('buildGetRoleResponse defaults CreateDate to current date', function (t) {
     var params = {
         role: {
             name: 'TestRole',
@@ -161,7 +162,8 @@ test('buildGetRoleResponse defaults CreateDate to current date', function(t) {
     t.done();
 });
 
-test('buildGetRoleResponse uses default trust policy when missing', function(t) {
+test('buildGetRoleResponse uses default trust policy when missing',
+    function (t) {
     var params = {
         role: {
             name: 'TestRole',
@@ -178,7 +180,7 @@ test('buildGetRoleResponse uses default trust policy when missing', function(t) 
     t.done();
 });
 
-test('buildGetRoleResponse constructs correct ARN', function(t) {
+test('buildGetRoleResponse constructs correct ARN', function (t) {
     var params = {
         role: {
             name: 'TestRole',
@@ -195,7 +197,7 @@ test('buildGetRoleResponse constructs correct ARN', function(t) {
     t.done();
 });
 
-test('buildGetRoleResponse has MaxSessionDuration', function(t) {
+test('buildGetRoleResponse has MaxSessionDuration', function (t) {
     var params = {
         role: {
             name: 'TestRole',
@@ -215,7 +217,7 @@ test('buildGetRoleResponse has MaxSessionDuration', function(t) {
 // buildRoleDn(roleUuid, accountUuid) tests
 // ----------------------------------------------------------------------------
 
-test('buildRoleDn constructs correct DN format', function(t) {
+test('buildRoleDn constructs correct DN format', function (t) {
     var result = serverHelpers.buildRoleDn('role-123', 'account-456');
     var expected = 'role-uuid=role-123, uuid=account-456, ou=users, o=smartdc';
 
@@ -223,11 +225,10 @@ test('buildRoleDn constructs correct DN format', function(t) {
     t.done();
 });
 
-test('buildRoleDn with various UUID formats', function(t) {
+test('buildRoleDn with various UUID formats', function (t) {
     var result = serverHelpers.buildRoleDn(
         'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        'f0e9d8c7-b6a5-4321-fedc-ba9876543210'
-    );
+        'f0e9d8c7-b6a5-4321-fedc-ba9876543210');
 
     var expected = 'role-uuid=a1b2c3d4-e5f6-7890-abcd-ef1234567890, ' +
         'uuid=f0e9d8c7-b6a5-4321-fedc-ba9876543210, ou=users, o=smartdc';
@@ -236,7 +237,7 @@ test('buildRoleDn with various UUID formats', function(t) {
     t.done();
 });
 
-test('buildRoleDn has correct LDAP DN components', function(t) {
+test('buildRoleDn has correct LDAP DN components', function (t) {
     var result = serverHelpers.buildRoleDn('role-123', 'account-456');
 
     t.ok(result.indexOf('role-uuid=') === 0, 'should start with role-uuid=');
@@ -250,7 +251,7 @@ test('buildRoleDn has correct LDAP DN components', function(t) {
 // buildListRolesRoleObject(params) tests
 // ----------------------------------------------------------------------------
 
-test('buildListRolesRoleObject with complete role', function(t) {
+test('buildListRolesRoleObject with complete role', function (t) {
     var params = {
         roleObj: {
             name: 'ListRole',
@@ -267,12 +268,13 @@ test('buildListRolesRoleObject with complete role', function(t) {
 
     t.equal(result.RoleName, 'ListRole', 'should have role name');
     t.equal(result.Path, '/test/', 'should have path');
-    t.equal(result.CreateDate, '2024-01-13T10:00:00Z', 'should have create date');
+    t.equal(result.CreateDate, '2024-01-13T10:00:00Z',
+        'should have create date');
     t.equal(result.Description, 'Test list role', 'should have description');
     t.done();
 });
 
-test('buildListRolesRoleObject defaults path to /', function(t) {
+test('buildListRolesRoleObject defaults path to /', function (t) {
     var params = {
         roleObj: {
             name: 'ListRole'
@@ -286,7 +288,7 @@ test('buildListRolesRoleObject defaults path to /', function(t) {
     t.done();
 });
 
-test('buildListRolesRoleObject uses default trust policy', function(t) {
+test('buildListRolesRoleObject uses default trust policy', function (t) {
     var params = {
         roleObj: {
             name: 'ListRole'
@@ -302,7 +304,7 @@ test('buildListRolesRoleObject uses default trust policy', function(t) {
     t.done();
 });
 
-test('buildListRolesRoleObject constructs correct ARN', function(t) {
+test('buildListRolesRoleObject constructs correct ARN', function (t) {
     var params = {
         roleObj: {
             name: 'ListRole',
@@ -318,7 +320,7 @@ test('buildListRolesRoleObject constructs correct ARN', function(t) {
     t.done();
 });
 
-test('buildListRolesRoleObject has all required fields', function(t) {
+test('buildListRolesRoleObject has all required fields', function (t) {
     var params = {
         roleObj: {
             name: 'ListRole'
@@ -332,12 +334,13 @@ test('buildListRolesRoleObject has all required fields', function(t) {
     t.ok(result.Arn, 'should have Arn');
     t.ok(result.Path, 'should have Path');
     t.ok(result.CreateDate, 'should have CreateDate');
-    t.ok(result.AssumeRolePolicyDocument, 'should have AssumeRolePolicyDocument');
+    t.ok(result.AssumeRolePolicyDocument,
+        'should have AssumeRolePolicyDocument');
     t.equal(result.MaxSessionDuration, 3600, 'should have MaxSessionDuration');
     t.done();
 });
 
-test('buildListRolesRoleObject defaults empty description', function(t) {
+test('buildListRolesRoleObject defaults empty description', function (t) {
     var params = {
         roleObj: {
             name: 'ListRole'
@@ -355,7 +358,7 @@ test('buildListRolesRoleObject defaults empty description', function(t) {
 // applyPagination(roles, marker, maxItems) tests
 // ----------------------------------------------------------------------------
 
-test('applyPagination with no marker returns first page', function(t) {
+test('applyPagination with no marker returns first page', function (t) {
     var roles = [
         {RoleName: 'Role1'},
         {RoleName: 'Role2'},
@@ -367,12 +370,14 @@ test('applyPagination with no marker returns first page', function(t) {
     var result = serverHelpers.applyPagination(roles, null, 2);
 
     t.equal(result.paginatedRoles.length, 2, 'should return 2 roles');
-    t.equal(result.paginatedRoles[0].RoleName, 'Role1', 'should start with first');
-    t.equal(result.paginatedRoles[1].RoleName, 'Role2', 'should include second');
+    t.equal(result.paginatedRoles[0].RoleName, 'Role1',
+        'should start with first');
+    t.equal(result.paginatedRoles[1].RoleName, 'Role2',
+        'should include second');
     t.done();
 });
 
-test('applyPagination with marker returns middle page', function(t) {
+test('applyPagination with marker returns middle page', function (t) {
     var roles = [
         {RoleName: 'Role1'},
         {RoleName: 'Role2'},
@@ -390,7 +395,7 @@ test('applyPagination with marker returns middle page', function(t) {
     t.done();
 });
 
-test('applyPagination with marker at end', function(t) {
+test('applyPagination with marker at end', function (t) {
     var roles = [
         {RoleName: 'Role1'},
         {RoleName: 'Role2'},
@@ -404,7 +409,7 @@ test('applyPagination with marker at end', function(t) {
     t.done();
 });
 
-test('applyPagination with nonexistent marker', function(t) {
+test('applyPagination with nonexistent marker', function (t) {
     var roles = [
         {RoleName: 'Role1'},
         {RoleName: 'Role2'},
@@ -419,7 +424,7 @@ test('applyPagination with nonexistent marker', function(t) {
     t.done();
 });
 
-test('applyPagination isTruncated true when more results exist', function(t) {
+test('applyPagination isTruncated true when more results exist', function (t) {
     var roles = [
         {RoleName: 'Role1'},
         {RoleName: 'Role2'},
@@ -433,7 +438,7 @@ test('applyPagination isTruncated true when more results exist', function(t) {
     t.done();
 });
 
-test('applyPagination isTruncated false on last page', function(t) {
+test('applyPagination isTruncated false on last page', function (t) {
     var roles = [
         {RoleName: 'Role1'},
         {RoleName: 'Role2'},
@@ -446,7 +451,7 @@ test('applyPagination isTruncated false on last page', function(t) {
     t.done();
 });
 
-test('applyPagination nextMarker set when truncated', function(t) {
+test('applyPagination nextMarker set when truncated', function (t) {
     var roles = [
         {RoleName: 'Role1'},
         {RoleName: 'Role2'},
@@ -456,11 +461,12 @@ test('applyPagination nextMarker set when truncated', function(t) {
 
     var result = serverHelpers.applyPagination(roles, null, 2);
 
-    t.equal(result.nextMarker, 'Role2', 'should set nextMarker to last returned');
+    t.equal(result.nextMarker, 'Role2',
+        'should set nextMarker to last returned');
     t.done();
 });
 
-test('applyPagination with empty roles array', function(t) {
+test('applyPagination with empty roles array', function (t) {
     var roles = [];
 
     var result = serverHelpers.applyPagination(roles, null, 10);
@@ -471,7 +477,7 @@ test('applyPagination with empty roles array', function(t) {
     t.done();
 });
 
-test('applyPagination with maxItems = 0', function(t) {
+test('applyPagination with maxItems = 0', function (t) {
     var roles = [
         {RoleName: 'Role1'},
         {RoleName: 'Role2'}
@@ -484,7 +490,7 @@ test('applyPagination with maxItems = 0', function(t) {
     t.done();
 });
 
-test('applyPagination with maxItems greater than roles length', function(t) {
+test('applyPagination with maxItems greater than roles length', function (t) {
     var roles = [
         {RoleName: 'Role1'},
         {RoleName: 'Role2'}
@@ -505,7 +511,7 @@ test('applyPagination with maxItems greater than roles length', function(t) {
 // extractCallerIdentity(caller) tests
 // ----------------------------------------------------------------------------
 
-test('extractCallerIdentity with user object present', function(t) {
+test('extractCallerIdentity with user object present', function (t) {
     var caller = {
         user: {
             uuid: 'user-uuid-123',
@@ -523,7 +529,7 @@ test('extractCallerIdentity with user object present', function(t) {
     t.done();
 });
 
-test('extractCallerIdentity with only account object', function(t) {
+test('extractCallerIdentity with only account object', function (t) {
     var caller = {
         account: {
             uuid: 'account-uuid-456',
@@ -538,7 +544,7 @@ test('extractCallerIdentity with only account object', function(t) {
     t.done();
 });
 
-test('extractCallerIdentity extracts UUID correctly', function(t) {
+test('extractCallerIdentity extracts UUID correctly', function (t) {
     var caller = {
         user: {
             uuid: 'specific-uuid-789',
@@ -552,7 +558,7 @@ test('extractCallerIdentity extracts UUID correctly', function(t) {
     t.done();
 });
 
-test('extractCallerIdentity extracts login correctly', function(t) {
+test('extractCallerIdentity extracts login correctly', function (t) {
     var caller = {
         user: {
             uuid: 'uuid-123',
@@ -570,7 +576,7 @@ test('extractCallerIdentity extracts login correctly', function(t) {
 // validateDurationSeconds(params, body) tests
 // ----------------------------------------------------------------------------
 
-test('validateDurationSeconds with valid duration', function(t) {
+test('validateDurationSeconds with valid duration', function (t) {
     var params = {DurationSeconds: '3600'};
     var body = {};
 
@@ -583,7 +589,7 @@ test('validateDurationSeconds with valid duration', function(t) {
     t.done();
 });
 
-test('validateDurationSeconds with minimum valid duration', function(t) {
+test('validateDurationSeconds with minimum valid duration', function (t) {
     var params = {DurationSeconds: '900'};
     var body = {};
 
@@ -594,7 +600,7 @@ test('validateDurationSeconds with minimum valid duration', function(t) {
     t.done();
 });
 
-test('validateDurationSeconds with maximum valid duration', function(t) {
+test('validateDurationSeconds with maximum valid duration', function (t) {
     var params = {DurationSeconds: '129600'};
     var body = {};
 
@@ -605,7 +611,7 @@ test('validateDurationSeconds with maximum valid duration', function(t) {
     t.done();
 });
 
-test('validateDurationSeconds below minimum returns error', function(t) {
+test('validateDurationSeconds below minimum returns error', function (t) {
     var params = {DurationSeconds: '899'};
     var body = {};
 
@@ -620,7 +626,7 @@ test('validateDurationSeconds below minimum returns error', function(t) {
     t.done();
 });
 
-test('validateDurationSeconds above maximum returns error', function(t) {
+test('validateDurationSeconds above maximum returns error', function (t) {
     var params = {DurationSeconds: '129601'};
     var body = {};
 
@@ -634,7 +640,7 @@ test('validateDurationSeconds above maximum returns error', function(t) {
     t.done();
 });
 
-test('validateDurationSeconds uses default when not provided', function(t) {
+test('validateDurationSeconds uses default when not provided', function (t) {
     var params = {};
     var body = {};
 
@@ -645,7 +651,7 @@ test('validateDurationSeconds uses default when not provided', function(t) {
     t.done();
 });
 
-test('validateDurationSeconds parses from params', function(t) {
+test('validateDurationSeconds parses from params', function (t) {
     var params = {DurationSeconds: '7200'};
     var body = {};
 
@@ -656,7 +662,7 @@ test('validateDurationSeconds parses from params', function(t) {
     t.done();
 });
 
-test('validateDurationSeconds parses from body', function(t) {
+test('validateDurationSeconds parses from body', function (t) {
     var params = {};
     var body = {DurationSeconds: '7200'};
 
@@ -667,15 +673,16 @@ test('validateDurationSeconds parses from body', function(t) {
     t.done();
 });
 
-test('validateDurationSeconds with invalid string uses default', function(t) {
+test('validateDurationSeconds with invalid string uses default', function (t) {
     var params = {DurationSeconds: 'invalid'};
     var body = {};
 
     var result = stsHelpers.validateDurationSeconds(params, body);
 
     // parseInt('invalid', 10) returns NaN
-    // NaN compared to numbers is always false, so doesn't trigger validation error
-    // The function returns NaN as the value, which passes validation
+    // NaN compared to numbers is always false, so doesn't trigger
+    // validation error. The function returns NaN as the value, which
+    // passes validation
     t.equal(result.valid, true, 'should pass validation (NaN behavior)');
     t.ok(isNaN(result.value), 'value should be NaN');
     t.done();
@@ -685,7 +692,7 @@ test('validateDurationSeconds with invalid string uses default', function(t) {
 // createSessionTokenData(callerUuid, expiration) tests
 // ----------------------------------------------------------------------------
 
-test('createSessionTokenData creates correct structure', function(t) {
+test('createSessionTokenData creates correct structure', function (t) {
     var callerUuid = 'caller-uuid-123';
     var expiration = new Date('2024-01-13T12:00:00Z'); // Date object
 
@@ -699,7 +706,7 @@ test('createSessionTokenData creates correct structure', function(t) {
     t.done();
 });
 
-test('createSessionTokenData sets uuid correctly', function(t) {
+test('createSessionTokenData sets uuid correctly', function (t) {
     var callerUuid = 'specific-uuid-789';
     var expiration = new Date('2024-01-13T12:00:00Z');
 
@@ -709,13 +716,13 @@ test('createSessionTokenData sets uuid correctly', function(t) {
     t.done();
 });
 
-test('createSessionTokenData sets expiration as Unix timestamp', function(t) {
+test('createSessionTokenData sets expiration as Unix timestamp', function (t) {
     var callerUuid = 'caller-uuid-123';
     var expiration = new Date('2024-01-13T12:00:00Z');
 
     var result = stsHelpers.createSessionTokenData(callerUuid, expiration);
 
-    t.equal(typeof result.expires, 'number', 'expires should be a number');
+    t.equal(typeof (result.expires), 'number', 'expires should be a number');
     // Should be Unix timestamp in seconds
     t.ok(result.expires > 0, 'should be positive timestamp');
     t.equal(result.expires, Math.floor(expiration.getTime() / 1000),
@@ -723,27 +730,28 @@ test('createSessionTokenData sets expiration as Unix timestamp', function(t) {
     t.done();
 });
 
-test('createSessionTokenData has sessionName format', function(t) {
+test('createSessionTokenData has sessionName format', function (t) {
     var callerUuid = 'caller-uuid-123';
     var expiration = new Date('2024-01-13T12:00:00Z');
 
     var result = stsHelpers.createSessionTokenData(callerUuid, expiration);
 
     t.ok(result.sessionName, 'should have sessionName');
-    t.equal(typeof result.sessionName, 'string', 'sessionName should be string');
+    t.equal(typeof (result.sessionName), 'string',
+        'sessionName should be string');
     t.ok(result.sessionName.indexOf('session-') === 0,
         'sessionName should start with session-');
     t.done();
 });
 
-test('createSessionTokenData has roleArn format', function(t) {
+test('createSessionTokenData has roleArn format', function (t) {
     var callerUuid = 'caller-uuid-123';
     var expiration = new Date('2024-01-13T12:00:00Z');
 
     var result = stsHelpers.createSessionTokenData(callerUuid, expiration);
 
     t.ok(result.roleArn, 'should have roleArn');
-    t.equal(typeof result.roleArn, 'string', 'roleArn should be string');
+    t.equal(typeof (result.roleArn), 'string', 'roleArn should be string');
     t.ok(result.roleArn.indexOf('arn:aws:sts::') === 0,
         'roleArn should start with arn:aws:sts::');
     t.ok(result.roleArn.indexOf(callerUuid) > -1,
@@ -755,7 +763,8 @@ test('createSessionTokenData has roleArn format', function(t) {
 // buildGetSessionTokenResponse(credentials) tests
 // ----------------------------------------------------------------------------
 
-test('buildGetSessionTokenResponse creates AWS response structure', function(t) {
+test('buildGetSessionTokenResponse creates AWS response structure',
+    function (t) {
     var credentials = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
         secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
@@ -772,7 +781,7 @@ test('buildGetSessionTokenResponse creates AWS response structure', function(t) 
     t.done();
 });
 
-test('buildGetSessionTokenResponse has all credential fields', function(t) {
+test('buildGetSessionTokenResponse has all credential fields', function (t) {
     var credentials = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
         secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
@@ -781,7 +790,8 @@ test('buildGetSessionTokenResponse has all credential fields', function(t) {
     };
 
     var result = stsHelpers.buildGetSessionTokenResponse(credentials);
-    var creds = result.GetSessionTokenResponse.GetSessionTokenResult.Credentials;
+    var creds =
+        result.GetSessionTokenResponse.GetSessionTokenResult.Credentials;
 
     t.ok(creds.AccessKeyId, 'should have AccessKeyId');
     t.ok(creds.SecretAccessKey, 'should have SecretAccessKey');
@@ -790,7 +800,7 @@ test('buildGetSessionTokenResponse has all credential fields', function(t) {
     t.done();
 });
 
-test('buildGetSessionTokenResponse expiration as ISO string', function(t) {
+test('buildGetSessionTokenResponse expiration as ISO string', function (t) {
     var expDate = new Date('2024-01-13T12:00:00Z');
     var credentials = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
@@ -800,14 +810,15 @@ test('buildGetSessionTokenResponse expiration as ISO string', function(t) {
     };
 
     var result = stsHelpers.buildGetSessionTokenResponse(credentials);
-    var creds = result.GetSessionTokenResponse.GetSessionTokenResult.Credentials;
+    var creds =
+        result.GetSessionTokenResponse.GetSessionTokenResult.Credentials;
 
     t.equal(creds.Expiration, expDate.toISOString(),
         'should be ISO string format');
     t.done();
 });
 
-test('buildGetSessionTokenResponse nested structure correct', function(t) {
+test('buildGetSessionTokenResponse nested structure correct', function (t) {
     var credentials = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
         secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
@@ -826,9 +837,9 @@ test('buildGetSessionTokenResponse nested structure correct', function(t) {
 // buildLdapObjectForSessionToken(params) tests - with Date.now() mock
 // ----------------------------------------------------------------------------
 
-test('buildLdapObjectForSessionToken creates LDAP object', function(t) {
+test('buildLdapObjectForSessionToken creates LDAP object', function (t) {
     var originalDateNow = Date.now;
-    Date.now = function() { return 1705147200000; }; // Fixed timestamp
+    Date.now = function () { return 1705147200000; }; // Fixed timestamp
 
     var params = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
@@ -847,9 +858,9 @@ test('buildLdapObjectForSessionToken creates LDAP object', function(t) {
     t.done();
 });
 
-test('buildLdapObjectForSessionToken has required LDAP fields', function(t) {
+test('buildLdapObjectForSessionToken has required LDAP fields', function (t) {
     var originalDateNow = Date.now;
-    Date.now = function() { return 1705147200000; };
+    Date.now = function () { return 1705147200000; };
 
     var params = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
@@ -869,9 +880,9 @@ test('buildLdapObjectForSessionToken has required LDAP fields', function(t) {
     t.done();
 });
 
-test('buildLdapObjectForSessionToken expiration is ISO string', function(t) {
+test('buildLdapObjectForSessionToken expiration is ISO string', function (t) {
     var originalDateNow = Date.now;
-    Date.now = function() { return 1705147200000; };
+    Date.now = function () { return 1705147200000; };
 
     var params = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
@@ -891,10 +902,10 @@ test('buildLdapObjectForSessionToken expiration is ISO string', function(t) {
     t.done();
 });
 
-test('buildLdapObjectForSessionToken has created timestamp', function(t) {
+test('buildLdapObjectForSessionToken has created timestamp', function (t) {
     var originalDateNow = Date.now;
     var fixedTime = 1705147200000;
-    Date.now = function() { return fixedTime; };
+    Date.now = function () { return fixedTime; };
 
     var params = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
@@ -914,10 +925,10 @@ test('buildLdapObjectForSessionToken has created timestamp', function(t) {
     t.done();
 });
 
-test('buildLdapObjectForSessionToken has updated timestamp', function(t) {
+test('buildLdapObjectForSessionToken has updated timestamp', function (t) {
     var originalDateNow = Date.now;
     var fixedTime = 1705147200000;
-    Date.now = function() { return fixedTime; };
+    Date.now = function () { return fixedTime; };
 
     var params = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
@@ -941,9 +952,9 @@ test('buildLdapObjectForSessionToken has updated timestamp', function(t) {
 // buildAccessKeyDataForRedis(params) tests - with Date.now() mock
 // ----------------------------------------------------------------------------
 
-test('buildAccessKeyDataForRedis has type accesskey', function(t) {
+test('buildAccessKeyDataForRedis has type accesskey', function (t) {
     var originalDateNow = Date.now;
-    Date.now = function() { return 1705147200000; };
+    Date.now = function () { return 1705147200000; };
 
     var params = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
@@ -962,9 +973,9 @@ test('buildAccessKeyDataForRedis has type accesskey', function(t) {
     t.done();
 });
 
-test('buildAccessKeyDataForRedis has all required fields', function(t) {
+test('buildAccessKeyDataForRedis has all required fields', function (t) {
     var originalDateNow = Date.now;
-    Date.now = function() { return 1705147200000; };
+    Date.now = function () { return 1705147200000; };
 
     var params = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
@@ -986,9 +997,9 @@ test('buildAccessKeyDataForRedis has all required fields', function(t) {
     t.done();
 });
 
-test('buildAccessKeyDataForRedis expiration is ISO string', function(t) {
+test('buildAccessKeyDataForRedis expiration is ISO string', function (t) {
     var originalDateNow = Date.now;
-    Date.now = function() { return 1705147200000; };
+    Date.now = function () { return 1705147200000; };
 
     var params = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
@@ -1009,10 +1020,10 @@ test('buildAccessKeyDataForRedis expiration is ISO string', function(t) {
     t.done();
 });
 
-test('buildAccessKeyDataForRedis has created timestamp', function(t) {
+test('buildAccessKeyDataForRedis has created timestamp', function (t) {
     var originalDateNow = Date.now;
     var fixedTime = 1705147200000;
-    Date.now = function() { return fixedTime; };
+    Date.now = function () { return fixedTime; };
 
     var params = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
@@ -1033,9 +1044,9 @@ test('buildAccessKeyDataForRedis has created timestamp', function(t) {
     t.done();
 });
 
-test('buildAccessKeyDataForRedis preserves all params fields', function(t) {
+test('buildAccessKeyDataForRedis preserves all params fields', function (t) {
     var originalDateNow = Date.now;
-    Date.now = function() { return 1705147200000; };
+    Date.now = function () { return 1705147200000; };
 
     var params = {
         accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
