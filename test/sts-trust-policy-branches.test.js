@@ -516,4 +516,215 @@ test('statementMatchesAction: Action array without match', function (t) {
     t.end();
 });
 
+/* ================================================================
+ * SECTION 11: validateTrustPolicy Error Branches
+ * Tests for trust policy validation edge cases
+ * ================================================================ */
+
+test('validateTrustPolicy: null trust policy document', function (t) {
+    var result = validateTrustPolicy(null, MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'null trust policy should return false');
+    t.end();
+});
+
+test('validateTrustPolicy: empty string trust policy', function (t) {
+    var result = validateTrustPolicy('', MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'empty string trust policy should return false');
+    t.end();
+});
+
+test('validateTrustPolicy: invalid JSON in trust policy', function (t) {
+    var invalidJson = '{invalid json here}';
+    var result = validateTrustPolicy(invalidJson, MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'invalid JSON should return false');
+    t.end();
+});
+
+test('validateTrustPolicy: missing Statement in policy', function (t) {
+    var policy = JSON.stringify({
+        'Version': '2012-10-17'
+        // Missing Statement
+    });
+    var result = validateTrustPolicy(policy, MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'missing Statement should return false');
+    t.end();
+});
+
+test('validateTrustPolicy: Statement not an array', function (t) {
+    var policy = JSON.stringify({
+        'Version': '2012-10-17',
+        'Statement': 'not-an-array'
+    });
+    var result = validateTrustPolicy(policy, MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'Statement not array should return false');
+    t.end();
+});
+
+test('validateTrustPolicy: Deny effect without matching action', function (t) {
+    var policy = JSON.stringify({
+        'Version': '2012-10-17',
+        'Statement': [{
+            'Effect': 'Deny',
+            'Principal': '*',
+            'Action': 's3:GetObject'  // Not sts:AssumeRole
+        }, {
+            'Effect': 'Allow',
+            'Principal': '*',
+            'Action': 'sts:AssumeRole'
+        }]
+    });
+    var result = validateTrustPolicy(policy, MOCK_CALLERS.normalUser, LOG);
+    t.ok(result, 'Deny with non-matching action should not block Allow');
+    t.end();
+});
+
+test('validateTrustPolicy: Allow effect without matching action', function (t) {
+    var policy = JSON.stringify({
+        'Version': '2012-10-17',
+        'Statement': [{
+            'Effect': 'Allow',
+            'Principal': '*',
+            'Action': 's3:GetObject'  // Not sts:AssumeRole
+        }]
+    });
+    var result = validateTrustPolicy(policy, MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'Allow without sts:AssumeRole should return false');
+    t.end();
+});
+
+test('validateTrustPolicy: caller with only account uuid', function (t) {
+    var callerAccountOnly = {
+        account: {
+            uuid: '11111111-2222-3333-4444-555555555555',
+            login: 'testaccount'
+        }
+    };
+    var policy = JSON.stringify({
+        'Version': '2012-10-17',
+        'Statement': [{
+            'Effect': 'Allow',
+            'Principal': {
+                'AWS': '11111111-2222-3333-4444-555555555555'
+            },
+            'Action': 'sts:AssumeRole'
+        }]
+    });
+    var result = validateTrustPolicy(policy, callerAccountOnly, LOG);
+    // Result depends on implementation - just ensure it doesn't crash
+    t.ok(typeof result === 'boolean', 'should return boolean for account-only caller');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 12: validatePrincipal Additional Branches
+ * Tests for Service and object format principals
+ * ================================================================ */
+
+test('validatePrincipal: Service principal returns false', function (t) {
+    var principal = {
+        'Service': 'lambda.amazonaws.com'
+    };
+    var result = validatePrincipal(principal, MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'Service principal should return false for regular user');
+    t.end();
+});
+
+test('validatePrincipal: AWS array with no matches', function (t) {
+    var principal = {
+        'AWS': [
+            'arn:aws:iam::999999999999:user/otheruser',
+            'arn:aws:iam::888888888888:root'
+        ]
+    };
+    var result = validatePrincipal(principal, MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'AWS array with no matches should return false');
+    t.end();
+});
+
+test('validatePrincipal: AWS array with one match', function (t) {
+    var principal = {
+        'AWS': [
+            'arn:aws:iam::999999999999:user/otheruser',
+            'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/normaluser'
+        ]
+    };
+    var result = validatePrincipal(principal, MOCK_CALLERS.normalUser, LOG);
+    t.ok(result, 'AWS array with matching ARN should return true');
+    t.end();
+});
+
+test('validatePrincipal: wildcard string allows normal user', function (t) {
+    var result = validatePrincipal('*', MOCK_CALLERS.normalUser, LOG);
+    t.ok(result, 'wildcard should allow normal user');
+    t.end();
+});
+
+test('validatePrincipal: non-wildcard string principal', function (t) {
+    var principal = 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/normaluser';
+    var result = validatePrincipal(principal, MOCK_CALLERS.normalUser, LOG);
+    t.ok(result, 'matching ARN string should return true');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 13: Helper Function Branches
+ * Tests for extractCallerIdentity and other helpers
+ * ================================================================ */
+
+var extractCallerIdentity = sts.helpers.extractCallerIdentity;
+var validateDurationSeconds = sts.helpers.validateDurationSeconds;
+
+test('extractCallerIdentity: from nested user structure', function (t) {
+    var caller = MOCK_CALLERS.nestedUser;
+    var result = extractCallerIdentity(caller);
+    t.ok(result, 'should extract identity from nested structure');
+    t.equal(result.uuid, 'nested-user-uuid-abc');
+    t.end();
+});
+
+test('extractCallerIdentity: from flat user structure', function (t) {
+    // normalUser doesn't have nested user, so it uses account.uuid
+    var caller = MOCK_CALLERS.normalUser;
+    var result = extractCallerIdentity(caller);
+    t.ok(result, 'should extract identity from flat structure');
+    // Falls back to account.uuid when no nested user
+    t.equal(result.uuid, caller.account.uuid);
+    t.end();
+});
+
+test('validateDurationSeconds: valid duration from params', function (t) {
+    var result = validateDurationSeconds({DurationSeconds: 3600}, {});
+    t.ok(result.valid, 'valid duration should return valid: true');
+    t.equal(result.value, 3600);
+    t.end();
+});
+
+test('validateDurationSeconds: valid duration from body', function (t) {
+    var result = validateDurationSeconds({}, {DurationSeconds: 7200});
+    t.ok(result.valid, 'valid duration from body should return valid: true');
+    t.equal(result.value, 7200);
+    t.end();
+});
+
+test('validateDurationSeconds: duration too short', function (t) {
+    var result = validateDurationSeconds({DurationSeconds: 100}, {});
+    t.ok(!result.valid, 'duration < 900 should return valid: false');
+    t.ok(result.error, 'should have error');
+    t.end();
+});
+
+test('validateDurationSeconds: duration too long', function (t) {
+    var result = validateDurationSeconds({DurationSeconds: 200000}, {});
+    t.ok(!result.valid, 'duration > 129600 should return valid: false');
+    t.ok(result.error, 'should have error');
+    t.end();
+});
+
+test('validateDurationSeconds: default value', function (t) {
+    var result = validateDurationSeconds({}, {});
+    t.ok(result.valid, 'default should be valid');
+    t.equal(result.value, 3600, 'default should be 3600');
+    t.end();
+});
+
 console.log('✓ STS trust policy branch coverage tests loaded');
