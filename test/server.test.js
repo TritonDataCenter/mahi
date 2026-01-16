@@ -50,7 +50,7 @@ test('setup - populate redis', function (t) {
 });
 
 before(function (cb) {
-    var port = 8080;
+    var port = parseInt(process.env.TEST_PORT, 10) || 8080;
     this.client = restify.createJsonClient({
         url: 'http://localhost:' + port
     });
