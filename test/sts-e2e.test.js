@@ -707,4 +707,185 @@ exports.testAssumeRoleArnTooLong = function (t) {
     });
 };
 
+exports.testAssumeRoleMissingSessionName = function (t) {
+    var caller = {
+        user: {
+            uuid: TEST_USER_UUID,
+            login: 'testuser'
+        },
+        account: {
+            uuid: TEST_ACCOUNT_UUID,
+            login: 'testaccount'
+        }
+    };
+
+    var req = createMockRequest({
+        body: {
+            caller: caller,
+            RoleArn: 'arn:aws:iam::' + TEST_ACCOUNT_UUID + ':role/TestRole',
+            DurationSeconds: 3600
+            // Missing RoleSessionName
+        }
+    });
+
+    var res = createMockResponse();
+
+    sts.assumeRole(req, res, function (err) {
+        t.ok(err, 'should reject missing RoleSessionName');
+        t.ok(err.message.indexOf('RoleSessionName') !== -1,
+             'error should mention RoleSessionName');
+        t.done();
+    });
+};
+
+exports.testAssumeRoleInvalidRoleNameFormat = function (t) {
+    var caller = {
+        user: {
+            uuid: TEST_USER_UUID,
+            login: 'testuser'
+        },
+        account: {
+            uuid: TEST_ACCOUNT_UUID,
+            login: 'testaccount'
+        }
+    };
+
+    // Role name with invalid characters (backtick, semicolon)
+    var req = createMockRequest({
+        body: {
+            caller: caller,
+            RoleArn: 'arn:aws:iam::' + TEST_ACCOUNT_UUID + ':role/Test`Role;Drop',
+            RoleSessionName: 'testsession',
+            DurationSeconds: 3600
+        }
+    });
+
+    var res = createMockResponse();
+
+    sts.assumeRole(req, res, function (err) {
+        t.ok(err, 'should reject invalid role name format');
+        t.done();
+    });
+};
+
+exports.testAssumeRoleDurationTooShort = function (t) {
+    var caller = {
+        user: {
+            uuid: TEST_USER_UUID,
+            login: 'testuser'
+        },
+        account: {
+            uuid: TEST_ACCOUNT_UUID,
+            login: 'testaccount'
+        }
+    };
+
+    var req = createMockRequest({
+        body: {
+            caller: caller,
+            RoleArn: 'arn:aws:iam::' + TEST_ACCOUNT_UUID + ':role/TestRole',
+            RoleSessionName: 'testsession',
+            DurationSeconds: 100  // Less than 900
+        }
+    });
+
+    var res = createMockResponse();
+
+    sts.assumeRole(req, res, function (err) {
+        t.ok(err, 'should reject duration too short');
+        t.ok(err.message.indexOf('DurationSeconds') !== -1,
+             'error should mention DurationSeconds');
+        t.done();
+    });
+};
+
+exports.testAssumeRoleDurationTooLong = function (t) {
+    var caller = {
+        user: {
+            uuid: TEST_USER_UUID,
+            login: 'testuser'
+        },
+        account: {
+            uuid: TEST_ACCOUNT_UUID,
+            login: 'testaccount'
+        }
+    };
+
+    var req = createMockRequest({
+        body: {
+            caller: caller,
+            RoleArn: 'arn:aws:iam::' + TEST_ACCOUNT_UUID + ':role/TestRole',
+            RoleSessionName: 'testsession',
+            DurationSeconds: 50000  // More than 43200
+        }
+    });
+
+    var res = createMockResponse();
+
+    sts.assumeRole(req, res, function (err) {
+        t.ok(err, 'should reject duration too long');
+        t.done();
+    });
+};
+
+exports.testAssumeRoleInvalidSessionNameFormat = function (t) {
+    var caller = {
+        user: {
+            uuid: TEST_USER_UUID,
+            login: 'testuser'
+        },
+        account: {
+            uuid: TEST_ACCOUNT_UUID,
+            login: 'testaccount'
+        }
+    };
+
+    // Session name with invalid characters
+    var req = createMockRequest({
+        body: {
+            caller: caller,
+            RoleArn: 'arn:aws:iam::' + TEST_ACCOUNT_UUID + ':role/TestRole',
+            RoleSessionName: 'test session with spaces!',
+            DurationSeconds: 3600
+        }
+    });
+
+    var res = createMockResponse();
+
+    sts.assumeRole(req, res, function (err) {
+        t.ok(err, 'should reject invalid session name format');
+        t.done();
+    });
+};
+
+exports.testAssumeRoleSessionNameTooShort = function (t) {
+    var caller = {
+        user: {
+            uuid: TEST_USER_UUID,
+            login: 'testuser'
+        },
+        account: {
+            uuid: TEST_ACCOUNT_UUID,
+            login: 'testaccount'
+        }
+    };
+
+    // Session name with only 1 character (minimum is 2)
+    var req = createMockRequest({
+        body: {
+            caller: caller,
+            RoleArn: 'arn:aws:iam::' + TEST_ACCOUNT_UUID + ':role/TestRole',
+            RoleSessionName: 'a',
+            DurationSeconds: 3600
+        }
+    });
+
+    var res = createMockResponse();
+
+    sts.assumeRole(req, res, function (err) {
+        t.ok(err, 'should reject session name too short');
+        t.done();
+    });
+};
+
 /* --- Token usage tests --- */

@@ -727,4 +727,1078 @@ test('validateDurationSeconds: default value', function (t) {
     t.end();
 });
 
+/* ================================================================
+ * SECTION 14: More validatePrincipal Branches
+ * ================================================================ */
+
+test('validatePrincipal: wildcard denies assumed role with nested roleArn', function (t) {
+    // Caller that has roleArn (assumed role credential)
+    var assumedCaller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        roleArn: 'arn:aws:iam::123:role/SomeRole',
+        account: {
+            uuid: '11111111-2222-3333-4444-555555555555',
+            login: 'testaccount'
+        }
+    };
+    var result = validatePrincipal('*', assumedCaller, LOG);
+    t.ok(!result, 'wildcard should deny caller with roleArn');
+    t.end();
+});
+
+test('validatePrincipal: number type returns false', function (t) {
+    var result = validatePrincipal(12345, MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'number principal should return false');
+    t.end();
+});
+
+test('validatePrincipal: boolean type returns false', function (t) {
+    var result = validatePrincipal(true, MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'boolean principal should return false');
+    t.end();
+});
+
+test('validatePrincipal: array type returns false', function (t) {
+    var result = validatePrincipal(['arn:aws:iam::123:user/test'],
+                                    MOCK_CALLERS.normalUser, LOG);
+    t.ok(!result, 'array principal should return false');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 15: createSessionTokenData Tests
+ * ================================================================ */
+
+var createSessionTokenData = sts.helpers.createSessionTokenData;
+
+test('createSessionTokenData: basic creation', function (t) {
+    var expiration = new Date(Date.now() + 3600000);
+    var result = createSessionTokenData('test-uuid-123', expiration);
+    t.ok(result, 'should create session token data');
+    t.equal(result.uuid, 'test-uuid-123');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 16: buildLdapObjectForSessionToken Tests
+ * ================================================================ */
+
+var buildLdapObjectForSessionToken = sts.helpers.buildLdapObjectForSessionToken;
+
+test('buildLdapObjectForSessionToken: basic build', function (t) {
+    var params = {
+        accessKeyId: 'MSTS1234567890123456',
+        secretKey: 'secretkey12345',
+        sessionToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test',
+        expiration: new Date(Date.now() + 3600000),
+        principalUuid: 'principal-uuid-123'
+    };
+    var result = buildLdapObjectForSessionToken(params);
+    t.ok(result, 'should build LDAP object');
+    t.equal(result.accesskeyid, params.accessKeyId);
+    t.equal(result.principaluuid, params.principalUuid);
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 17: buildAccessKeyDataForRedis Tests
+ * ================================================================ */
+
+var buildAccessKeyDataForRedis = sts.helpers.buildAccessKeyDataForRedis;
+
+test('buildAccessKeyDataForRedis: basic build', function (t) {
+    var params = {
+        accessKeyId: 'MSTS1234567890123456',
+        secretAccessKey: 'secretkey12345',
+        sessionToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test',
+        expiration: new Date(Date.now() + 3600000),
+        userUuid: 'user-uuid-123',
+        principalUuid: 'principal-uuid-123'
+    };
+    var result = buildAccessKeyDataForRedis(params);
+    t.ok(result, 'should build Redis data');
+    t.equal(result.secretAccessKey, params.secretAccessKey);
+    t.equal(result.userUuid, params.userUuid);
+    t.equal(result.credentialType, 'temporary');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 18: validateServicePrincipal Tests
+ * ================================================================ */
+
+var validateServicePrincipal = sts.internal.validateServicePrincipal;
+
+test('validateServicePrincipal: supported service (lambda)', function (t) {
+    var result = validateServicePrincipal('lambda.amazonaws.com', LOG);
+    t.ok(result, 'lambda should be a supported service');
+    t.end();
+});
+
+test('validateServicePrincipal: supported service (ec2)', function (t) {
+    var result = validateServicePrincipal('ec2.amazonaws.com', LOG);
+    t.ok(result, 'ec2 should be a supported service');
+    t.end();
+});
+
+test('validateServicePrincipal: supported service (ecs-tasks)', function (t) {
+    var result = validateServicePrincipal('ecs-tasks.amazonaws.com', LOG);
+    t.ok(result, 'ecs-tasks should be a supported service');
+    t.end();
+});
+
+test('validateServicePrincipal: unsupported service', function (t) {
+    var result = validateServicePrincipal('unknown.amazonaws.com', LOG);
+    t.ok(!result, 'unknown service should not be supported');
+    t.end();
+});
+
+test('validateServicePrincipal: empty string', function (t) {
+    var result = validateServicePrincipal('', LOG);
+    t.ok(!result, 'empty string should not be supported');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 19: Access Key ID Generator Tests
+ * ================================================================ */
+
+var generateSessionTokenAccessKeyId = sts.internal.generateSessionTokenAccessKeyId;
+var generateAssumeRoleAccessKeyId = sts.internal.generateAssumeRoleAccessKeyId;
+
+test('generateSessionTokenAccessKeyId: prefix check', function (t) {
+    var keyId = generateSessionTokenAccessKeyId();
+    t.ok(keyId, 'should generate key ID');
+    t.equal(keyId.indexOf('MSTS'), 0, 'should start with MSTS prefix');
+    t.equal(keyId.length, 20, 'should be 20 characters');
+    t.end();
+});
+
+test('generateSessionTokenAccessKeyId: unique keys', function (t) {
+    var keyId1 = generateSessionTokenAccessKeyId();
+    var keyId2 = generateSessionTokenAccessKeyId();
+    t.notEqual(keyId1, keyId2, 'should generate unique keys');
+    t.end();
+});
+
+test('generateAssumeRoleAccessKeyId: prefix check', function (t) {
+    var keyId = generateAssumeRoleAccessKeyId();
+    t.ok(keyId, 'should generate key ID');
+    t.equal(keyId.indexOf('MSAR'), 0, 'should start with MSAR prefix');
+    t.equal(keyId.length, 20, 'should be 20 characters');
+    t.end();
+});
+
+test('generateAssumeRoleAccessKeyId: unique keys', function (t) {
+    var keyId1 = generateAssumeRoleAccessKeyId();
+    var keyId2 = generateAssumeRoleAccessKeyId();
+    t.notEqual(keyId1, keyId2, 'should generate unique keys');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 20: buildGetSessionTokenResponse Tests
+ * ================================================================ */
+
+var buildGetSessionTokenResponse = sts.helpers.buildGetSessionTokenResponse;
+
+test('buildGetSessionTokenResponse: basic response', function (t) {
+    var params = {
+        accessKeyId: 'MSTS1234567890123456',
+        secretAccessKey: 'secretkey12345',
+        sessionToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test',
+        expiration: new Date(Date.now() + 3600000)
+    };
+    var result = buildGetSessionTokenResponse(params);
+    t.ok(result, 'should build response');
+    t.ok(result.GetSessionTokenResponse, 'should have GetSessionTokenResponse');
+    t.ok(result.GetSessionTokenResponse.GetSessionTokenResult,
+         'should have GetSessionTokenResult');
+    var creds = result.GetSessionTokenResponse.GetSessionTokenResult.Credentials;
+    t.ok(creds, 'should have Credentials');
+    t.equal(creds.AccessKeyId, params.accessKeyId, 'should have access key ID');
+    t.equal(creds.SecretAccessKey, params.secretAccessKey,
+            'should have secret access key');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 21: statementMatchesAction edge cases
+ * ================================================================ */
+
+test('statementMatchesAction: array with wildcard', function (t) {
+    var stmt = { Action: ['sts:GetCallerIdentity', '*'] };
+    var result = statementMatchesAction(stmt, 'sts:AssumeRole');
+    t.ok(result, 'wildcard in array should match any action');
+    t.end();
+});
+
+test('statementMatchesAction: single action string match', function (t) {
+    var stmt = { Action: 'sts:AssumeRole' };
+    var result = statementMatchesAction(stmt, 'sts:AssumeRole');
+    t.ok(result, 'single action string should match');
+    t.end();
+});
+
+test('statementMatchesAction: single action string no match', function (t) {
+    var stmt = { Action: 'sts:GetCallerIdentity' };
+    var result = statementMatchesAction(stmt, 'sts:AssumeRole');
+    t.ok(!result, 'non-matching single action should not match');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 22: validateSinglePrincipal additional branches
+ * ================================================================ */
+
+test('validateSinglePrincipal: account ID with user login match', function (t) {
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '123456789012' }
+    };
+    // Test account-id format matching
+    var result = validateSinglePrincipal('123456789012', caller, LOG);
+    t.ok(result, 'account ID should match caller account');
+    t.end();
+});
+
+test('validateSinglePrincipal: 12-digit account ID', function (t) {
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '123456789012' }
+    };
+    var result = validateSinglePrincipal('987654321098', caller, LOG);
+    t.ok(!result, 'non-matching account ID should not match');
+    t.end();
+});
+
+test('validateSinglePrincipal: ARN user mismatch', function (t) {
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var arn = 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/otheruser';
+    var result = validateSinglePrincipal(arn, caller, LOG);
+    t.ok(!result, 'user ARN with different login should not match');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 23: validateTrustPolicy DENY statement tests
+ * ================================================================ */
+
+test('validateTrustPolicy: DENY with matching action denies access', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Deny',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: '*' }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: '*' }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'Deny should override Allow');
+    t.end();
+});
+
+test('validateTrustPolicy: DENY without matching principal passes', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Deny',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: 'arn:aws:iam::other-account:user/other' }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: '*' }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'Deny for other principal should not block caller');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 24: Root user scenario tests
+ * ================================================================ */
+
+test('validateTrustPolicy: root user only account-level allow denied', function (t) {
+    // Root users cannot match account-level principals (security rule)
+    // They need explicit root ARN
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '11111111-2222-3333-4444-555555555555' }
+        }]
+    });
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'root',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'root user with only account-level allow should be denied');
+    t.end();
+});
+
+test('validateTrustPolicy: root user only explicit root allow', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: {
+                AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:root'
+            }
+        }]
+    });
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'root',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'root user with explicit root allow should pass');
+    t.end();
+});
+
+test('validateTrustPolicy: non-root user with wildcard in Allow', function (t) {
+    // Non-root users CAN use wildcard principals
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Deny',
+                Action: 'sts:GetCallerIdentity',
+                Principal: { AWS: '11111111-2222-3333-4444-555555555555' }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: '*' }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'non-root user with wildcard principal should be allowed');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 25: validateSinglePrincipal UUID format tests
+ * ================================================================ */
+
+test('validateSinglePrincipal: UUID format account ID match', function (t) {
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateSinglePrincipal('11111111-2222-3333-4444-555555555555',
+                                          caller, LOG);
+    t.ok(result, 'UUID format account ID should match');
+    t.end();
+});
+
+test('validateSinglePrincipal: UUID format no match', function (t) {
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateSinglePrincipal('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+                                          caller, LOG);
+    t.ok(!result, 'non-matching UUID should not match');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 26: AWS array principal tests
+ * ================================================================ */
+
+test('validatePrincipal: AWS array principal match in middle', function (t) {
+    var principal = {
+        AWS: [
+            'arn:aws:iam::other-account:user/user1',
+            'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/testuser',
+            'arn:aws:iam::another-account:user/user2'
+        ]
+    };
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validatePrincipal(principal, caller, LOG);
+    t.ok(result, 'should match user in middle of AWS array');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 27: findTrustPolicyInMemberpolicy edge cases
+ * ================================================================ */
+
+test('findTrustPolicyInMemberpolicy: wildcard action match', function (t) {
+    var memberpolicy = [
+        JSON.stringify({
+            Statement: [{
+                Effect: 'Allow',
+                Action: '*'
+            }]
+        })
+    ];
+    var result = findTrustPolicyInMemberpolicy(memberpolicy);
+    t.ok(result, 'should find policy with wildcard action');
+    t.end();
+});
+
+test('findTrustPolicyInMemberpolicy: action array with sts:AssumeRole', function (t) {
+    var memberpolicy = [
+        JSON.stringify({
+            Statement: [{
+                Effect: 'Allow',
+                Action: ['s3:GetObject', 'sts:AssumeRole']
+            }]
+        })
+    ];
+    var result = findTrustPolicyInMemberpolicy(memberpolicy);
+    t.ok(result, 'should find policy with action array containing sts:AssumeRole');
+    t.end();
+});
+
+test('findTrustPolicyInMemberpolicy: nested statement no action', function (t) {
+    var memberpolicy = [
+        JSON.stringify({
+            Statement: [{
+                Effect: 'Allow'
+            }]
+        })
+    ];
+    var result = findTrustPolicyInMemberpolicy(memberpolicy);
+    t.ok(!result, 'should not find policy with statement missing action');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 28: extractCallerIdentity additional tests
+ * ================================================================ */
+
+test('extractCallerIdentity: with account login fallback', function (t) {
+    var caller = {
+        account: {
+            uuid: 'account-uuid-123',
+            login: 'accountlogin'
+        }
+    };
+    var result = extractCallerIdentity(caller);
+    t.equal(result.uuid, 'account-uuid-123', 'should use account uuid');
+    t.equal(result.login, 'accountlogin', 'should use account login');
+    t.end();
+});
+
+test('extractCallerIdentity: with user uuid but no login', function (t) {
+    var caller = {
+        user: { uuid: 'user-uuid-123' },
+        account: { uuid: 'account-uuid', login: 'accountlogin' }
+    };
+    var result = extractCallerIdentity(caller);
+    t.equal(result.uuid, 'user-uuid-123', 'should use user uuid');
+    t.equal(result.login, 'accountlogin', 'should fallback to account login');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 29: parseRoleArnForTrustPolicy additional tests
+ * ================================================================ */
+
+test('parseRoleArnForTrustPolicy: too many colons', function (t) {
+    var result = parseRoleArnForTrustPolicy(
+        'arn:aws:iam::12345678:role/myrole:extra:parts');
+    t.ok(result, 'should still parse with extra parts');
+    t.equal(result.roleName, 'myrole', 'should extract role name');
+    t.end();
+});
+
+test('parseRoleArnForTrustPolicy: user resource type', function (t) {
+    var result = parseRoleArnForTrustPolicy('arn:aws:iam::12345678:user/myuser');
+    t.ok(!result, 'should return null for user resource type');
+    t.end();
+});
+
+test('parseRoleArnForTrustPolicy: s3 service instead of iam', function (t) {
+    var result = parseRoleArnForTrustPolicy('arn:aws:s3:::mybucket');
+    t.ok(!result, 'should return null for non-iam service');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 30: validateDurationSeconds edge cases
+ * ================================================================ */
+
+test('validateDurationSeconds: from body only', function (t) {
+    var result = validateDurationSeconds({}, { DurationSeconds: 7200 });
+    t.ok(result.valid, 'should be valid');
+    t.equal(result.value, 7200, 'should get value from body');
+    t.end();
+});
+
+test('validateDurationSeconds: params overrides body', function (t) {
+    var result = validateDurationSeconds({ DurationSeconds: 3600 },
+                                          { DurationSeconds: 7200 });
+    t.ok(result.valid, 'should be valid');
+    t.equal(result.value, 3600, 'params should override body');
+    t.end();
+});
+
+test('validateDurationSeconds: string number conversion', function (t) {
+    var result = validateDurationSeconds({ DurationSeconds: '1800' }, {});
+    t.ok(result.valid, 'should be valid');
+    t.equal(result.value, 1800, 'should convert string to number');
+    t.end();
+});
+
+test('validateDurationSeconds: exactly 900 seconds', function (t) {
+    var result = validateDurationSeconds({ DurationSeconds: 900 }, {});
+    t.ok(result.valid, 'should be valid at minimum');
+    t.equal(result.value, 900, 'should accept minimum value');
+    t.end();
+});
+
+test('validateDurationSeconds: exactly 129600 seconds', function (t) {
+    var result = validateDurationSeconds({ DurationSeconds: 129600 }, {});
+    t.ok(result.valid, 'should be valid at maximum');
+    t.equal(result.value, 129600, 'should accept maximum value');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 31: validateSinglePrincipal ARN parsing
+ * ================================================================ */
+
+test('validateSinglePrincipal: triton ARN format', function (t) {
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var arn = 'arn:triton:iam::11111111-2222-3333-4444-555555555555:user/testuser';
+    var result = validateSinglePrincipal(arn, caller, LOG);
+    t.ok(result, 'should match triton ARN format');
+    t.end();
+});
+
+test('validateSinglePrincipal: user ARN wrong account', function (t) {
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var arn = 'arn:aws:iam::99999999-8888-7777-6666-555544443333:user/testuser';
+    var result = validateSinglePrincipal(arn, caller, LOG);
+    t.ok(!result, 'should not match user in different account');
+    t.end();
+});
+
+test('validateSinglePrincipal: role ARN format', function (t) {
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var arn = 'arn:aws:iam::11111111-2222-3333-4444-555555555555:role/myrole';
+    var result = validateSinglePrincipal(arn, caller, LOG);
+    // Role ARNs are not matched against user callers
+    t.ok(!result, 'role ARN should not match user caller');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 32: validatePrincipal with Service principals
+ * ================================================================ */
+
+test('validatePrincipal: Service principal object format', function (t) {
+    var principal = { Service: 'lambda.amazonaws.com' };
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validatePrincipal(principal, caller, LOG);
+    // Regular users cannot match service principals
+    t.ok(!result, 'user should not match service principal');
+    t.end();
+});
+
+test('validatePrincipal: mixed AWS and Service principal', function (t) {
+    var principal = {
+        AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/testuser',
+        Service: 'lambda.amazonaws.com'
+    };
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validatePrincipal(principal, caller, LOG);
+    t.ok(result, 'should match AWS principal even with Service present');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 33: Additional root user policy scenarios
+ * ================================================================ */
+
+test('validateTrustPolicy: root user with 12-digit account ID', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '123456789012' }
+        }]
+    });
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'root',
+        account: { uuid: '123456789012' }
+    };
+    // Root users should not match account-level principals
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'root user should not match 12-digit account ID');
+    t.end();
+});
+
+test('validateTrustPolicy: non-root matches 12-digit account ID', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '123456789012' }
+        }]
+    });
+    var caller = {
+        uuid: 'user-uuid-123',
+        login: 'testuser',
+        account: { uuid: '123456789012' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'non-root user should match 12-digit account ID');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 34: validateTrustPolicy caller structure variations
+ * ================================================================ */
+
+test('validateTrustPolicy: caller with only uuid and login at top level', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '*' }
+        }]
+    });
+    var caller = {
+        uuid: 'direct-uuid-123',
+        login: 'directuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'should work with uuid/login at top level');
+    t.end();
+});
+
+test('validateTrustPolicy: caller with user but no uuid at top', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '*' }
+        }]
+    });
+    var caller = {
+        user: { uuid: 'nested-uuid', login: 'nesteduser' },
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+        // no top-level uuid or login
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'should work with nested user structure');
+    t.end();
+});
+
+test('validateTrustPolicy: caller with empty user object', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '*' }
+        }]
+    });
+    var caller = {
+        user: {},  // empty user object
+        uuid: 'fallback-uuid',
+        login: 'fallbackuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'should fall back to top-level uuid/login');
+    t.end();
+});
+
+test('validateTrustPolicy: caller with no account', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '*' }
+        }]
+    });
+    var caller = {
+        uuid: 'uuid-no-account',
+        login: 'usernoaccountlog'
+        // no account property
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'should work without account property');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 35: root user special cases
+ * ================================================================ */
+
+test('validateTrustPolicy: root user stmt not matching AssumeRole action', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Allow',
+                Action: 'sts:GetCallerIdentity',  // Not AssumeRole
+                Principal: { AWS: '11111111-2222-3333-4444-555555555555' }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: {
+                    AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:root'
+                }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'root-uuid',
+        login: 'root',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'root user should pass with explicit root allow');
+    t.end();
+});
+
+test('validateTrustPolicy: root user with no Principal.AWS', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { Service: 'lambda.amazonaws.com' }
+        }]
+    });
+    var caller = {
+        uuid: 'root-uuid',
+        login: 'root',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'root user should not match service principal');
+    t.end();
+});
+
+test('validateTrustPolicy: root user principal as array', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: {
+                AWS: [
+                    '11111111-2222-3333-4444-555555555555',
+                    'arn:aws:iam::11111111-2222-3333-4444-555555555555:root'
+                ]
+            }
+        }]
+    });
+    var caller = {
+        uuid: 'root-uuid',
+        login: 'root',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    // This should be denied because both account-level AND explicit root exist
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'root user denied with mixed account+root in same array');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 36: validateTrustPolicy edge cases
+ * ================================================================ */
+
+test('validateTrustPolicy: Allow statement without Principal', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole'
+            // No Principal field
+        }]
+    });
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    // Without Principal, the allow is implicit for all
+    t.ok(!result, 'missing Principal should be denied');
+    t.end();
+});
+
+test('validateTrustPolicy: Allow does not match caller', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: {
+                AWS: 'arn:aws:iam::other-account-uuid:user/otheruser'
+            }
+        }]
+    });
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'should deny when principal does not match');
+    t.end();
+});
+
+test('validateTrustPolicy: multiple statements one matches', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: {
+                    AWS: 'arn:aws:iam::other-account:user/otheruser'
+                }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: {
+                    AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/testuser'
+                }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'should allow when second statement matches');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 37: validateSinglePrincipal caller.account edge cases
+ * ================================================================ */
+
+test('validateSinglePrincipal: caller with no account property', function (t) {
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser'
+        // no account property
+    };
+    var result = validateSinglePrincipal('123456789012', caller, LOG);
+    t.ok(!result, 'should not match account ID without caller.account');
+    t.end();
+});
+
+test('validateSinglePrincipal: manta partition ARN', function (t) {
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var arn = 'arn:manta:iam::11111111-2222-3333-4444-555555555555:user/testuser';
+    var result = validateSinglePrincipal(arn, caller, LOG);
+    t.ok(result, 'should match manta partition ARN');
+    t.end();
+});
+
+test('validateSinglePrincipal: short ARN insufficient parts', function (t) {
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateSinglePrincipal('arn:aws:iam::123', caller, LOG);
+    t.ok(!result, 'short ARN should not match');
+    t.end();
+});
+
+test('validateSinglePrincipal: root ARN means any principal in account', function (t) {
+    // In AWS, arn:aws:iam::ACCOUNT:root means "any principal in ACCOUNT"
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var arn = 'arn:aws:iam::11111111-2222-3333-4444-555555555555:root';
+    var result = validateSinglePrincipal(arn, caller, LOG);
+    t.ok(result, 'root ARN allows any user in the account');
+    t.end();
+});
+
+test('validateSinglePrincipal: root ARN wrong account', function (t) {
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var arn = 'arn:aws:iam::99999999-8888-7777-6666-555544443333:root';
+    var result = validateSinglePrincipal(arn, caller, LOG);
+    t.ok(!result, 'root ARN from different account should not match');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 38: Caller extraction edge cases for coverage
+ * ================================================================ */
+
+test('validateTrustPolicy: caller with null uuid and no account', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '*' }
+        }]
+    });
+    var caller = {
+        user: {},
+        // No uuid at top level, no account
+        login: 'fallbacklogin'
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    // Will return false since callerUuid will be null
+    t.ok(result, 'should still process with minimal caller');
+    t.end();
+});
+
+test('validateTrustPolicy: caller using account.login fallback', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '*' }
+        }]
+    });
+    var caller = {
+        user: {},  // empty user
+        // No uuid, no login at top level
+        account: {
+            uuid: '11111111-2222-3333-4444-555555555555',
+            login: 'accountlogin'
+        }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'should use account.login as fallback');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 39: Additional validateSinglePrincipal log branches
+ * ================================================================ */
+
+test('validateSinglePrincipal: caller uuid from user.uuid', function (t) {
+    // This should hit the callerUuid extraction from caller.user.uuid
+    var caller = {
+        user: { uuid: 'nested-user-uuid', login: 'nestedlogin' },
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateSinglePrincipal('11111111-2222-3333-4444-555555555555',
+                                          caller, LOG);
+    t.ok(result, 'should match with nested user structure');
+    t.end();
+});
+
+test('validateSinglePrincipal: caller uuid from direct uuid', function (t) {
+    var caller = {
+        uuid: 'direct-uuid',
+        login: 'directlogin',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateSinglePrincipal('11111111-2222-3333-4444-555555555555',
+                                          caller, LOG);
+    t.ok(result, 'should match with direct uuid');
+    t.end();
+});
+
+test('validateSinglePrincipal: wildcard with caller having roleArn', function (t) {
+    var caller = {
+        uuid: 'assumed-role-uuid',
+        login: 'assumedrole',
+        roleArn: 'arn:aws:iam::123:role/AssumedRole',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateSinglePrincipal('*', caller, LOG);
+    // Wildcard should deny assumed role credentials
+    t.ok(!result, 'wildcard should deny assumed role caller');
+    t.end();
+});
+
 console.log('✓ STS trust policy branch coverage tests loaded');
