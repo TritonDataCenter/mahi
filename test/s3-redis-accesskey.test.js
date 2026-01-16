@@ -42,9 +42,10 @@ var log = bunyan.createLogger({
 
 var redis;
 
-/* ================================================================
+/*
+ * ==============================
  * SETUP
- * ================================================================ */
+ */
 
 test('setup', function (t) {
     redis = fakeredis.createClient();
@@ -52,9 +53,10 @@ test('setup', function (t) {
     t.done();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 1: getObject Tests
- * ================================================================ */
+ */
 
 test('getObject - valid object', function (t) {
     var testUuid = 'test-object-uuid-001';
@@ -88,7 +90,8 @@ test('getObject - object not found', function (t) {
         redis: redis
     }, function (err, result) {
         t.ok(err, 'should error for nonexistent object');
-        t.equal(err.restCode, 'ObjectDoesNotExist', 'should be ObjectDoesNotExist');
+        t.equal(err.restCode, 'ObjectDoesNotExist',
+            'should be ObjectDoesNotExist');
         t.ok(!result, 'should not return result');
         t.done();
     });
@@ -101,9 +104,10 @@ test('getObject - object not found', function (t) {
  * inside the Redis callback, making it untestable with standard methods.
  */
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 2: getAccount Tests
- * ================================================================ */
+ */
 
 test('getAccount - valid account', function (t) {
     var testUuid = 'test-account-uuid-001';
@@ -139,7 +143,8 @@ test('getAccount - not found', function (t) {
     }, function (err, result) {
         t.ok(err, 'should error for nonexistent account');
         // Note: code checks err.code but errors use restCode, so
-        // AccountIdDoesNotExistError is not thrown - ObjectDoesNotExist bubbles up
+        // AccountIdDoesNotExistError is not thrown -
+        // ObjectDoesNotExist bubbles up
         t.equal(err.restCode, 'ObjectDoesNotExist', 'correct error code');
         t.done();
     });
@@ -185,7 +190,8 @@ test('getAccount - non-operator (no groups)', function (t) {
             redis: redis
         }, function (err, result) {
             t.ok(!err, 'should not error');
-            // isOperator = result.groups && result.groups.indexOf('operators') >= 0
+            // isOperator = result.groups &&
+            //     result.groups.indexOf('operators') >= 0
             // When groups is undefined, this evaluates to undefined (falsy)
             t.ok(!result.isOperator, 'should not be operator (falsy)');
             t.done();
@@ -193,9 +199,10 @@ test('getAccount - non-operator (no groups)', function (t) {
     });
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 3: getUser Tests
- * ================================================================ */
+ */
 
 test('getUser - valid user', function (t) {
     var testUuid = 'test-user-uuid-002';
@@ -259,9 +266,10 @@ test('getUser - wrong type (account instead of user)', function (t) {
     });
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 4: getRole Tests
- * ================================================================ */
+ */
 
 test('getRole - valid role', function (t) {
     var testUuid = 'test-role-uuid-001';
@@ -326,9 +334,10 @@ test('getRole - wrong type', function (t) {
     });
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 5: getPolicy Tests
- * ================================================================ */
+ */
 
 test('getPolicy - valid policy', function (t) {
     var testUuid = 'test-policy-uuid-001';
@@ -392,9 +401,10 @@ test('getPolicy - wrong type', function (t) {
     });
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 6: getAccountUuid Tests
- * ================================================================ */
+ */
 
 test('getAccountUuid - valid lookup', function (t) {
     var testLogin = 'myaccount';
@@ -427,9 +437,10 @@ test('getAccountUuid - account not found', function (t) {
     });
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 7: getUuid Tests
- * ================================================================ */
+ */
 
 test('getUuid - valid user lookup', function (t) {
     var accountUuid = 'parent-account-for-getUuid';
@@ -514,9 +525,10 @@ test('getUuid - object not found', function (t) {
     });
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 8: getUserByAccessKey Tests
- * ================================================================ */
+ */
 
 test('getUserByAccessKey - permanent credential (account)', function (t) {
     var accessKeyId = 'AKIAPERMANENT001';
@@ -730,7 +742,8 @@ test('getUserByAccessKey - MSTS with malformed JSON (fallback)', function (t) {
     });
 });
 
-test('getUserByAccessKey - user object not found after key lookup', function (t) {
+test('getUserByAccessKey - user object not found after key lookup',
+    function (t) {
     var accessKeyId = 'AKIAorphanedkey1';
     var orphanUuid = 'orphaned-user-uuid-not-in-redis';
 
@@ -750,9 +763,10 @@ test('getUserByAccessKey - user object not found after key lookup', function (t)
     });
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 9: getAccessKeySecret Tests
- * ================================================================ */
+ */
 
 test('getAccessKeySecret - valid secret from user', function (t) {
     var accessKeyId = 'AKIAsecrettest01';
@@ -822,7 +836,8 @@ test('getAccessKeySecret - user has no accesskeys object', function (t) {
                 redis: redis
             }, function (err, result) {
                 t.ok(err, 'should error when accesskeys missing');
-                t.equal(err.restCode, 'AccessKeyNotFound', 'correct error code');
+                t.equal(err.restCode, 'AccessKeyNotFound',
+                    'correct error code');
                 t.done();
             });
         });
@@ -855,16 +870,18 @@ test('getAccessKeySecret - accesskeys exists but key not in it', function (t) {
                 redis: redis
             }, function (err, result) {
                 t.ok(err, 'should error when key not in accesskeys');
-                t.equal(err.restCode, 'AccessKeyNotFound', 'correct error code');
+                t.equal(err.restCode, 'AccessKeyNotFound',
+                    'correct error code');
                 t.done();
             });
         });
     });
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 10: getRoles Tests
- * ================================================================ */
+ */
 
 test('getRoles - empty roles list', function (t) {
     redislib.getRoles({
@@ -910,7 +927,8 @@ test('getRoles - single role with policy', function (t) {
                 t.ok(!err, 'should not error');
                 t.ok(result[roleUuid], 'should have role');
                 t.ok(result[roleUuid].rules, 'should have rules');
-                t.equal(result[roleUuid].rules.length, 2, 'should have 2 rules');
+                t.equal(result[roleUuid].rules.length, 2,
+                    'should have 2 rules');
                 t.done();
             });
         });
@@ -928,9 +946,10 @@ test('getRoles - role not found', function (t) {
     });
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 11: Concurrent Operations Tests
- * ================================================================ */
+ */
 
 test('concurrent getObject calls', function (t) {
     var testUuids = ['concurrent-001', 'concurrent-002', 'concurrent-003'];
@@ -1011,9 +1030,10 @@ test('concurrent getUserByAccessKey calls', function (t) {
     });
 });
 
-/* ================================================================
+/*
+ * ==============================
  * TEARDOWN
- * ================================================================ */
+ */
 
 test('teardown', function (t) {
     if (redis) {

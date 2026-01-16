@@ -754,7 +754,8 @@ exports.testAssumeRoleInvalidRoleNameFormat = function (t) {
     var req = createMockRequest({
         body: {
             caller: caller,
-            RoleArn: 'arn:aws:iam::' + TEST_ACCOUNT_UUID + ':role/Test`Role;Drop',
+            RoleArn: 'arn:aws:iam::' + TEST_ACCOUNT_UUID +
+                ':role/Test`Role;Drop',
             RoleSessionName: 'testsession',
             DurationSeconds: 3600
         }

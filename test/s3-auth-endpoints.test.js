@@ -122,9 +122,10 @@ function rawRequest(method, path, headers, bodyStr, callback) {
     req.end();
 }
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 1: MSTS Prefix Access Key Tests (GetSessionToken credentials)
- * ================================================================ */
+ */
 
 exports.testMSTSPrefixAccessKeyLookup = function (t) {
     var testUserUuid = 'msts-test-user-uuid-001';
@@ -161,9 +162,10 @@ exports.testMSTSPrefixAccessKeyLookup = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 2: MSAR Prefix Access Key Tests (AssumeRole credentials)
- * ================================================================ */
+ */
 
 exports.testMSARPrefixAccessKeyLookup = function (t) {
     var testUserUuid = 'msar-test-user-uuid-001';
@@ -200,9 +202,10 @@ exports.testMSARPrefixAccessKeyLookup = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 3: Access Key Format Edge Cases
- * ================================================================ */
+ */
 
 exports.testShortAccessKeyId = function (t) {
     // Access key IDs shorter than normal should still work if in Redis
@@ -264,9 +267,10 @@ exports.testVeryLongAccessKeyId = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 4: Error Response Structure Tests
- * ================================================================ */
+ */
 
 exports.testNotFoundErrorStructure = function (t) {
     var nonExistentKey = 'AKIANOTFOUND123456';
@@ -278,10 +282,11 @@ exports.testNotFoundErrorStructure = function (t) {
         t.ok(obj, 'should have response body');
         // Check error structure
         if (obj.code) {
-            t.ok(typeof obj.code === 'string', 'error should have code');
+            t.ok(typeof (obj.code) === 'string', 'error should have code');
         }
         if (obj.message) {
-            t.ok(typeof obj.message === 'string', 'error should have message');
+            t.ok(typeof (obj.message) === 'string',
+                'error should have message');
         }
         t.done();
     });
@@ -299,9 +304,10 @@ exports.testEmptyAccessKeyId = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 5: Response Field Validation
- * ================================================================ */
+ */
 
 exports.testResponseContainsRequiredFields = function (t) {
     var testUserUuid = 'fields-test-user-uuid';
@@ -381,9 +387,10 @@ exports.testResponseAccessKeysIncludesRequestedKey = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 6: User Data Edge Cases
- * ================================================================ */
+ */
 
 exports.testUserWithMinimalData = function (t) {
     var testUserUuid = 'minimal-user-uuid';
@@ -447,9 +454,10 @@ exports.testUserWithSpecialCharsInLogin = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 7: /aws-verify Endpoint Edge Cases
- * ================================================================ */
+ */
 
 exports.testAwsVerifyMissingBody = function (t) {
     var headers = {
@@ -498,9 +506,10 @@ exports.testAwsVerifyInvalidAuthFormat = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 8: Concurrent Access Tests
- * ================================================================ */
+ */
 
 exports.testConcurrentAccessKeyLookups = function (t) {
     var testUserUuid = 'concurrent-user-uuid';

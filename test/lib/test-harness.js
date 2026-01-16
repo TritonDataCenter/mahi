@@ -101,7 +101,8 @@ function TestHarness(opts) {
     this.ufdsPort = opts.ufdsPort || 1389;
     this.redisFixture = opts.redisFixture || 'empty';
     this.enableTimeMock = opts.timeMock || false;
-    this.serverPort = (typeof opts.serverPort === 'number') ? opts.serverPort :
+    this.serverPort = (typeof (opts.serverPort) === 'number') ?
+        opts.serverPort :
         (parseInt(process.env.TEST_PORT, 10) || 8080);
     this.serverOpts = opts.serverOpts || {};
 

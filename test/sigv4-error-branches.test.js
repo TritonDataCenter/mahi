@@ -46,10 +46,11 @@ exports.tearDown = function (cb) {
     cb();
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 1: AccessKeyId Validation in parseAuthHeader
  * Tests for lines 198-204 in sigv4.js
- * ================================================================ */
+ */
 
 exports.testAccessKeyIdTooShort = function (t) {
     // AccessKeyId must be >= 16 characters (MIN_ACCESSKEYID_LENGTH)
@@ -189,10 +190,11 @@ exports.testAccessKeyIdWithSpecialChars = function (t) {
     t.done();
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 2: DateStamp Validation in parseAuthHeader
  * Tests for line 178 in sigv4.js - must be 8 digits
- * ================================================================ */
+ */
 
 exports.testDateStampTooShort = function (t) {
     var authHeader =
@@ -265,10 +267,11 @@ exports.testDateStampValid = function (t) {
     t.done();
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 3: RequestType Validation in parseAuthHeader
  * Tests for line 187 in sigv4.js - must be 'aws4_request'
- * ================================================================ */
+ */
 
 exports.testRequestTypeWrong = function (t) {
     var authHeader =
@@ -312,10 +315,11 @@ exports.testRequestTypeEmpty = function (t) {
     t.done();
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 4: Temporary Credential Error Paths in verifySigV4
  * Tests for MSTS/MSAR prefix handling (lines 992-1006)
- * ================================================================ */
+ */
 
 exports.testMSTSKeyWithoutSessionToken = function (t) {
     // MSTS prefix indicates temporary credential - requires session token
@@ -418,10 +422,11 @@ exports.testMSARKeyWithoutSessionToken = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 5: AccessKeyId Length Check in verifySigV4
  * Tests for lines 728-733 in sigv4.js
- * ================================================================ */
+ */
 
 exports.testAccessKeyIdTooLongInVerify = function (t) {
     // Even if parseAuthHeader didn't catch it, verifySigV4 has
@@ -458,10 +463,11 @@ exports.testAccessKeyIdTooLongInVerify = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 6: Timestamp Validation Edge Cases
  * Tests for timestamp freshness (lines 1083-1086)
- * ================================================================ */
+ */
 
 exports.testTimestampInFuture = function (t) {
     var testUser = {
@@ -631,10 +637,11 @@ exports.testTimestampJustOverThreshold = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 7: Empty Credential Parts Validation
  * Tests for lines 162-172 in sigv4.js
- * ================================================================ */
+ */
 
 exports.testEmptyRegion = function (t) {
     var authHeader =
@@ -678,10 +685,11 @@ exports.testWhitespaceOnlyRegion = function (t) {
     t.done();
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 8: Signature Format Validation
  * Tests for signature content handling
- * ================================================================ */
+ */
 
 exports.testEmptySignature = function (t) {
     var authHeader =
@@ -713,10 +721,11 @@ exports.testSignatureWithNonHexChars = function (t) {
     t.done();
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 9: Multiple Credential Part Scenarios
  * Additional tests for credential parsing edge cases
- * ================================================================ */
+ */
 
 exports.testCredentialWithSixParts = function (t) {
     // Extra slash creates 6 parts instead of 5
@@ -748,10 +757,11 @@ exports.testCredentialWithFourParts = function (t) {
     t.done();
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 10: Date Header Fallback
  * Tests for using Date header when X-Amz-Date is missing
- * ================================================================ */
+ */
 
 exports.testDateHeaderFallback = function (t) {
     var testUser = {
@@ -808,9 +818,10 @@ exports.testDateHeaderFallback = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 11: MSTS/MSAR Prefix Edge Cases
- * ================================================================ */
+ */
 
 exports.testMSTSPrefixCaseSensitive = function (t) {
     // 'msts' lowercase should be treated as permanent credential
@@ -910,10 +921,11 @@ exports.testMSARPrefixCaseSensitive = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 9: Malformed Authorization Header Parts
  * Tests for line 141 in sigv4.js - keyValue.length !== 2
- * ================================================================ */
+ */
 
 exports.testMalformedPartNoEquals = function (t) {
     // Auth header part without '=' should be skipped
@@ -947,10 +959,11 @@ exports.testMalformedPartMultipleEquals = function (t) {
     t.done();
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 10: Content-Length and Content-MD5 Header Restoration
  * Tests for lines 320-326 in sigv4.js
- * ================================================================ */
+ */
 
 exports.testContentLengthHeaderRestoration = function (t) {
     var testUser = {
@@ -1054,10 +1067,11 @@ exports.testContentMD5HeaderRestoration = function (t) {
     });
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 11: Empty/Missing Header Values
  * Tests for line 328 in sigv4.js - header value fallback
- * ================================================================ */
+ */
 
 exports.testMissingSignedHeaderValue = function (t) {
     var testUser = {

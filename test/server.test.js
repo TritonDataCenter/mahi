@@ -472,7 +472,8 @@ test('IAM CreateRole: no UFDS connection', function (t) {
         roleName: 'TestRole',
         accountUuid: 'test-account-uuid'
     };
-    this.client.post('/iam/create-role', reqBody, function (err, req, res, obj) {
+    this.client.post('/iam/create-role', reqBody,
+        function (err, req, res, obj) {
         t.ok(err, 'should return error');
         t.equal(res.statusCode, 500, 'should return 500 (UFDS not available)');
         t.ok(obj.error.indexOf('UFDS') !== -1,
@@ -568,7 +569,8 @@ test('IAM ListRolePolicies: missing accountUuid parameter', function (t) {
 });
 
 test('IAM ListRolePolicies: role not in Redis', function (t) {
-    this.client.get('/iam/list-role-policies/NonExistentRole?accountUuid=test-uuid',
+    var url = '/iam/list-role-policies/NonExistentRole?accountUuid=test-uuid';
+    this.client.get(url,
         function (err, req, res, obj) {
         t.ok(err, 'should return error');
         // May return 500 (UFDS check) or 404 (role not found)
@@ -615,7 +617,8 @@ test('IAM GetRolePolicy: role not in Redis', function (t) {
 test('getUserByAccessKey: missing accessKeyId parameter', function (t) {
     this.client.get('/accesskeys/', function (err, req, res, obj) {
         t.ok(err, 'should return error');
-        t.equal(res.statusCode, 404, 'should return 404 for missing path param');
+        t.equal(res.statusCode, 404,
+            'should return 404 for missing path param');
         t.end();
     });
 });
@@ -691,7 +694,8 @@ test('STS AssumeRole: missing RoleArn', function (t) {
         RoleSessionName: 'TestSession',
         DurationSeconds: 3600
     };
-    this.client.post('/sts/assume-role', reqBody, function (err, req, res, obj) {
+    this.client.post('/sts/assume-role', reqBody,
+        function (err, req, res, obj) {
         t.ok(err, 'should return error for missing RoleArn');
         t.end();
     });
@@ -784,7 +788,8 @@ test('STS AssumeRole: with invalid RoleArn format', function (t) {
         RoleSessionName: 'TestSession',
         DurationSeconds: 3600
     };
-    this.client.post('/sts/assume-role', reqBody, function (err, req, res, obj) {
+    this.client.post('/sts/assume-role', reqBody,
+        function (err, req, res, obj) {
         t.ok(err, 'should return error for invalid ARN format');
         t.end();
     });
@@ -801,7 +806,8 @@ test('STS AssumeRole: with complete params (no UFDS)', function (t) {
         RoleSessionName: 'TestSession',
         DurationSeconds: 3600
     };
-    this.client.post('/sts/assume-role', reqBody, function (err, req, res, obj) {
+    this.client.post('/sts/assume-role', reqBody,
+        function (err, req, res, obj) {
         t.ok(err, 'should return error when UFDS not available');
         t.end();
     });

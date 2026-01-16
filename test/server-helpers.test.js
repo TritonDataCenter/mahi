@@ -25,14 +25,15 @@ var applyPagination = server.applyPagination;
 var buildSecretConfig = server.buildSecretConfig;
 var isMantaInstance = server.isMantaInstance;
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 1: buildDefaultTrustPolicy Tests
- * ================================================================ */
+ */
 
 test('buildDefaultTrustPolicy: basic trust policy', function (t) {
     var result = buildDefaultTrustPolicy();
     t.ok(result, 'should return a trust policy');
-    t.ok(typeof result === 'string', 'should return a string');
+    t.ok(typeof (result) === 'string', 'should return a string');
 
     var parsed = JSON.parse(result);
     t.ok(parsed.Version, 'should have Version');
@@ -47,22 +48,23 @@ test('buildDefaultTrustPolicy: default allows AssumeRole', function (t) {
 
     var hasAssumeRole = parsed.Statement.some(function (stmt) {
         if (stmt.Action === '*' || stmt.Action === 'sts:AssumeRole') {
-            return true;
+            return (true);
         }
         if (Array.isArray(stmt.Action)) {
             return stmt.Action.some(function (a) {
-                return a === '*' || a === 'sts:AssumeRole';
+                return (a === '*' || a === 'sts:AssumeRole');
             });
         }
-        return false;
+        return (false);
     });
     t.ok(hasAssumeRole, 'should have AssumeRole or wildcard action');
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 2: buildGetRoleResponse Tests
- * ================================================================ */
+ */
 
 test('buildGetRoleResponse: basic response', function (t) {
     var params = {
@@ -121,9 +123,10 @@ test('buildGetRoleResponse: custom path', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 3: buildRoleDn Tests
- * ================================================================ */
+ */
 
 test('buildRoleDn: basic DN', function (t) {
     var roleUuid = 'role-uuid-123';
@@ -131,7 +134,7 @@ test('buildRoleDn: basic DN', function (t) {
     var result = buildRoleDn(roleUuid, accountUuid);
 
     t.ok(result, 'should return a DN');
-    t.ok(typeof result === 'string', 'should be a string');
+    t.ok(typeof (result) === 'string', 'should be a string');
     t.ok(result.indexOf(roleUuid) !== -1, 'should contain role UUID');
     t.ok(result.indexOf(accountUuid) !== -1, 'should contain account UUID');
     t.end();
@@ -142,15 +145,16 @@ test('buildRoleDn: UUID format', function (t) {
     var accountUuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     var result = buildRoleDn(roleUuid, accountUuid);
 
-    t.ok(result.indexOf('role-uuid=11111111-2222-3333-4444-555555555555') !== -1,
-         'should contain role UUID');
+    var expectedRoleUuid = 'role-uuid=11111111-2222-3333-4444-555555555555';
+    t.ok(result.indexOf(expectedRoleUuid) !== -1, 'should contain role UUID');
     t.ok(result.indexOf('o=smartdc') !== -1, 'should have smartdc base');
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 4: buildListRolesRoleObject Tests
- * ================================================================ */
+ */
 
 test('buildListRolesRoleObject: basic role object', function (t) {
     var params = {
@@ -191,9 +195,10 @@ test('buildListRolesRoleObject: minimal params with defaults', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 5: applyPagination Tests
- * ================================================================ */
+ */
 
 test('applyPagination: no pagination params', function (t) {
     var roles = [
@@ -236,8 +241,10 @@ test('applyPagination: with marker', function (t) {
     var result = applyPagination(roles, 'RoleB', 100);
 
     t.ok(result, 'should return result');
-    t.equal(result.paginatedRoles.length, 2, 'should return roles after marker');
-    t.equal(result.paginatedRoles[0].RoleName, 'RoleC', 'first should be RoleC');
+    t.equal(result.paginatedRoles.length, 2,
+        'should return roles after marker');
+    t.equal(result.paginatedRoles[0].RoleName, 'RoleC',
+        'first should be RoleC');
     t.end();
 });
 
@@ -253,7 +260,8 @@ test('applyPagination: with marker and maxItems', function (t) {
 
     t.ok(result, 'should return result');
     t.equal(result.paginatedRoles.length, 2, 'should respect maxItems');
-    t.equal(result.paginatedRoles[0].RoleName, 'R3', 'should start after marker');
+    t.equal(result.paginatedRoles[0].RoleName, 'R3',
+        'should start after marker');
     t.ok(result.isTruncated, 'should be truncated');
     t.end();
 });
@@ -295,9 +303,10 @@ test('applyPagination: marker not found', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 6: buildSecretConfig Tests
- * ================================================================ */
+ */
 
 test('buildSecretConfig: valid config', function (t) {
     var sessionConfig = {
@@ -348,13 +357,14 @@ test('buildSecretConfig: missing gracePeriod throws', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 7: isMantaInstance Tests
- * ================================================================ */
+ */
 
 test('isMantaInstance: returns boolean', function (t) {
     var result = isMantaInstance();
-    t.ok(typeof result === 'boolean', 'should return boolean');
+    t.ok(typeof (result) === 'boolean', 'should return boolean');
     t.end();
 });
 

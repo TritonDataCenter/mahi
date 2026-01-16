@@ -82,10 +82,11 @@ var MOCK_CALLERS = {
     }
 };
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 1: Federated Principal Handling
  * Tests for validatePrincipal with principal.Federated
- * ================================================================ */
+ */
 
 test('validatePrincipal: federated principal returns false', function (t) {
     var principal = {
@@ -100,7 +101,7 @@ test('validatePrincipal: federated principal returns false', function (t) {
 test('validatePrincipal: federated principal in policy', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {
                 'Federated':
@@ -116,10 +117,11 @@ test('validatePrincipal: federated principal in policy', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 2: Role Chaining Prevention
  * Tests for caller.roleArn check to prevent privilege escalation
- * ================================================================ */
+ */
 
 test('validateSinglePrincipal: wildcard denies assumed role credentials',
     function (t) {
@@ -140,7 +142,8 @@ test('validatePrincipal: wildcard string denies assumed role', function (t) {
 test('validatePrincipal: wildcard in AWS object denies assumed role',
     function (t) {
     var principal = {'AWS': '*'};
-    var result = validatePrincipal(principal, MOCK_CALLERS.assumedRoleUser, LOG);
+    var result = validatePrincipal(principal,
+        MOCK_CALLERS.assumedRoleUser, LOG);
     t.ok(!result,
         'AWS wildcard should deny caller with assumed role credentials');
     t.end();
@@ -150,7 +153,7 @@ test('trust policy: wildcard allows normal user but denies assumed role',
     function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': '*',
             'Action': 'sts:AssumeRole'
@@ -168,10 +171,11 @@ test('trust policy: wildcard allows normal user but denies assumed role',
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 3: Multi-Cloud ARN Support
  * Tests for manta: and triton: ARN prefixes
- * ================================================================ */
+ */
 
 test('validateSinglePrincipal: manta ARN user principal', function (t) {
     var arn = 'arn:manta:iam::11111111-2222-3333-4444-555555555555:' +
@@ -206,7 +210,7 @@ test('validateSinglePrincipal: triton ARN root principal', function (t) {
 test('trust policy: manta ARN in policy', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {
                 'AWS': 'arn:manta:iam::' +
@@ -221,17 +225,18 @@ test('trust policy: manta ARN in policy', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 4: Root User Mixed Policy Scenario
  * Tests for the special business rule: root denied when both
  * account-level and explicit root allows exist
- * ================================================================ */
+ */
 
 test('trust policy: root user allowed with only account-level allow',
     function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {
                 'AWS': '11111111-2222-3333-4444-555555555555'
@@ -250,7 +255,7 @@ test('trust policy: root user allowed with only account-level allow',
 test('trust policy: root user allowed with explicit root ARN', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {
                 'AWS': 'arn:aws:iam::' +
@@ -294,10 +299,11 @@ test('trust policy: root user denied with mixed policy', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 5: ARN Parsing Edge Cases
  * Tests for parseRoleArnForTrustPolicy
- * ================================================================ */
+ */
 
 test('parseRoleArnForTrustPolicy: valid ARN', function (t) {
     var arn = 'arn:aws:iam::11111111-2222-3333-4444-555555555555:role/TestRole';
@@ -338,9 +344,10 @@ test('parseRoleArnForTrustPolicy: invalid - empty role name', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 7: findTrustPolicyInMemberpolicy Edge Cases
- * ================================================================ */
+ */
 
 test('findTrustPolicyInMemberpolicy: null input', function (t) {
     var result = findTrustPolicyInMemberpolicy(null);
@@ -358,7 +365,7 @@ test('findTrustPolicyInMemberpolicy: no trust policy in array', function (t) {
     var policies = [
         JSON.stringify({
             'Version': '2012-10-17',
-            'Statement': [{
+            'Statement': [ {
                 'Effect': 'Allow',
                 'Action': 's3:GetObject',
                 'Resource': '*'
@@ -373,7 +380,7 @@ test('findTrustPolicyInMemberpolicy: no trust policy in array', function (t) {
 test('findTrustPolicyInMemberpolicy: finds trust policy', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {'AWS': '*'},
             'Action': 'sts:AssumeRole'
@@ -382,7 +389,7 @@ test('findTrustPolicyInMemberpolicy: finds trust policy', function (t) {
     var policies = [
         JSON.stringify({
             'Version': '2012-10-17',
-            'Statement': [{
+            'Statement': [ {
                 'Effect': 'Allow',
                 'Action': 's3:GetObject',
                 'Resource': '*'
@@ -399,7 +406,7 @@ test('findTrustPolicyInMemberpolicy: finds wildcard action policy',
     function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {'AWS': '*'},
             'Action': '*'
@@ -415,7 +422,7 @@ test('findTrustPolicyInMemberpolicy: finds wildcard action policy',
 test('findTrustPolicyInMemberpolicy: skips invalid JSON', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {'AWS': '*'},
             'Action': 'sts:AssumeRole'
@@ -430,10 +437,11 @@ test('findTrustPolicyInMemberpolicy: skips invalid JSON', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 8: Unrecognized Principal Format
  * Tests for principal formats that don't match known patterns
- * ================================================================ */
+ */
 
 test('validatePrincipal: unrecognized object format', function (t) {
     var principal = {
@@ -465,15 +473,16 @@ test('validateSinglePrincipal: non-ARN string', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 9: Nested Caller Structure
  * Tests for caller with user nested inside
- * ================================================================ */
+ */
 
 test('validateTrustPolicy: handles nested caller.user structure', function (t) {
     var trustPolicy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {
                 'AWS': 'arn:aws:iam::' +
@@ -488,9 +497,10 @@ test('validateTrustPolicy: handles nested caller.user structure', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 10: statementMatchesAction Edge Cases
- * ================================================================ */
+ */
 
 test('statementMatchesAction: null Action returns false', function (t) {
     var statement = {'Effect': 'Allow', 'Principal': '*'};
@@ -516,10 +526,11 @@ test('statementMatchesAction: Action array without match', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 11: validateTrustPolicy Error Branches
  * Tests for trust policy validation edge cases
- * ================================================================ */
+ */
 
 test('validateTrustPolicy: null trust policy document', function (t) {
     var result = validateTrustPolicy(null, MOCK_CALLERS.normalUser, LOG);
@@ -563,7 +574,7 @@ test('validateTrustPolicy: Statement not an array', function (t) {
 test('validateTrustPolicy: Deny effect without matching action', function (t) {
     var policy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Deny',
             'Principal': '*',
             'Action': 's3:GetObject'  // Not sts:AssumeRole
@@ -581,7 +592,7 @@ test('validateTrustPolicy: Deny effect without matching action', function (t) {
 test('validateTrustPolicy: Allow effect without matching action', function (t) {
     var policy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': '*',
             'Action': 's3:GetObject'  // Not sts:AssumeRole
@@ -601,7 +612,7 @@ test('validateTrustPolicy: caller with only account uuid', function (t) {
     };
     var policy = JSON.stringify({
         'Version': '2012-10-17',
-        'Statement': [{
+        'Statement': [ {
             'Effect': 'Allow',
             'Principal': {
                 'AWS': '11111111-2222-3333-4444-555555555555'
@@ -611,14 +622,16 @@ test('validateTrustPolicy: caller with only account uuid', function (t) {
     });
     var result = validateTrustPolicy(policy, callerAccountOnly, LOG);
     // Result depends on implementation - just ensure it doesn't crash
-    t.ok(typeof result === 'boolean', 'should return boolean for account-only caller');
+    t.ok(typeof (result) === 'boolean',
+        'should return boolean for account-only caller');
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 12: validatePrincipal Additional Branches
  * Tests for Service and object format principals
- * ================================================================ */
+ */
 
 test('validatePrincipal: Service principal returns false', function (t) {
     var principal = {
@@ -660,16 +673,18 @@ test('validatePrincipal: wildcard string allows normal user', function (t) {
 });
 
 test('validatePrincipal: non-wildcard string principal', function (t) {
-    var principal = 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/normaluser';
+    var principal =
+        'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/normaluser';
     var result = validatePrincipal(principal, MOCK_CALLERS.normalUser, LOG);
     t.ok(result, 'matching ARN string should return true');
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 13: Helper Function Branches
  * Tests for extractCallerIdentity and other helpers
- * ================================================================ */
+ */
 
 var extractCallerIdentity = sts.helpers.extractCallerIdentity;
 var validateDurationSeconds = sts.helpers.validateDurationSeconds;
@@ -727,11 +742,13 @@ test('validateDurationSeconds: default value', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 14: More validatePrincipal Branches
- * ================================================================ */
+ */
 
-test('validatePrincipal: wildcard denies assumed role with nested roleArn', function (t) {
+test('validatePrincipal: wildcard denies assumed role with nested roleArn',
+    function (t) {
     // Caller that has roleArn (assumed role credential)
     var assumedCaller = {
         uuid: 'test-uuid',
@@ -766,9 +783,10 @@ test('validatePrincipal: array type returns false', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 15: createSessionTokenData Tests
- * ================================================================ */
+ */
 
 var createSessionTokenData = sts.helpers.createSessionTokenData;
 
@@ -780,9 +798,10 @@ test('createSessionTokenData: basic creation', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 16: buildLdapObjectForSessionToken Tests
- * ================================================================ */
+ */
 
 var buildLdapObjectForSessionToken = sts.helpers.buildLdapObjectForSessionToken;
 
@@ -801,9 +820,10 @@ test('buildLdapObjectForSessionToken: basic build', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 17: buildAccessKeyDataForRedis Tests
- * ================================================================ */
+ */
 
 var buildAccessKeyDataForRedis = sts.helpers.buildAccessKeyDataForRedis;
 
@@ -824,9 +844,10 @@ test('buildAccessKeyDataForRedis: basic build', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 18: validateServicePrincipal Tests
- * ================================================================ */
+ */
 
 var validateServicePrincipal = sts.internal.validateServicePrincipal;
 
@@ -860,11 +881,13 @@ test('validateServicePrincipal: empty string', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 19: Access Key ID Generator Tests
- * ================================================================ */
+ */
 
-var generateSessionTokenAccessKeyId = sts.internal.generateSessionTokenAccessKeyId;
+var generateSessionTokenAccessKeyId =
+    sts.internal.generateSessionTokenAccessKeyId;
 var generateAssumeRoleAccessKeyId = sts.internal.generateAssumeRoleAccessKeyId;
 
 test('generateSessionTokenAccessKeyId: prefix check', function (t) {
@@ -897,9 +920,10 @@ test('generateAssumeRoleAccessKeyId: unique keys', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 20: buildGetSessionTokenResponse Tests
- * ================================================================ */
+ */
 
 var buildGetSessionTokenResponse = sts.helpers.buildGetSessionTokenResponse;
 
@@ -915,7 +939,8 @@ test('buildGetSessionTokenResponse: basic response', function (t) {
     t.ok(result.GetSessionTokenResponse, 'should have GetSessionTokenResponse');
     t.ok(result.GetSessionTokenResponse.GetSessionTokenResult,
          'should have GetSessionTokenResult');
-    var creds = result.GetSessionTokenResponse.GetSessionTokenResult.Credentials;
+    var creds =
+        result.GetSessionTokenResponse.GetSessionTokenResult.Credentials;
     t.ok(creds, 'should have Credentials');
     t.equal(creds.AccessKeyId, params.accessKeyId, 'should have access key ID');
     t.equal(creds.SecretAccessKey, params.secretAccessKey,
@@ -923,9 +948,10 @@ test('buildGetSessionTokenResponse: basic response', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 21: statementMatchesAction edge cases
- * ================================================================ */
+ */
 
 test('statementMatchesAction: array with wildcard', function (t) {
     var stmt = { Action: ['sts:GetCallerIdentity', '*'] };
@@ -948,9 +974,10 @@ test('statementMatchesAction: single action string no match', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 22: validateSinglePrincipal additional branches
- * ================================================================ */
+ */
 
 test('validateSinglePrincipal: account ID with user login match', function (t) {
     var caller = {
@@ -981,17 +1008,20 @@ test('validateSinglePrincipal: ARN user mismatch', function (t) {
         login: 'testuser',
         account: { uuid: '11111111-2222-3333-4444-555555555555' }
     };
-    var arn = 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/otheruser';
+    var arn =
+        'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/otheruser';
     var result = validateSinglePrincipal(arn, caller, LOG);
     t.ok(!result, 'user ARN with different login should not match');
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 23: validateTrustPolicy DENY statement tests
- * ================================================================ */
+ */
 
-test('validateTrustPolicy: DENY with matching action denies access', function (t) {
+test('validateTrustPolicy: DENY with matching action denies access',
+    function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
         Statement: [
@@ -1017,7 +1047,8 @@ test('validateTrustPolicy: DENY with matching action denies access', function (t
     t.end();
 });
 
-test('validateTrustPolicy: DENY without matching principal passes', function (t) {
+test('validateTrustPolicy: DENY without matching principal passes',
+    function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
         Statement: [
@@ -1043,16 +1074,18 @@ test('validateTrustPolicy: DENY without matching principal passes', function (t)
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 24: Root user scenario tests
- * ================================================================ */
+ */
 
-test('validateTrustPolicy: root user only account-level allow denied', function (t) {
+test('validateTrustPolicy: root user only account-level allow denied',
+    function (t) {
     // Root users cannot match account-level principals (security rule)
     // They need explicit root ARN
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '11111111-2222-3333-4444-555555555555' }
@@ -1071,7 +1104,7 @@ test('validateTrustPolicy: root user only account-level allow denied', function 
 test('validateTrustPolicy: root user only explicit root allow', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: {
@@ -1116,9 +1149,10 @@ test('validateTrustPolicy: non-root user with wildcard in Allow', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 25: validateSinglePrincipal UUID format tests
- * ================================================================ */
+ */
 
 test('validateSinglePrincipal: UUID format account ID match', function (t) {
     var caller = {
@@ -1144,9 +1178,10 @@ test('validateSinglePrincipal: UUID format no match', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 26: AWS array principal tests
- * ================================================================ */
+ */
 
 test('validatePrincipal: AWS array principal match in middle', function (t) {
     var principal = {
@@ -1166,14 +1201,15 @@ test('validatePrincipal: AWS array principal match in middle', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 27: findTrustPolicyInMemberpolicy edge cases
- * ================================================================ */
+ */
 
 test('findTrustPolicyInMemberpolicy: wildcard action match', function (t) {
     var memberpolicy = [
         JSON.stringify({
-            Statement: [{
+            Statement: [ {
                 Effect: 'Allow',
                 Action: '*'
             }]
@@ -1184,24 +1220,26 @@ test('findTrustPolicyInMemberpolicy: wildcard action match', function (t) {
     t.end();
 });
 
-test('findTrustPolicyInMemberpolicy: action array with sts:AssumeRole', function (t) {
+test('findTrustPolicyInMemberpolicy: action array with sts:AssumeRole',
+    function (t) {
     var memberpolicy = [
         JSON.stringify({
-            Statement: [{
+            Statement: [ {
                 Effect: 'Allow',
                 Action: ['s3:GetObject', 'sts:AssumeRole']
             }]
         })
     ];
     var result = findTrustPolicyInMemberpolicy(memberpolicy);
-    t.ok(result, 'should find policy with action array containing sts:AssumeRole');
+    t.ok(result,
+        'should find policy with action array containing sts:AssumeRole');
     t.end();
 });
 
 test('findTrustPolicyInMemberpolicy: nested statement no action', function (t) {
     var memberpolicy = [
         JSON.stringify({
-            Statement: [{
+            Statement: [ {
                 Effect: 'Allow'
             }]
         })
@@ -1211,9 +1249,10 @@ test('findTrustPolicyInMemberpolicy: nested statement no action', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 28: extractCallerIdentity additional tests
- * ================================================================ */
+ */
 
 test('extractCallerIdentity: with account login fallback', function (t) {
     var caller = {
@@ -1239,9 +1278,10 @@ test('extractCallerIdentity: with user uuid but no login', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 29: parseRoleArnForTrustPolicy additional tests
- * ================================================================ */
+ */
 
 test('parseRoleArnForTrustPolicy: too many colons', function (t) {
     var result = parseRoleArnForTrustPolicy(
@@ -1252,7 +1292,8 @@ test('parseRoleArnForTrustPolicy: too many colons', function (t) {
 });
 
 test('parseRoleArnForTrustPolicy: user resource type', function (t) {
-    var result = parseRoleArnForTrustPolicy('arn:aws:iam::12345678:user/myuser');
+    var result =
+        parseRoleArnForTrustPolicy('arn:aws:iam::12345678:user/myuser');
     t.ok(!result, 'should return null for user resource type');
     t.end();
 });
@@ -1263,9 +1304,10 @@ test('parseRoleArnForTrustPolicy: s3 service instead of iam', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 30: validateDurationSeconds edge cases
- * ================================================================ */
+ */
 
 test('validateDurationSeconds: from body only', function (t) {
     var result = validateDurationSeconds({}, { DurationSeconds: 7200 });
@@ -1303,9 +1345,10 @@ test('validateDurationSeconds: exactly 129600 seconds', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 31: validateSinglePrincipal ARN parsing
- * ================================================================ */
+ */
 
 test('validateSinglePrincipal: triton ARN format', function (t) {
     var caller = {
@@ -1313,7 +1356,8 @@ test('validateSinglePrincipal: triton ARN format', function (t) {
         login: 'testuser',
         account: { uuid: '11111111-2222-3333-4444-555555555555' }
     };
-    var arn = 'arn:triton:iam::11111111-2222-3333-4444-555555555555:user/testuser';
+    var arn =
+        'arn:triton:iam::11111111-2222-3333-4444-555555555555:user/testuser';
     var result = validateSinglePrincipal(arn, caller, LOG);
     t.ok(result, 'should match triton ARN format');
     t.end();
@@ -1344,9 +1388,10 @@ test('validateSinglePrincipal: role ARN format', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 32: validatePrincipal with Service principals
- * ================================================================ */
+ */
 
 test('validatePrincipal: Service principal object format', function (t) {
     var principal = { Service: 'lambda.amazonaws.com' };
@@ -1376,14 +1421,15 @@ test('validatePrincipal: mixed AWS and Service principal', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 33: Additional root user policy scenarios
- * ================================================================ */
+ */
 
 test('validateTrustPolicy: root user with 12-digit account ID', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '123456789012' }
@@ -1403,7 +1449,7 @@ test('validateTrustPolicy: root user with 12-digit account ID', function (t) {
 test('validateTrustPolicy: non-root matches 12-digit account ID', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '123456789012' }
@@ -1419,14 +1465,16 @@ test('validateTrustPolicy: non-root matches 12-digit account ID', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 34: validateTrustPolicy caller structure variations
- * ================================================================ */
+ */
 
-test('validateTrustPolicy: caller with only uuid and login at top level', function (t) {
+test('validateTrustPolicy: caller with only uuid and login at top level',
+    function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '*' }
@@ -1445,7 +1493,7 @@ test('validateTrustPolicy: caller with only uuid and login at top level', functi
 test('validateTrustPolicy: caller with user but no uuid at top', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '*' }
@@ -1464,7 +1512,7 @@ test('validateTrustPolicy: caller with user but no uuid at top', function (t) {
 test('validateTrustPolicy: caller with empty user object', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '*' }
@@ -1484,7 +1532,7 @@ test('validateTrustPolicy: caller with empty user object', function (t) {
 test('validateTrustPolicy: caller with no account', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '*' }
@@ -1500,11 +1548,13 @@ test('validateTrustPolicy: caller with no account', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 35: root user special cases
- * ================================================================ */
+ */
 
-test('validateTrustPolicy: root user stmt not matching AssumeRole action', function (t) {
+test('validateTrustPolicy: root user stmt not matching AssumeRole action',
+    function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
         Statement: [
@@ -1517,7 +1567,8 @@ test('validateTrustPolicy: root user stmt not matching AssumeRole action', funct
                 Effect: 'Allow',
                 Action: 'sts:AssumeRole',
                 Principal: {
-                    AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:root'
+                    AWS: 'arn:aws:iam::' +
+                        '11111111-2222-3333-4444-555555555555:root'
                 }
             }
         ]
@@ -1535,7 +1586,7 @@ test('validateTrustPolicy: root user stmt not matching AssumeRole action', funct
 test('validateTrustPolicy: root user with no Principal.AWS', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { Service: 'lambda.amazonaws.com' }
@@ -1554,7 +1605,7 @@ test('validateTrustPolicy: root user with no Principal.AWS', function (t) {
 test('validateTrustPolicy: root user principal as array', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: {
@@ -1576,14 +1627,15 @@ test('validateTrustPolicy: root user principal as array', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 36: validateTrustPolicy edge cases
- * ================================================================ */
+ */
 
 test('validateTrustPolicy: Allow statement without Principal', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole'
             // No Principal field
@@ -1603,7 +1655,7 @@ test('validateTrustPolicy: Allow statement without Principal', function (t) {
 test('validateTrustPolicy: Allow does not match caller', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: {
@@ -1636,7 +1688,8 @@ test('validateTrustPolicy: multiple statements one matches', function (t) {
                 Effect: 'Allow',
                 Action: 'sts:AssumeRole',
                 Principal: {
-                    AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/testuser'
+                    AWS: 'arn:aws:iam::' +
+                        '11111111-2222-3333-4444-555555555555:user/testuser'
                 }
             }
         ]
@@ -1651,9 +1704,10 @@ test('validateTrustPolicy: multiple statements one matches', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 37: validateSinglePrincipal caller.account edge cases
- * ================================================================ */
+ */
 
 test('validateSinglePrincipal: caller with no account property', function (t) {
     var caller = {
@@ -1672,7 +1726,8 @@ test('validateSinglePrincipal: manta partition ARN', function (t) {
         login: 'testuser',
         account: { uuid: '11111111-2222-3333-4444-555555555555' }
     };
-    var arn = 'arn:manta:iam::11111111-2222-3333-4444-555555555555:user/testuser';
+    var arn =
+        'arn:manta:iam::11111111-2222-3333-4444-555555555555:user/testuser';
     var result = validateSinglePrincipal(arn, caller, LOG);
     t.ok(result, 'should match manta partition ARN');
     t.end();
@@ -1689,7 +1744,8 @@ test('validateSinglePrincipal: short ARN insufficient parts', function (t) {
     t.end();
 });
 
-test('validateSinglePrincipal: root ARN means any principal in account', function (t) {
+test('validateSinglePrincipal: root ARN means any principal in account',
+    function (t) {
     // In AWS, arn:aws:iam::ACCOUNT:root means "any principal in ACCOUNT"
     var caller = {
         uuid: 'test-uuid',
@@ -1714,14 +1770,15 @@ test('validateSinglePrincipal: root ARN wrong account', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 38: Caller extraction edge cases for coverage
- * ================================================================ */
+ */
 
 test('validateTrustPolicy: caller with null uuid and no account', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '*' }
@@ -1741,7 +1798,7 @@ test('validateTrustPolicy: caller with null uuid and no account', function (t) {
 test('validateTrustPolicy: caller using account.login fallback', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '*' }
@@ -1760,9 +1817,10 @@ test('validateTrustPolicy: caller using account.login fallback', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 39: Additional validateSinglePrincipal log branches
- * ================================================================ */
+ */
 
 test('validateSinglePrincipal: caller uuid from user.uuid', function (t) {
     // This should hit the callerUuid extraction from caller.user.uuid
@@ -1788,7 +1846,8 @@ test('validateSinglePrincipal: caller uuid from direct uuid', function (t) {
     t.end();
 });
 
-test('validateSinglePrincipal: wildcard with caller having roleArn', function (t) {
+test('validateSinglePrincipal: wildcard with caller having roleArn',
+    function (t) {
     var caller = {
         uuid: 'assumed-role-uuid',
         login: 'assumedrole',
@@ -1801,11 +1860,13 @@ test('validateSinglePrincipal: wildcard with caller having roleArn', function (t
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 40: validateSinglePrincipal no-match paths
- * ================================================================ */
+ */
 
-test('validateSinglePrincipal: unknown string principal with nested user', function (t) {
+test('validateSinglePrincipal: unknown string principal with nested user',
+    function (t) {
     var caller = {
         user: { uuid: 'nested-uuid', login: 'nesteduser' },
         account: { uuid: '11111111-2222-3333-4444-555555555555' }
@@ -1816,7 +1877,8 @@ test('validateSinglePrincipal: unknown string principal with nested user', funct
     t.end();
 });
 
-test('validateSinglePrincipal: unknown string principal with direct uuid', function (t) {
+test('validateSinglePrincipal: unknown string principal with direct uuid',
+    function (t) {
     var caller = {
         uuid: 'direct-uuid',
         login: 'directuser',
@@ -1827,7 +1889,8 @@ test('validateSinglePrincipal: unknown string principal with direct uuid', funct
     t.end();
 });
 
-test('validateSinglePrincipal: numeric string that is not 12 digits', function (t) {
+test('validateSinglePrincipal: numeric string that is not 12 digits',
+    function (t) {
     var caller = {
         uuid: 'test-uuid',
         login: 'testuser',
@@ -1838,9 +1901,10 @@ test('validateSinglePrincipal: numeric string that is not 12 digits', function (
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 41: findTrustPolicyInMemberpolicy additional paths
- * ================================================================ */
+ */
 
 test('findTrustPolicyInMemberpolicy: Statement not array', function (t) {
     var memberpolicy = [
@@ -1856,16 +1920,17 @@ test('findTrustPolicyInMemberpolicy: Statement not array', function (t) {
     t.end();
 });
 
-test('findTrustPolicyInMemberpolicy: multiple policies first has no assume', function (t) {
+test('findTrustPolicyInMemberpolicy: multiple policies first has no assume',
+    function (t) {
     var memberpolicy = [
         JSON.stringify({
-            Statement: [{
+            Statement: [ {
                 Effect: 'Allow',
                 Action: 's3:GetObject'  // Not AssumeRole
             }]
         }),
         JSON.stringify({
-            Statement: [{
+            Statement: [ {
                 Effect: 'Allow',
                 Action: 'sts:AssumeRole'
             }]
@@ -1876,9 +1941,10 @@ test('findTrustPolicyInMemberpolicy: multiple policies first has no assume', fun
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 42: validatePrincipal string wildcard for assumed role
- * ================================================================ */
+ */
 
 test('validatePrincipal: string wildcard with top-level roleArn', function (t) {
     // roleArn must be at top level, not nested in user
@@ -1895,14 +1961,16 @@ test('validatePrincipal: string wildcard with top-level roleArn', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 43: validateTrustPolicy caller extraction edge cases
- * ================================================================ */
+ */
 
-test('validateTrustPolicy: caller with user.login but not user.uuid', function (t) {
+test('validateTrustPolicy: caller with user.login but not user.uuid',
+    function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '*' }
@@ -1918,9 +1986,10 @@ test('validateTrustPolicy: caller with user.login but not user.uuid', function (
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 44: Additional coverage tests
- * ================================================================ */
+ */
 
 test('validateTrustPolicy: Deny effect but different action', function (t) {
     var trustPolicy = JSON.stringify({
@@ -1981,7 +2050,8 @@ test('validateSinglePrincipal: principal with nested colons', function (t) {
         account: { uuid: '11111111-2222-3333-4444-555555555555' }
     };
     // ARN with extra colons in resource part
-    var arn = 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/test:name';
+    var arn =
+        'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/test:name';
     var result = validateSinglePrincipal(arn, caller, LOG);
     // Username has colon which won't match
     t.ok(!result, 'username with colon should not match simple login');
@@ -2002,7 +2072,8 @@ test('validatePrincipal: AWS principal single string', function (t) {
     t.end();
 });
 
-test('validateTrustPolicy: root user with multiple non-matching stmts', function (t) {
+test('validateTrustPolicy: root user with multiple non-matching stmts',
+    function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
         Statement: [
@@ -2015,7 +2086,8 @@ test('validateTrustPolicy: root user with multiple non-matching stmts', function
                 Effect: 'Allow',
                 Action: 'sts:AssumeRole',
                 Principal: {
-                    AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:root'
+                    AWS: 'arn:aws:iam::' +
+                        '11111111-2222-3333-4444-555555555555:root'
                 }
             }
         ]
@@ -2031,14 +2103,16 @@ test('validateTrustPolicy: root user with multiple non-matching stmts', function
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 45: Minimal caller structure tests
- * ================================================================ */
+ */
 
-test('validateTrustPolicy: caller with no login anywhere (null fallback)', function (t) {
+test('validateTrustPolicy: caller with no login anywhere (null fallback)',
+    function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '*' }
@@ -2055,10 +2129,11 @@ test('validateTrustPolicy: caller with no login anywhere (null fallback)', funct
     t.end();
 });
 
-test('validateTrustPolicy: caller with no uuid anywhere (null fallback)', function (t) {
+test('validateTrustPolicy: caller with no uuid anywhere (null fallback)',
+    function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '*' }
@@ -2078,7 +2153,7 @@ test('validateTrustPolicy: caller with no uuid anywhere (null fallback)', functi
 test('validateTrustPolicy: completely minimal caller', function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { AWS: '*' }
@@ -2093,9 +2168,10 @@ test('validateTrustPolicy: completely minimal caller', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 46: statementMatchesAction full coverage
- * ================================================================ */
+ */
 
 test('statementMatchesAction: undefined Action', function (t) {
     var stmt = { Effect: 'Allow' };  // No Action property
@@ -2111,9 +2187,10 @@ test('statementMatchesAction: wildcard action string', function (t) {
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 47: DENY statement with principal matching
- * ================================================================ */
+ */
 
 test('validateTrustPolicy: DENY matches specific user ARN', function (t) {
     var trustPolicy = JSON.stringify({
@@ -2123,7 +2200,8 @@ test('validateTrustPolicy: DENY matches specific user ARN', function (t) {
                 Effect: 'Deny',
                 Action: 'sts:AssumeRole',
                 Principal: {
-                    AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/testuser'
+                    AWS: 'arn:aws:iam::' +
+                        '11111111-2222-3333-4444-555555555555:user/testuser'
                 }
             },
             {
@@ -2169,7 +2247,8 @@ test('validateTrustPolicy: DENY with account ID principal', function (t) {
     t.end();
 });
 
-test('validateTrustPolicy: multiple DENY statements only one matches', function (t) {
+test('validateTrustPolicy: multiple DENY statements only one matches',
+    function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
         Statement: [
@@ -2200,14 +2279,16 @@ test('validateTrustPolicy: multiple DENY statements only one matches', function 
     t.end();
 });
 
-/* ================================================================
+/*
+ * ==============================
  * SECTION 48: Root user policy processing paths
- * ================================================================ */
+ */
 
-test('validateTrustPolicy: root with Allow stmt missing Principal.AWS', function (t) {
+test('validateTrustPolicy: root with Allow stmt missing Principal.AWS',
+    function (t) {
     var trustPolicy = JSON.stringify({
         Version: '2012-10-17',
-        Statement: [{
+        Statement: [ {
             Effect: 'Allow',
             Action: 'sts:AssumeRole',
             Principal: { Service: 'ec2.amazonaws.com' }  // AWS not present
