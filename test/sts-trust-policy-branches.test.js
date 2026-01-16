@@ -1801,4 +1801,426 @@ test('validateSinglePrincipal: wildcard with caller having roleArn', function (t
     t.end();
 });
 
+/* ================================================================
+ * SECTION 40: validateSinglePrincipal no-match paths
+ * ================================================================ */
+
+test('validateSinglePrincipal: unknown string principal with nested user', function (t) {
+    var caller = {
+        user: { uuid: 'nested-uuid', login: 'nesteduser' },
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    // Random string that won't match any pattern
+    var result = validateSinglePrincipal('some-random-string', caller, LOG);
+    t.ok(!result, 'unknown string should not match');
+    t.end();
+});
+
+test('validateSinglePrincipal: unknown string principal with direct uuid', function (t) {
+    var caller = {
+        uuid: 'direct-uuid',
+        login: 'directuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateSinglePrincipal('random-non-arn-string', caller, LOG);
+    t.ok(!result, 'unknown string should not match');
+    t.end();
+});
+
+test('validateSinglePrincipal: numeric string that is not 12 digits', function (t) {
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '123456789' }  // 9 digits
+    };
+    var result = validateSinglePrincipal('123456789', caller, LOG);
+    t.ok(!result, 'non-12-digit number should not match');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 41: findTrustPolicyInMemberpolicy additional paths
+ * ================================================================ */
+
+test('findTrustPolicyInMemberpolicy: Statement not array', function (t) {
+    var memberpolicy = [
+        JSON.stringify({
+            Statement: {  // Object instead of array
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole'
+            }
+        })
+    ];
+    var result = findTrustPolicyInMemberpolicy(memberpolicy);
+    t.ok(!result, 'should not find policy with non-array Statement');
+    t.end();
+});
+
+test('findTrustPolicyInMemberpolicy: multiple policies first has no assume', function (t) {
+    var memberpolicy = [
+        JSON.stringify({
+            Statement: [{
+                Effect: 'Allow',
+                Action: 's3:GetObject'  // Not AssumeRole
+            }]
+        }),
+        JSON.stringify({
+            Statement: [{
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole'
+            }]
+        })
+    ];
+    var result = findTrustPolicyInMemberpolicy(memberpolicy);
+    t.ok(result, 'should find second policy with AssumeRole');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 42: validatePrincipal string wildcard for assumed role
+ * ================================================================ */
+
+test('validatePrincipal: string wildcard with top-level roleArn', function (t) {
+    // roleArn must be at top level, not nested in user
+    var caller = {
+        user: {
+            uuid: 'user-uuid',
+            login: 'testuser'
+        },
+        roleArn: 'arn:aws:iam::123:assumed-role/MyRole/session',  // top level
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validatePrincipal('*', caller, LOG);
+    t.ok(!result, 'wildcard string should deny caller with top-level roleArn');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 43: validateTrustPolicy caller extraction edge cases
+ * ================================================================ */
+
+test('validateTrustPolicy: caller with user.login but not user.uuid', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '*' }
+        }]
+    });
+    var caller = {
+        user: { login: 'userlogin' },  // has login but no uuid
+        uuid: 'fallback-uuid',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'should use user.login and fallback uuid');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 44: Additional coverage tests
+ * ================================================================ */
+
+test('validateTrustPolicy: Deny effect but different action', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Deny',
+                Action: 's3:GetObject',  // Not AssumeRole
+                Principal: { AWS: '*' }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: '*' }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(result, 'Deny with different action should not block AssumeRole');
+    t.end();
+});
+
+test('validateTrustPolicy: multiple Allow statements none match', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: 'arn:aws:iam::other1:user/user1' }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: 'arn:aws:iam::other2:user/user2' }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'should deny when no Allow statements match');
+    t.end();
+});
+
+test('validateSinglePrincipal: principal with nested colons', function (t) {
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    // ARN with extra colons in resource part
+    var arn = 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/test:name';
+    var result = validateSinglePrincipal(arn, caller, LOG);
+    // Username has colon which won't match
+    t.ok(!result, 'username with colon should not match simple login');
+    t.end();
+});
+
+test('validatePrincipal: AWS principal single string', function (t) {
+    var principal = {
+        AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/testuser'
+    };
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validatePrincipal(principal, caller, LOG);
+    t.ok(result, 'AWS single string should match');
+    t.end();
+});
+
+test('validateTrustPolicy: root user with multiple non-matching stmts', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Allow',
+                Action: 's3:GetObject',  // Wrong action
+                Principal: { AWS: '11111111-2222-3333-4444-555555555555' }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: {
+                    AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:root'
+                }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'root-uuid',
+        login: 'root',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    // First stmt has wrong action, second is explicit root - should pass
+    t.ok(result, 'root with explicit root ARN and non-matching action stmt');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 45: Minimal caller structure tests
+ * ================================================================ */
+
+test('validateTrustPolicy: caller with no login anywhere (null fallback)', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '*' }
+        }]
+    });
+    var caller = {
+        user: {},  // empty, no login
+        uuid: 'test-uuid'
+        // no login at top level, no account
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    // callerLogin will be null
+    t.ok(result, 'should process with null callerLogin');
+    t.end();
+});
+
+test('validateTrustPolicy: caller with no uuid anywhere (null fallback)', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '*' }
+        }]
+    });
+    var caller = {
+        user: {},  // empty, no uuid
+        login: 'testlogin'
+        // no uuid at top level, no account
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    // callerUuid will be null
+    t.ok(result, 'should process with null callerUuid');
+    t.end();
+});
+
+test('validateTrustPolicy: completely minimal caller', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { AWS: '*' }
+        }]
+    });
+    var caller = {
+        // Absolutely minimal - just empty
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    // Both callerUuid and callerLogin will be undefined/null
+    t.ok(result, 'should process with minimal caller');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 46: statementMatchesAction full coverage
+ * ================================================================ */
+
+test('statementMatchesAction: undefined Action', function (t) {
+    var stmt = { Effect: 'Allow' };  // No Action property
+    var result = statementMatchesAction(stmt, 'sts:AssumeRole');
+    t.ok(!result, 'undefined Action should not match');
+    t.end();
+});
+
+test('statementMatchesAction: wildcard action string', function (t) {
+    var stmt = { Action: '*' };
+    var result = statementMatchesAction(stmt, 'sts:AssumeRole');
+    t.ok(result, 'wildcard action should match');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 47: DENY statement with principal matching
+ * ================================================================ */
+
+test('validateTrustPolicy: DENY matches specific user ARN', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Deny',
+                Action: 'sts:AssumeRole',
+                Principal: {
+                    AWS: 'arn:aws:iam::11111111-2222-3333-4444-555555555555:user/testuser'
+                }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: '*' }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'DENY with matching user ARN should deny');
+    t.end();
+});
+
+test('validateTrustPolicy: DENY with account ID principal', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Deny',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: '11111111-2222-3333-4444-555555555555' }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: '*' }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'DENY with matching account ID should deny');
+    t.end();
+});
+
+test('validateTrustPolicy: multiple DENY statements only one matches', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+            {
+                Effect: 'Deny',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: 'arn:aws:iam::other-account:user/other' }
+            },
+            {
+                Effect: 'Deny',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: '11111111-2222-3333-4444-555555555555' }
+            },
+            {
+                Effect: 'Allow',
+                Action: 'sts:AssumeRole',
+                Principal: { AWS: '*' }
+            }
+        ]
+    });
+    var caller = {
+        uuid: 'test-uuid',
+        login: 'testuser',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'second DENY matches so should deny');
+    t.end();
+});
+
+/* ================================================================
+ * SECTION 48: Root user policy processing paths
+ * ================================================================ */
+
+test('validateTrustPolicy: root with Allow stmt missing Principal.AWS', function (t) {
+    var trustPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{
+            Effect: 'Allow',
+            Action: 'sts:AssumeRole',
+            Principal: { Service: 'ec2.amazonaws.com' }  // AWS not present
+        }]
+    });
+    var caller = {
+        uuid: 'root-uuid',
+        login: 'root',
+        account: { uuid: '11111111-2222-3333-4444-555555555555' }
+    };
+    var result = validateTrustPolicy(trustPolicy, caller, LOG);
+    t.ok(!result, 'root with only Service principal should not match');
+    t.end();
+});
+
 console.log('✓ STS trust policy branch coverage tests loaded');
