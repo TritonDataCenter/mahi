@@ -11,6 +11,7 @@ apisections: Task Control API
 <!--
     Copyright (c) 2017, Joyent, Inc.
     Copyright 2024 MNX Cloud, Inc.
+    Copyright 2026 Edgecast Cloud LLC.
 -->
 
 # Mahi
@@ -321,6 +322,19 @@ The user object.
         "defaultRoles": []
       }
     }
+
+
+# STS (Security Token Service)
+
+AWS-compatible STS endpoints for temporary credential management.
+See [STS API](sts.md) for full documentation.
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| /sts/assume-role | POST | Assume an IAM role |
+| /sts/get-session-token | POST | Get temporary credentials |
+| /sts/get-caller-identity | GET | Get caller identity |
+
 
 # Translations
 
