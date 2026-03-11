@@ -27,7 +27,7 @@
     "uuid": "3.4.0",
     "vasync": "1.4.3",
     "xtend": "2.1.2",
-    "jsonwebtoken": "1.1.0",
+    "jsonwebtoken": "9.0.0",
     "generic-pool": "2.5.4"
   },
   "engines": {
