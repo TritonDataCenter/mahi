@@ -44,9 +44,9 @@ var SCOPED_SECRET = 'scopedSecretKeyForTesting123456789abcdef0';
 var UNSCOPED_KEY_ID = 'AKIAUNSCOPED000000001';
 var UNSCOPED_SECRET = 'unscopedSecretKeyForTesting12345678abcde';
 
-/* ========================================================
+/*
  * PART 1: Replicator transforms — scoped key add/modify/delete
- * ======================================================== */
+ */
 
 test('setup - fresh redis', function (t) {
     REDIS = redis.createClient();
@@ -103,7 +103,7 @@ test('add - scoped permanent key stores object format in Redis',
                 var keyData = payload.accesskeys[SCOPED_KEY_ID];
 
                 // Scoped key must be stored as object, not string
-                t.equal(typeof keyData, 'object',
+                t.equal(typeof (keyData), 'object',
                     'scoped key should be stored as object');
                 t.equal(keyData.secret, SCOPED_SECRET,
                     'secret should be correct');
@@ -174,7 +174,7 @@ test('add - unscoped key still uses legacy string format',
                 var payload = JSON.parse(userRes);
 
                 // Unscoped key should be plain string
-                t.equal(typeof payload.accesskeys[UNSCOPED_KEY_ID],
+                t.equal(typeof (payload.accesskeys[UNSCOPED_KEY_ID]),
                     'string',
                     'unscoped key should be stored as string');
                 t.equal(payload.accesskeys[UNSCOPED_KEY_ID],
@@ -183,7 +183,7 @@ test('add - unscoped key still uses legacy string format',
 
                 // Scoped key should still be object
                 t.equal(
-                    typeof payload.accesskeys[SCOPED_KEY_ID],
+                    typeof (payload.accesskeys[SCOPED_KEY_ID]),
                     'object',
                     'scoped key should still be object');
 
@@ -262,7 +262,7 @@ test('modify - scope-only change updates Redis', function (t) {
                 t.ok(!getErr);
                 var payload = JSON.parse(userRes);
                 var keyData = payload.accesskeys[SCOPED_KEY_ID];
-                t.equal(typeof keyData, 'object',
+                t.equal(typeof (keyData), 'object',
                     'scoped key should still be object');
                 t.equal(keyData.scope, newScope,
                     'scope should be updated to new value');
@@ -336,7 +336,7 @@ test('modify - scope removal converts to legacy string format',
                 var payload = JSON.parse(userRes);
                 var keyData = payload.accesskeys[SCOPED_KEY_ID];
                 // After scope removal, key should be plain string
-                t.equal(typeof keyData, 'string',
+                t.equal(typeof (keyData), 'string',
                     'key should revert to string format');
                 t.equal(keyData, SCOPED_SECRET,
                     'secret should be correct');
@@ -511,7 +511,7 @@ test('modify - reactivate scoped key restores object format',
                 t.ok(!getErr);
                 var payload = JSON.parse(userRes);
                 var keyData = payload.accesskeys[SCOPED_KEY_ID];
-                t.equal(typeof keyData, 'object',
+                t.equal(typeof (keyData), 'object',
                     'reactivated scoped key should be object');
                 t.equal(keyData.secret, SCOPED_SECRET,
                     'secret should be correct');
@@ -595,9 +595,9 @@ test('delete - scoped key is fully cleaned up', function (t) {
     });
 });
 
-/* ========================================================
+/*
  * PART 2: SigV4 verification — scoped permanent credentials
- * ======================================================== */
+ */
 
 /*
  * Helper: set up user in Redis and run sigv4 verify.
@@ -617,12 +617,12 @@ function setupAndVerify(opts, t, callback) {
     REDIS.set('/uuid/' + user.uuid, JSON.stringify(user),
         function (err1) {
         if (err1) {
-            return callback(err1);
+            return (callback(err1));
         }
-        return REDIS.set('/accesskey/' + accessKeyId, lookupVal,
+        return (REDIS.set('/accesskey/' + accessKeyId, lookupVal,
             function (err2) {
             if (err2) {
-                return callback(err2);
+                return (callback(err2));
             }
 
             var headers = helper.createHeaders({
@@ -643,12 +643,12 @@ function setupAndVerify(opts, t, callback) {
                 query: {}
             };
 
-            return sigv4.verifySigV4({
+            return (sigv4.verifySigV4({
                 req: req,
                 log: log,
                 redis: REDIS
-            }, callback);
-        });
+            }, callback));
+        }));
     });
 }
 
@@ -742,9 +742,9 @@ test('sigv4 - corrupt reverse lookup JSON returns error',
     });
 });
 
-/* ========================================================
+/*
  * PART 3: STS helpers — scope in builder functions
- * ======================================================== */
+ */
 
 var buildLdapObj = sts.helpers.buildLdapObjectForSessionToken;
 var buildRedisData = sts.helpers.buildAccessKeyDataForRedis;
@@ -850,9 +850,9 @@ test('buildAccessKeyDataForRedis - omits scope when absent',
     t.done();
 });
 
-/* ========================================================
+/*
  * PART 4: SigV4 — temporary credentials with scope
- * ======================================================== */
+ */
 
 test('sigv4 - temp credential with bucketScope returns it',
     function (t) {
