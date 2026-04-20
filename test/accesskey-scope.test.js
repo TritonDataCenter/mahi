@@ -897,3 +897,129 @@ test('sigv4 - temp credential without scope has no bucketScope',
         'temp credential without scope should have no bucketScope');
     t.done();
 });
+
+/*
+ * PART 5: UFDS fallback path — bucketScope in handleTemporaryCredential
+ *
+ * When a temporary credential is not found in Redis (e.g. after restart),
+ * sigv4 falls back to UFDS lookup via handleTemporaryCredential.  These
+ * tests verify that the result includes bucketScope from the UFDS record.
+ */
+
+var handleTempCred = sigv4._handleTemporaryCredential;
+
+/*
+ * Helper: build mocks and call handleTemporaryCredential.
+ *
+ * opts.accessKeyId     — temp key ID
+ * opts.secret          — temp secret key
+ * opts.sessionToken    — session token string
+ * opts.principalUuid   — user UUID stored on the UFDS credential
+ * opts.accesskeyscope  — scope JSON string (or omit for unscoped)
+ * opts.assumedrole     — optional role ARN
+ */
+function runUfdsFallback(opts, t, callback) {
+    var log = bunyan.createLogger({
+        name: 'ufds-fallback-test',
+        level: 'fatal'
+    });
+
+    var user = {
+        uuid: opts.principalUuid,
+        login: 'ufds-fallback-user',
+        accesskeys: {}
+    };
+
+    /* Store principal user in Redis (required by the function) */
+    REDIS.set('/uuid/' + opts.principalUuid, JSON.stringify(user),
+        function (redisErr) {
+        if (redisErr) {
+            return (callback(redisErr));
+        }
+
+        /* Generate valid SigV4 headers with the temp secret */
+        var method = 'GET';
+        var path = '/test-bucket/obj.txt';
+        var headers = helper.createHeaders({
+            method: method,
+            path: path,
+            accessKey: opts.accessKeyId,
+            secret: opts.secret
+        });
+
+        /* Parse auth header to build authInfo */
+        var authInfo = sigv4.parseAuthHeader(headers.authorization);
+
+        /* Build mock UFDS that returns the credential record */
+        var credRecord = {
+            accesskeyid: opts.accessKeyId,
+            accesskeysecret: opts.secret,
+            sessiontoken: opts.sessionToken,
+            principaluuid: opts.principalUuid,
+            credentialtype: 'temporary',
+            expiration: new Date(Date.now() + 3600000).toISOString()
+        };
+        if (opts.assumedrole) {
+            credRecord.assumedrole = opts.assumedrole;
+        }
+        if (opts.accesskeyscope) {
+            credRecord.accesskeyscope = opts.accesskeyscope;
+        }
+        var mockUfds = {
+            search: function (_base, _searchOpts, cb) {
+                cb(null, [credRecord]);
+            }
+        };
+
+        /* Build req object expected by handleTemporaryCredential */
+        var req = {
+            method: method,
+            url: path,
+            headers: headers,
+            query: {},
+            redis: REDIS
+        };
+
+        return (handleTempCred(authInfo, opts.sessionToken,
+            req, log, mockUfds, callback));
+    });
+}
+
+test('UFDS fallback - scoped temp credential returns bucketScope',
+    function (t) {
+    runUfdsFallback({
+        accessKeyId: 'UFDSSCOPED000000001',
+        secret: 'ufdsSecretScoped1234567890abcdef012345',
+        sessionToken: 'session-token-scoped-ufds',
+        principalUuid: 'ufds-scoped-user-uuid-001',
+        accesskeyscope: SCOPE_JSON,
+        assumedrole: 'arn:aws:iam::acct:role/TestRole'
+    }, t, function (err, result) {
+        t.ifError(err, 'should not error');
+        t.ok(result, 'should return result');
+        t.equal(result.bucketScope, SCOPE_JSON,
+            'UFDS fallback should return bucketScope from accesskeyscope');
+        t.equal(result.isTemporaryCredential, true,
+            'should be marked as temporary credential');
+        t.equal(result.assumedRole,
+            'arn:aws:iam::acct:role/TestRole',
+            'should include assumedRole');
+        t.done();
+    });
+});
+
+test('UFDS fallback - unscoped temp credential returns null bucketScope',
+    function (t) {
+    runUfdsFallback({
+        accessKeyId: 'UFDSUNSCOPED0000001',
+        secret: 'ufdsSecretUnscoped234567890abcdef01234',
+        sessionToken: 'session-token-unscoped-ufds',
+        principalUuid: 'ufds-unscoped-user-uuid-01'
+    }, t, function (err, result) {
+        t.ifError(err, 'should not error');
+        t.ok(result, 'should return result');
+        t.equal(result.bucketScope, null,
+            'UFDS fallback without scope should return null bucketScope');
+        t.done();
+    });
+});
