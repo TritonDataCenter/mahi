@@ -131,7 +131,7 @@ test('add - scoped permanent key stores object format in Redis',
 
 /* --- add: unscoped key alongside scoped key --- */
 
-test('add - unscoped key still uses legacy string format',
+test('add - unscoped key uses unified object format',
     function (t) {
     var entry = {
         dn: 'changenumber=101, cn=changelog',
@@ -173,13 +173,15 @@ test('add - unscoped key still uses legacy string format',
                 t.ok(!getErr);
                 var payload = JSON.parse(userRes);
 
-                // Unscoped key should be plain string
-                t.equal(typeof (payload.accesskeys[UNSCOPED_KEY_ID]),
-                    'string',
-                    'unscoped key should be stored as string');
-                t.equal(payload.accesskeys[UNSCOPED_KEY_ID],
-                    UNSCOPED_SECRET,
+                // Unscoped key should be object with scope: null
+                var unscopedData =
+                    payload.accesskeys[UNSCOPED_KEY_ID];
+                t.equal(typeof (unscopedData), 'object',
+                    'unscoped key should be stored as object');
+                t.equal(unscopedData.secret, UNSCOPED_SECRET,
                     'unscoped secret should be correct');
+                t.equal(unscopedData.scope, null,
+                    'unscoped key should have scope: null');
 
                 // Scoped key should still be object
                 t.equal(
@@ -187,11 +189,17 @@ test('add - unscoped key still uses legacy string format',
                     'object',
                     'scoped key should still be object');
 
-                // Reverse lookup should be plain UUID
+                // Reverse lookup should be JSON with scope: null
                 REDIS.get(lookupKey, function (lErr, lookupRes) {
                     t.ok(!lErr);
-                    t.equal(lookupRes, USER_UUID,
-                        'unscoped reverse lookup should be UUID');
+                    var lookupData = JSON.parse(lookupRes);
+                    t.equal(lookupData.userUuid, USER_UUID,
+                        'unscoped reverse lookup userUuid');
+                    t.equal(lookupData.credentialType,
+                        'permanent',
+                        'unscoped reverse lookup type');
+                    t.equal(lookupData.scope, null,
+                        'unscoped reverse lookup scope null');
                     t.done();
                 });
             });
@@ -281,9 +289,9 @@ test('modify - scope-only change updates Redis', function (t) {
     });
 });
 
-/* --- modify: scope removal converts back to string format --- */
+/* --- modify: scope removal sets scope to null --- */
 
-test('modify - scope removal converts to legacy string format',
+test('modify - scope removal stores object with scope null',
     function (t) {
     var modEntry = {
         accesskeyid: [SCOPED_KEY_ID],
@@ -335,16 +343,22 @@ test('modify - scope removal converts to legacy string format',
                 t.ok(!getErr);
                 var payload = JSON.parse(userRes);
                 var keyData = payload.accesskeys[SCOPED_KEY_ID];
-                // After scope removal, key should be plain string
-                t.equal(typeof (keyData), 'string',
-                    'key should revert to string format');
-                t.equal(keyData, SCOPED_SECRET,
+                // After scope removal, key should be object
+                // with scope: null
+                t.equal(typeof (keyData), 'object',
+                    'key should remain object format');
+                t.equal(keyData.secret, SCOPED_SECRET,
                     'secret should be correct');
+                t.equal(keyData.scope, null,
+                    'scope should be null after removal');
 
                 REDIS.get(lookupKey, function (lErr, lookupRes) {
                     t.ok(!lErr);
-                    t.equal(lookupRes, USER_UUID,
-                        'reverse lookup should revert to UUID');
+                    var lookupData = JSON.parse(lookupRes);
+                    t.equal(lookupData.userUuid, USER_UUID,
+                        'reverse lookup userUuid correct');
+                    t.equal(lookupData.scope, null,
+                        'reverse lookup scope should be null');
                     t.done();
                 });
             });
@@ -580,9 +594,12 @@ test('delete - scoped key is fully cleaned up', function (t) {
                     'scoped key should be removed from user');
 
                 // Unscoped key should still be there
-                t.equal(payload.accesskeys[UNSCOPED_KEY_ID],
-                    UNSCOPED_SECRET,
-                    'unscoped key should remain');
+                var unscopedData =
+                    payload.accesskeys[UNSCOPED_KEY_ID];
+                t.equal(typeof (unscopedData), 'object',
+                    'unscoped key should remain as object');
+                t.equal(unscopedData.secret, UNSCOPED_SECRET,
+                    'unscoped key secret should remain');
 
                 REDIS.get(lookupKey, function (lErr, lookupRes) {
                     t.ok(!lErr);
@@ -657,7 +674,10 @@ test('sigv4 - unscoped key returns null bucketScope', function (t) {
         uuid: 'sigv4-user-unscoped',
         login: 'sigv4user',
         accesskeys: {
-            'AKIASIGV4UNSCOPED01': 'secretForSigv4UnscopedTest1234567890'
+            'AKIASIGV4UNSCOPED01': {
+                secret: 'secretForSigv4UnscopedTest1234567890',
+                scope: null
+            }
         }
     };
 

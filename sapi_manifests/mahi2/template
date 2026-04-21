@@ -8,7 +8,7 @@
         "tlsOptions": {
             "rejectUnauthorized": false
         },
-        "interval": 10000
+        "interval": {{UFDS_POLL_INTERVAL}}
     },
     "ufdsCfg": {
       "url": "{{UFDS_URL}}",
