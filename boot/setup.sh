@@ -193,6 +193,22 @@ function setup_rotation_cron {
     echo "JWT rotation cron job installed successfully"
 }
 
+function manta_setup_poll_interval {
+    echo "Configuring UFDS_POLL_INTERVAL for authcache replicator"
+    local current_interval=""
+    current_interval=$(get_sapi_metadata UFDS_POLL_INTERVAL)
+
+    if [[ -z "$current_interval" ]]; then
+        echo "Setting UFDS_POLL_INTERVAL to 2000ms (authcache hot path)"
+        if ! $SVC_ROOT/boot/set-sapi-metadata.sh UFDS_POLL_INTERVAL "2000"; then
+            echo "Warning: Failed to set UFDS_POLL_INTERVAL in SAPI" >&2
+            echo "Replicator will use template default (2000ms)" >&2
+        fi
+    else
+        echo "UFDS_POLL_INTERVAL already set to ${current_interval}ms"
+    fi
+}
+
 function manta_setup_auth {
     svccfg import $SVC_ROOT/smf/manifests/mahi.xml
     svcadm enable mahi
@@ -239,6 +255,9 @@ if [[ ${FLAVOR} == "manta" ]]; then
 
     echo "Setting up JWT rotation cron job"
     setup_rotation_cron
+
+    echo "Setting up replicator poll interval"
+    manta_setup_poll_interval
 
     # set up log rotation for mahiv2 first so logadm rotates logs properly
     manta_add_logadm_entry "mahi-replicator"
