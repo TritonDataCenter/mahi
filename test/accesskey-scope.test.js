@@ -1289,3 +1289,59 @@ test('UFDS read-through: scoped permanent key found via UFDS when not in Redis',
         });
     });
 });
+
+/*
+ * PART 8: Shared Redis entry builder
+ *
+ * Verifies that the builder functions in
+ * redis-accesskey-format.js produce the exact structure
+ * expected by sigv4.js and redislib.js consumers.
+ */
+
+var akFormat = require('../lib/redis-accesskey-format');
+
+test('buildPermanentKeyEntry - scoped key', function (t) {
+    var entry = akFormat.buildPermanentKeyEntry(
+        'mySecret', SCOPE_JSON);
+    t.equal(entry.secret, 'mySecret',
+        'secret should be preserved');
+    t.equal(entry.scope, SCOPE_JSON,
+        'scope should be preserved');
+    t.equal(Object.keys(entry).length, 2,
+        'should have exactly two keys');
+    t.done();
+});
+
+test('buildPermanentKeyEntry - unscoped key', function (t) {
+    var entry = akFormat.buildPermanentKeyEntry(
+        'mySecret', null);
+    t.equal(entry.scope, null,
+        'scope should be null for unscoped key');
+    t.done();
+});
+
+test('buildPermanentKeyLookup - scoped key', function (t) {
+    var lookup = akFormat.buildPermanentKeyLookup(
+        'AKIATEST', 'user-uuid', SCOPE_JSON);
+    t.equal(lookup.type, 'accesskey',
+        'type should be accesskey');
+    t.equal(lookup.accessKeyId, 'AKIATEST',
+        'accessKeyId should be preserved');
+    t.equal(lookup.userUuid, 'user-uuid',
+        'userUuid should be preserved');
+    t.equal(lookup.credentialType, 'permanent',
+        'credentialType should be permanent');
+    t.equal(lookup.scope, SCOPE_JSON,
+        'scope should be preserved');
+    t.done();
+});
+
+test('buildPermanentKeyLookup - unscoped key', function (t) {
+    var lookup = akFormat.buildPermanentKeyLookup(
+        'AKIATEST', 'user-uuid', null);
+    t.equal(lookup.scope, null,
+        'scope should be null for unscoped key');
+    t.equal(lookup.credentialType, 'permanent',
+        'credentialType should be permanent');
+    t.done();
+});
