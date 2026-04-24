@@ -1043,3 +1043,165 @@ test('UFDS fallback - unscoped temp credential returns null bucketScope',
         t.done();
     });
 });
+
+/*
+ * PART 6: Cross-path format compatibility
+ *
+ * Verifies that scope JSON survives a full round-trip via each
+ * write path — replicator transform.add() and direct cachePush
+ * format — when read back by sigv4.verifySigV4().
+ *
+ * These tests guard against format divergence between the two
+ * paths, which currently write identical Redis structures but
+ * have no shared test.
+ */
+
+var RT_UUID_REPL = 'rt-replicator-test-uuid-001';
+var RT_KEY_REPL = 'AKIARTREPL000000001';
+var RT_SECRET_REPL = 'rtReplSecretForTesting1234567890abc';
+
+var RT_UUID_CACHE = 'rt-cachepush-test-uuid-001';
+var RT_KEY_CACHE = 'AKIARTCACHE000000001';
+var RT_SECRET_CACHE = 'rtCacheSecretForTesting123456789abc';
+
+var RT_SCOPE_JSON = JSON.stringify({
+    version: 1,
+    permissions: [
+        { bucket: 'cross-path-test', level: 'readwrite' }
+    ]
+});
+
+test('cross-path: replicator transform.add() scope survives sigv4 round-trip',
+    function (t) {
+    var log = bunyan.createLogger({
+        name: 'rt-repl-test',
+        level: 'fatal'
+    });
+
+    var entry = {
+        changes: {
+            accesskeyid: [RT_KEY_REPL],
+            accesskeysecret: [RT_SECRET_REPL],
+            accesskeyscope: [RT_SCOPE_JSON],
+            status: ['Active'],
+            objectclass: ['accesskey'],
+            _owner: [RT_UUID_REPL],
+            _parent: ['uuid=' + RT_UUID_REPL +
+                ', ou=users, o=smartdc']
+        }
+    };
+
+    /* Write via replicator transform */
+    transform.add({
+        changes: entry.changes,
+        entry: entry,
+        log: log,
+        redis: REDIS
+    }, function (addErr, batch) {
+        t.ok(!addErr, 'transform.add should not error');
+        batch.exec(function (execErr) {
+            t.ok(!execErr, 'exec should not error');
+
+            /* Sign a request with the same key */
+            var headers = helper.createHeaders({
+                method: 'GET',
+                path: '/cross-path-test/obj.txt',
+                accessKey: RT_KEY_REPL,
+                secret: RT_SECRET_REPL
+            });
+            headers['x-amz-content-sha256'] =
+                crypto.createHash('sha256')
+                    .update('', 'utf8').digest('hex');
+
+            sigv4.verifySigV4({
+                req: {
+                    method: 'GET',
+                    url: '/cross-path-test/obj.txt',
+                    headers: headers,
+                    query: {}
+                },
+                log: log,
+                redis: REDIS
+            }, function (verErr, result) {
+                t.ok(!verErr,
+                    'sigv4 verify should not error: ' +
+                    (verErr ? verErr.message : ''));
+                t.ok(result, 'should return result');
+                t.equal(result.bucketScope, RT_SCOPE_JSON,
+                    'scope must survive replicator → ' +
+                    'sigv4 round-trip unchanged');
+                t.done();
+            });
+        });
+    });
+});
+
+test('cross-path: cachePush format scope survives sigv4 round-trip',
+    function (t) {
+    var log = bunyan.createLogger({
+        name: 'rt-cache-test',
+        level: 'fatal'
+    });
+
+    var userKey = '/uuid/' + RT_UUID_CACHE;
+    var lookupKey = '/accesskey/' + RT_KEY_CACHE;
+
+    /* Write in the same format as cachePushHandler */
+    var userPayload = {
+        uuid: RT_UUID_CACHE,
+        login: 'cache-path-user',
+        accesskeys: {}
+    };
+    userPayload.accesskeys[RT_KEY_CACHE] = {
+        secret: RT_SECRET_CACHE,
+        scope: RT_SCOPE_JSON
+    };
+
+    var lookupData = JSON.stringify({
+        type: 'accesskey',
+        accessKeyId: RT_KEY_CACHE,
+        userUuid: RT_UUID_CACHE,
+        credentialType: 'permanent',
+        scope: RT_SCOPE_JSON
+    });
+
+    REDIS.set(userKey, JSON.stringify(userPayload),
+        function (setErr) {
+        t.ok(!setErr, 'redis set user should not error');
+
+        REDIS.set(lookupKey, lookupData,
+            function (set2Err) {
+            t.ok(!set2Err, 'redis set lookup should not error');
+
+            var headers = helper.createHeaders({
+                method: 'GET',
+                path: '/cross-path-test/obj.txt',
+                accessKey: RT_KEY_CACHE,
+                secret: RT_SECRET_CACHE
+            });
+            headers['x-amz-content-sha256'] =
+                crypto.createHash('sha256')
+                    .update('', 'utf8').digest('hex');
+
+            sigv4.verifySigV4({
+                req: {
+                    method: 'GET',
+                    url: '/cross-path-test/obj.txt',
+                    headers: headers,
+                    query: {}
+                },
+                log: log,
+                redis: REDIS
+            }, function (verErr, result) {
+                t.ok(!verErr,
+                    'sigv4 verify should not error: ' +
+                    (verErr ? verErr.message : ''));
+                t.ok(result, 'should return result');
+                t.equal(result.bucketScope, RT_SCOPE_JSON,
+                    'scope must survive cachePush format → ' +
+                    'sigv4 round-trip unchanged');
+                t.done();
+            });
+        });
+    });
+});
