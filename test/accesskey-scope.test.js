@@ -1205,3 +1205,87 @@ test('cross-path: cachePush format scope survives sigv4 round-trip',
         });
     });
 });
+
+/*
+ * PART 7: UFDS read-through fallback for permanent keys
+ *
+ * Verifies that when a permanent key is absent from Redis,
+ * verifySigV4 falls through to the UFDS client and returns
+ * the correct bucketScope.  Guards against the ufdsPool→ufds
+ * property name mismatch that previously left this path dead.
+ */
+
+var UFDS_FB_UUID = 'ufds-fallback-perm-uuid-001';
+var UFDS_FB_KEY = 'AKIAUFDSFALLBACK0001';
+var UFDS_FB_SECRET = 'ufdsFallbackSecretForTest1234567890a';
+
+test('UFDS read-through: scoped permanent key found via UFDS when not in Redis',
+    function (t) {
+    var log = bunyan.createLogger({
+        name: 'ufds-fb-perm-test',
+        level: 'fatal'
+    });
+
+    /*
+     * Do NOT write the key to Redis. This simulates a key
+     * that exists in UFDS but has not yet replicated.
+     * Only write the user record so the result can resolve.
+     */
+    var userPayload = {
+        uuid: UFDS_FB_UUID,
+        login: 'ufds-fb-user',
+        accesskeys: {}
+    };
+
+    REDIS.set('/uuid/' + UFDS_FB_UUID,
+        JSON.stringify(userPayload), function (setErr) {
+        t.ok(!setErr, 'redis set user should not error');
+
+        /* Mock UFDS proxy with .search() */
+        var mockUfds = {
+            search: function (_base, _opts, cb) {
+                cb(null, [
+                    {
+                        accesskeyid: UFDS_FB_KEY,
+                        accesskeysecret: UFDS_FB_SECRET,
+                        status: 'Active',
+                        accesskeyscope: RT_SCOPE_JSON,
+                        _owner: UFDS_FB_UUID
+                    }
+                ]);
+            }
+        };
+
+        var headers = helper.createHeaders({
+            method: 'GET',
+            path: '/cross-path-test/obj.txt',
+            accessKey: UFDS_FB_KEY,
+            secret: UFDS_FB_SECRET
+        });
+        headers['x-amz-content-sha256'] =
+            crypto.createHash('sha256')
+                .update('', 'utf8').digest('hex');
+
+        sigv4.verifySigV4({
+            req: {
+                method: 'GET',
+                url: '/cross-path-test/obj.txt',
+                headers: headers,
+                query: {}
+            },
+            log: log,
+            redis: REDIS,
+            ufds: mockUfds
+        }, function (verErr, result) {
+            t.ok(!verErr,
+                'sigv4 verify should succeed via UFDS: ' +
+                (verErr ? verErr.message : ''));
+            t.ok(result, 'should return result');
+            t.equal(result.bucketScope, RT_SCOPE_JSON,
+                'scope must survive UFDS read-through');
+            t.equal(result.accessKeyId, UFDS_FB_KEY,
+                'should have correct access key ID');
+            t.done();
+        });
+    });
+});
