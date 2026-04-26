@@ -250,7 +250,8 @@ test('modify - scope-only change updates Redis', function (t) {
         log: this.log,
         redis: REDIS,
         changes: changes,
-        modEntry: modEntry
+        modEntry: modEntry,
+        entry: { changenumber: '999' }
     };
 
     var userKey = '/uuid/' + USER_UUID;
@@ -325,7 +326,8 @@ test('modify - scope removal stores object with scope null',
         log: this.log,
         redis: REDIS,
         changes: changes,
-        modEntry: modEntry
+        modEntry: modEntry,
+        entry: { changenumber: '999' }
     };
 
     var userKey = '/uuid/' + USER_UUID;
@@ -438,7 +440,8 @@ test('modify - deactivate scoped key removes from Redis',
                 log: log,
                 redis: REDIS,
                 changes: changes,
-                modEntry: modEntry
+                modEntry: modEntry,
+                entry: { changenumber: '999' }
             }, function (modErr, modRes) {
                 t.ok(!modErr, 'modify should not error');
                 t.strictEqual(3, modRes.queue.length,
@@ -507,7 +510,8 @@ test('modify - reactivate scoped key restores object format',
         log: this.log,
         redis: REDIS,
         changes: changes,
-        modEntry: modEntry
+        modEntry: modEntry,
+        entry: { changenumber: '999' }
     };
 
     var userKey = '/uuid/' + USER_UUID;
@@ -1299,6 +1303,7 @@ test('UFDS read-through: scoped permanent key found via UFDS when not in Redis',
  */
 
 var akFormat = require('../lib/redis-accesskey-format');
+var REDIS_TOMBSTONE;
 
 test('buildPermanentKeyEntry - scoped key', function (t) {
     var entry = akFormat.buildPermanentKeyEntry(
@@ -1307,8 +1312,8 @@ test('buildPermanentKeyEntry - scoped key', function (t) {
         'secret should be preserved');
     t.equal(entry.scope, SCOPE_JSON,
         'scope should be preserved');
-    t.equal(Object.keys(entry).length, 2,
-        'should have exactly two keys');
+    t.equal(Object.keys(entry).length, 3,
+        'should have exactly three keys (secret, scope, version)');
     t.done();
 });
 
@@ -1344,4 +1349,799 @@ test('buildPermanentKeyLookup - unscoped key', function (t) {
     t.equal(lookup.credentialType, 'permanent',
         'credentialType should be permanent');
     t.done();
+});
+
+
+/*
+ * PART 9: Extracted sigv4 functions — buildPermanentResult,
+ *         handlePermanentCredentialRedis
+ *
+ * Verifies the extracted functions produce the same results
+ * as the monolithic verifySigV4 did before decomposition.
+ */
+
+test('buildPermanentResult - with scope', function (t) {
+    var result = sigv4._buildPermanentResult(
+        { uuid: USER_UUID },
+        SCOPED_KEY_ID,
+        new Buffer('signingKey'),
+        SCOPE_JSON);
+    t.equal(result.user.uuid, USER_UUID,
+        'user.uuid should match');
+    t.equal(result.accessKeyId, SCOPED_KEY_ID,
+        'accessKeyId should match');
+    t.ok(Buffer.isBuffer(result.signingKey),
+        'signingKey should be a buffer');
+    t.equal(result.bucketScope, SCOPE_JSON,
+        'bucketScope should be scope JSON');
+    t.done();
+});
+
+test('buildPermanentResult - null scope defaults to null', function (t) {
+    var result = sigv4._buildPermanentResult(
+        { uuid: USER_UUID },
+        UNSCOPED_KEY_ID,
+        new Buffer('signingKey'),
+        null);
+    t.strictEqual(result.bucketScope, null,
+        'bucketScope should be null');
+    t.done();
+});
+
+test('buildPermanentResult - undefined scope defaults to null', function (t) {
+    var result = sigv4._buildPermanentResult(
+        { uuid: USER_UUID },
+        UNSCOPED_KEY_ID,
+        new Buffer('signingKey'),
+        undefined);
+    t.strictEqual(result.bucketScope, null,
+        'bucketScope should be null for undefined');
+    t.done();
+});
+
+test('setup - fresh redis for PART 9', function (t) {
+    REDIS = redis.createClient('part9');
+    t.done();
+});
+
+test('exported functions exist', function (t) {
+    t.ok(typeof (sigv4._handlePermanentCredentialRedis) === 'function',
+        'handlePermanentCredentialRedis should be exported');
+    t.ok(typeof (sigv4._handleTemporaryCredentialRedis) === 'function',
+        'handleTemporaryCredentialRedis should be exported');
+    t.ok(typeof (sigv4._buildPermanentResult) === 'function',
+        'buildPermanentResult should be exported');
+    t.ok(typeof (sigv4._buildTemporaryResult) === 'function',
+        'buildTemporaryResult should be exported');
+    t.done();
+});
+
+test('buildTemporaryResult - with scope and role', function (t) {
+    var result = sigv4._buildTemporaryResult({
+        accessKeyId: 'MSTS00000000001',
+        secretAccessKey: 'tempSecret',
+        userUuid: USER_UUID,
+        assumedRole: { arn: 'arn:aws:iam::acct:role/Test' },
+        principalUuid: 'principal-uuid',
+        expiration: '2026-04-18T13:00:00.000Z',
+        signingKey: new Buffer('signingKey'),
+        bucketScope: SCOPE_JSON
+    });
+    t.equal(result.accessKeyId, 'MSTS00000000001',
+        'accessKeyId should match');
+    t.equal(result.userUuid, USER_UUID,
+        'userUuid should match');
+    t.equal(result.user.uuid, USER_UUID,
+        'user.uuid should match');
+    t.equal(result.account.uuid, USER_UUID,
+        'account.uuid should match');
+    t.equal(result.isTemporaryCredential, true,
+        'isTemporaryCredential should be true');
+    t.equal(result.credentialType, 'temporary',
+        'credentialType should be temporary');
+    t.equal(result.assumedRole.arn,
+        'arn:aws:iam::acct:role/Test',
+        'assumedRole should be preserved');
+    t.equal(result.principalUuid, 'principal-uuid',
+        'principalUuid should match');
+    t.equal(result.bucketScope, SCOPE_JSON,
+        'bucketScope should be scope JSON');
+    t.done();
+});
+
+test('buildTemporaryResult - null scope defaults to null',
+    function (t) {
+    var result = sigv4._buildTemporaryResult({
+        accessKeyId: 'MSTS00000000002',
+        userUuid: USER_UUID,
+        signingKey: new Buffer('signingKey')
+    });
+    t.strictEqual(result.bucketScope, null,
+        'bucketScope should default to null');
+    t.strictEqual(result.assumedRole, null,
+        'assumedRole should default to null');
+    t.strictEqual(result.expiration, null,
+        'expiration should default to null');
+    t.equal(result.principalUuid, USER_UUID,
+        'principalUuid should default to userUuid');
+    t.done();
+});
+
+/*
+ * Helper: set up user in Redis and call
+ * handlePermanentCredentialRedis with a properly signed request.
+ */
+function setupAndVerifyExtracted(opts, t, callback) {
+    var user = opts.user;
+    var accessKeyId = opts.accessKeyId;
+    var secret = opts.secret;
+    var lookupVal = opts.lookupVal;
+
+    var log = bunyan.createLogger({
+        name: 'part9-test',
+        level: 'fatal'
+    });
+
+    REDIS.set('/uuid/' + user.uuid, JSON.stringify(user),
+        function (err1) {
+        if (err1) {
+            return (callback(err1));
+        }
+        return (REDIS.set('/accesskey/' + accessKeyId, lookupVal,
+            function (err2) {
+            if (err2) {
+                return (callback(err2));
+            }
+
+            var headers = helper.createHeaders({
+                method: opts.method || 'GET',
+                path: opts.path || '/bucket/key',
+                accessKey: accessKeyId,
+                secret: secret
+            });
+
+            var payloadHash = crypto.createHash('sha256')
+                .update('', 'utf8').digest('hex');
+            headers['x-amz-content-sha256'] = payloadHash;
+
+            var req = {
+                method: opts.method || 'GET',
+                url: opts.path || '/bucket/key',
+                headers: headers,
+                query: {}
+            };
+
+            var authInfo = sigv4.parseAuthHeader(
+                headers.authorization);
+
+            return (sigv4._handlePermanentCredentialRedis(
+                authInfo, req, log, REDIS, null, callback));
+        }));
+    });
+}
+
+test('handlePermanentCredentialRedis - scoped key returns bucketScope',
+    function (t) {
+    var P9_KEY_ID = 'AKIAP9SCOPED0000001';
+    var P9_SECRET = 'p9scopedSecretKeyForTesting123456789abcde';
+    var P9_UUID = 'p9-scoped-uuid-0000-0000-000000000001';
+
+    var user = {
+        uuid: P9_UUID,
+        login: 'p9scopeduser',
+        accesskeys: {}
+    };
+    user.accesskeys[P9_KEY_ID] =
+        akFormat.buildPermanentKeyEntry(P9_SECRET, SCOPE_JSON);
+
+    var lookupData = akFormat.buildPermanentKeyLookup(
+        P9_KEY_ID, P9_UUID, SCOPE_JSON);
+
+    setupAndVerifyExtracted({
+        user: user,
+        accessKeyId: P9_KEY_ID,
+        secret: P9_SECRET,
+        lookupVal: JSON.stringify(lookupData),
+        method: 'GET',
+        path: '/bucket/key'
+    }, t, function (err, result) {
+        t.ok(!err, 'should not error: ' + (err ? err.message : ''));
+        t.ok(result, 'should return result');
+        t.equal(result.bucketScope, SCOPE_JSON,
+            'scoped key should return scope JSON');
+        t.equal(result.accessKeyId, P9_KEY_ID,
+            'accessKeyId should match');
+        t.ok(result.signingKey,
+            'signingKey should be present');
+        t.equal(result.user.uuid, P9_UUID,
+            'user.uuid should match');
+        t.done();
+    });
+});
+
+test('handlePermanentCredentialRedis - unscoped key returns null scope',
+    function (t) {
+    var P9U_KEY_ID = 'AKIAP9UNSCOPED00001';
+    var P9U_SECRET = 'p9unscopedSecretKeyForTesting1234567890ab';
+    var P9U_UUID = 'p9-unscoped-uuid-000-0000-000000000001';
+
+    var user = {
+        uuid: P9U_UUID,
+        login: 'p9unscopeduser',
+        accesskeys: {}
+    };
+    user.accesskeys[P9U_KEY_ID] =
+        akFormat.buildPermanentKeyEntry(P9U_SECRET, null);
+
+    var lookupData = akFormat.buildPermanentKeyLookup(
+        P9U_KEY_ID, P9U_UUID, null);
+
+    setupAndVerifyExtracted({
+        user: user,
+        accessKeyId: P9U_KEY_ID,
+        secret: P9U_SECRET,
+        lookupVal: JSON.stringify(lookupData),
+        method: 'GET',
+        path: '/bucket/key'
+    }, t, function (err, result) {
+        t.ok(!err, 'should not error: ' + (err ? err.message : ''));
+        t.ok(result, 'should return result');
+        t.strictEqual(result.bucketScope, null,
+            'unscoped key should return null bucketScope');
+        t.done();
+    });
+});
+
+test('handlePermanentCredentialRedis - key not in Redis returns error',
+    function (t) {
+    var log = bunyan.createLogger({name: 'test', level: 'fatal'});
+    var authInfo = {
+        accessKeyId: 'AKIANONEXISTENT00001',
+        dateStamp: '20260418',
+        region: 'us-east-1',
+        service: 's3',
+        signedHeaders: 'host;x-amz-date',
+        signature: 'dummy'
+    };
+    var mockReq = {
+        headers: {
+            host: 'localhost',
+            'x-amz-date': '20260418T120000Z'
+        },
+        query: {}
+    };
+
+    sigv4._handlePermanentCredentialRedis(
+        authInfo, mockReq, log, REDIS, null,
+        function (err, result) {
+            t.ok(err, 'should return error for missing key');
+            t.ok(!result, 'should not return result');
+            t.ok(err.message.indexOf('Invalid access key') >= 0 ||
+                err.restCode === 'InvalidSignature',
+                'error should indicate invalid key');
+            t.done();
+        });
+});
+
+test('handlePermanentCredentialRedis - legacy string format',
+    function (t) {
+    var LEGACY_KEY_ID = 'AKIALEGACY0000000001';
+    var LEGACY_SECRET = 'legacySecretKeyForTesting1234567890abcde';
+    var LEGACY_UUID = '660e8400-e29b-41d4-a716-446655440099';
+
+    var user = {
+        uuid: LEGACY_UUID,
+        login: 'legacyuser',
+        accesskeys: {}
+    };
+    // Legacy format: bare string (no object wrapper)
+    user.accesskeys[LEGACY_KEY_ID] = LEGACY_SECRET;
+
+    setupAndVerifyExtracted({
+        user: user,
+        accessKeyId: LEGACY_KEY_ID,
+        secret: LEGACY_SECRET,
+        lookupVal: LEGACY_UUID,  // Legacy: plain UUID string
+        method: 'GET',
+        path: '/bucket/key'
+    }, t, function (err, result) {
+        t.ok(!err, 'should not error: ' + (err ? err.message : ''));
+        t.ok(result, 'should return result');
+        t.strictEqual(result.bucketScope, null,
+            'legacy key should have null bucketScope');
+        t.equal(result.accessKeyId, LEGACY_KEY_ID,
+            'accessKeyId should match');
+        t.done();
+    });
+});
+
+
+/*
+ * PART 10: Revocation tombstones — durable scope-revoke
+ *
+ * Verifies that a revocation tombstone in Redis prevents
+ * the replicator from re-adding or modifying a revoked key.
+ */
+
+test('setup - fresh redis for PART 10', function (t) {
+    REDIS_TOMBSTONE = redis.createClient('part10');
+    t.done();
+});
+
+test('revokedKeyPath produces correct path', function (t) {
+    var path = akFormat.revokedKeyPath('AKIATEST123');
+    t.equal(path, '/revoked/AKIATEST123',
+        'should produce /revoked/ prefix');
+    t.done();
+});
+
+test('buildRevocationTombstone includes revokedAt and userUuid',
+    function (t) {
+    var before = Date.now();
+    var tombstone = akFormat.buildRevocationTombstone('user-uuid');
+    var after = Date.now();
+    t.equal(tombstone.userUuid, 'user-uuid',
+        'userUuid should be preserved');
+    t.ok(tombstone.revokedAt >= before &&
+        tombstone.revokedAt <= after,
+        'revokedAt should be current time');
+    t.done();
+});
+
+test('REVOKE_TTL_SECONDS is 24 hours', function (t) {
+    t.equal(akFormat.REVOKE_TTL_SECONDS, 86400,
+        'TTL should be 86400 seconds (24 hours)');
+    t.done();
+});
+
+test('tombstone prevents replicator add()', function (t) {
+    var REVOKED_KEY_ID = 'AKIAREVOKED00000001';
+    var REVOKED_SECRET = 'revokedSecretKeyForTesting12345678abcdef';
+    var REVOKED_UUID = '770e8400-e29b-41d4-a716-446655440099';
+
+    var log = bunyan.createLogger({name: 'test', level: 'fatal'});
+
+    // Write tombstone
+    var revokedKey = akFormat.revokedKeyPath(REVOKED_KEY_ID);
+    REDIS_TOMBSTONE.set(revokedKey,
+        JSON.stringify(akFormat.buildRevocationTombstone(REVOKED_UUID)),
+        function () {
+
+        // Try to add the key via replicator
+        var entry = {
+            dn: 'changenumber=200, cn=changelog',
+            controls: [],
+            targetdn: 'accesskeyid=' + REVOKED_KEY_ID +
+                ', uuid=' + REVOKED_UUID +
+                ', ou=users, o=smartdc',
+            changetype: 'add',
+            objectclass: 'changeLogEntry',
+            changetime: '2026-04-18T12:00:00.000Z',
+            changes: {
+                accesskeyid: [REVOKED_KEY_ID],
+                accesskeysecret: [REVOKED_SECRET],
+                created: ['1761762138761'],
+                status: ['Active'],
+                updated: ['1761762138761'],
+                objectclass: ['accesskey'],
+                _owner: [REVOKED_UUID],
+                _parent: ['uuid=' + REVOKED_UUID +
+                    ', ou=users, o=smartdc']
+            },
+            changenumber: '200'
+        };
+
+        transform.add({
+            changes: entry.changes,
+            entry: entry,
+            log: log,
+            redis: REDIS_TOMBSTONE
+        }, function (err, batch) {
+            t.ifError(err, 'add should not error');
+            // Execute the batch and verify key was NOT added
+            batch.exec(function () {
+                var userKey = '/uuid/' + REVOKED_UUID;
+                REDIS_TOMBSTONE.get(userKey, function (_, val) {
+                    if (val) {
+                        var payload = JSON.parse(val);
+                        t.ok(!payload.accesskeys ||
+                            !payload.accesskeys[REVOKED_KEY_ID],
+                            'revoked key should NOT be in Redis');
+                    } else {
+                        t.ok(true,
+                            'user record absent (key not added)');
+                    }
+                    t.done();
+                });
+            });
+        });
+    });
+});
+
+test('no tombstone allows replicator add()', function (t) {
+    var NORMAL_KEY_ID = 'AKIANORMAL000000001';
+    var NORMAL_SECRET = 'normalSecretKeyForTesting123456789abcdef';
+    var NORMAL_UUID = '880e8400-e29b-41d4-a716-446655440099';
+
+    var log = bunyan.createLogger({name: 'test', level: 'fatal'});
+
+    var entry = {
+        dn: 'changenumber=201, cn=changelog',
+        controls: [],
+        targetdn: 'accesskeyid=' + NORMAL_KEY_ID +
+            ', uuid=' + NORMAL_UUID +
+            ', ou=users, o=smartdc',
+        changetype: 'add',
+        objectclass: 'changeLogEntry',
+        changetime: '2026-04-18T12:00:00.000Z',
+        changes: {
+            accesskeyid: [NORMAL_KEY_ID],
+            accesskeysecret: [NORMAL_SECRET],
+            created: ['1761762138761'],
+            status: ['Active'],
+            updated: ['1761762138761'],
+            objectclass: ['accesskey'],
+            _owner: [NORMAL_UUID],
+            _parent: ['uuid=' + NORMAL_UUID +
+                ', ou=users, o=smartdc']
+        },
+        changenumber: '201'
+    };
+
+    transform.add({
+        changes: entry.changes,
+        entry: entry,
+        log: log,
+        redis: REDIS_TOMBSTONE
+    }, function (err, batch) {
+        t.ifError(err, 'add should not error');
+        batch.exec(function () {
+            var userKey = '/uuid/' + NORMAL_UUID;
+            REDIS_TOMBSTONE.get(userKey, function (_, val) {
+                t.ok(val, 'user record should exist');
+                var payload = JSON.parse(val);
+                t.ok(payload.accesskeys &&
+                    payload.accesskeys[NORMAL_KEY_ID],
+                    'key should be in Redis');
+                t.done();
+            });
+        });
+    });
+});
+
+test('tombstone prevents replicator modify()', function (t) {
+    var MOD_KEY_ID = 'AKIAMODREVOKED00001';
+    var MOD_SECRET = 'modRevokedSecretKey1234567890abcdefgh';
+    var MOD_UUID = '990e8400-e29b-41d4-a716-446655440099';
+
+    var log = bunyan.createLogger({name: 'test', level: 'fatal'});
+
+    // Pre-populate user record so modify has something to work with
+    var userPayload = {
+        uuid: MOD_UUID,
+        accesskeys: {}
+    };
+    userPayload.accesskeys[MOD_KEY_ID] =
+        akFormat.buildPermanentKeyEntry(MOD_SECRET, null);
+
+    var batch1 = REDIS_TOMBSTONE.multi();
+    batch1.set('/uuid/' + MOD_UUID, JSON.stringify(userPayload));
+    batch1.set('/accesskey/' + MOD_KEY_ID,
+        JSON.stringify(akFormat.buildPermanentKeyLookup(
+            MOD_KEY_ID, MOD_UUID, null)));
+    batch1.exec(function () {
+
+        // Write tombstone
+        var revokedKey = akFormat.revokedKeyPath(MOD_KEY_ID);
+        REDIS_TOMBSTONE.set(revokedKey,
+            JSON.stringify(akFormat.buildRevocationTombstone(MOD_UUID)),
+            function () {
+
+            // Try to modify the key via replicator
+            var modEntry = {
+                accesskeyid: [MOD_KEY_ID],
+                accesskeysecret: [MOD_SECRET],
+                _owner: [MOD_UUID],
+                credentialtype: ['permanent'],
+                objectclass: ['accesskey'],
+                accesskeyscope: [SCOPE_JSON]
+            };
+
+            var changes = [
+                {
+                    operation: 'add',
+                    modification: {
+                        type: 'accesskeyscope',
+                        vals: [SCOPE_JSON]
+                    }
+                }
+            ];
+
+            transform.modify({
+                changes: changes,
+                modEntry: modEntry,
+                entry: { changenumber: '300' },
+                log: log,
+                redis: REDIS_TOMBSTONE
+            }, function (err, modBatch) {
+                t.ifError(err, 'modify should not error');
+                modBatch.exec(function () {
+                    // Key should still have null scope (modify was skipped)
+                    var userKey = '/uuid/' + MOD_UUID;
+                    REDIS_TOMBSTONE.get(userKey, function (_, val) {
+                        var payload = JSON.parse(val);
+                        var keyData = payload.accesskeys[MOD_KEY_ID];
+                        t.equal(keyData.scope, null,
+                            'scope should NOT have been updated ' +
+                            '(tombstone blocked modify)');
+                        t.done();
+                    });
+                });
+            });
+        });
+    });
+});
+
+
+/*
+ * PART 11: Write versioning — prevent stale replicator writes
+ *
+ * Verifies that the version field in Redis entries prevents
+ * stale replicator writes from overwriting newer cachePush data.
+ */
+
+var REDIS_VERSION;
+
+test('setup - fresh redis for PART 11', function (t) {
+    REDIS_VERSION = redis.createClient('part11');
+    t.done();
+});
+
+test('buildPermanentKeyEntry includes version field', function (t) {
+    var entry = akFormat.buildPermanentKeyEntry(
+        'mySecret', SCOPE_JSON, 42);
+    t.equal(entry.secret, 'mySecret',
+        'secret should be preserved');
+    t.equal(entry.scope, SCOPE_JSON,
+        'scope should be preserved');
+    t.equal(entry.version, 42,
+        'version should be 42');
+    t.done();
+});
+
+test('buildPermanentKeyEntry defaults version to 0', function (t) {
+    var entry = akFormat.buildPermanentKeyEntry(
+        'mySecret', null);
+    t.equal(entry.version, 0,
+        'version should default to 0');
+    t.done();
+});
+
+test('buildPermanentKeyLookup includes version field', function (t) {
+    var lookup = akFormat.buildPermanentKeyLookup(
+        'AKIATEST', 'user-uuid', SCOPE_JSON, 99);
+    t.equal(lookup.version, 99,
+        'version should be 99');
+    t.done();
+});
+
+test('buildPermanentKeyLookup defaults version to 0', function (t) {
+    var lookup = akFormat.buildPermanentKeyLookup(
+        'AKIATEST', 'user-uuid', null);
+    t.equal(lookup.version, 0,
+        'version should default to 0');
+    t.done();
+});
+
+test('replicator skips write when existing version is newer',
+    function (t) {
+    var VER_KEY_ID = 'AKIAVERSION00000001';
+    var VER_SECRET = 'versionSecretKeyForTesting1234567890abcde';
+    var VER_UUID = 'aa0e8400-e29b-41d4-a716-446655440099';
+
+    var log = bunyan.createLogger({name: 'test', level: 'fatal'});
+
+    // Pre-populate with a high version (simulating cachePush)
+    var userPayload = {
+        uuid: VER_UUID,
+        accesskeys: {}
+    };
+    userPayload.accesskeys[VER_KEY_ID] =
+        akFormat.buildPermanentKeyEntry(VER_SECRET, SCOPE_JSON,
+            Date.now()); // cachePush version (~1.7 trillion)
+
+    var batch0 = REDIS_VERSION.multi();
+    batch0.set('/uuid/' + VER_UUID, JSON.stringify(userPayload));
+    batch0.set('/accesskey/' + VER_KEY_ID,
+        JSON.stringify(akFormat.buildPermanentKeyLookup(
+            VER_KEY_ID, VER_UUID, SCOPE_JSON, Date.now())));
+    batch0.exec(function () {
+
+        // Replicator tries to add with low changenumber
+        var entry = {
+            dn: 'changenumber=500, cn=changelog',
+            controls: [],
+            targetdn: 'accesskeyid=' + VER_KEY_ID +
+                ', uuid=' + VER_UUID +
+                ', ou=users, o=smartdc',
+            changetype: 'add',
+            objectclass: 'changeLogEntry',
+            changetime: '2026-04-18T12:00:00.000Z',
+            changes: {
+                accesskeyid: [VER_KEY_ID],
+                accesskeysecret: [VER_SECRET],
+                accesskeyscope: [null],  // replicator has null scope
+                created: ['1761762138761'],
+                status: ['Active'],
+                updated: ['1761762138761'],
+                objectclass: ['accesskey'],
+                _owner: [VER_UUID],
+                _parent: ['uuid=' + VER_UUID +
+                    ', ou=users, o=smartdc']
+            },
+            changenumber: '500'
+        };
+
+        transform.add({
+            changes: entry.changes,
+            entry: entry,
+            log: log,
+            redis: REDIS_VERSION
+        }, function (err, replicatorBatch) {
+            t.ifError(err, 'add should not error');
+            replicatorBatch.exec(function () {
+                // Verify the original scope (from cachePush) survives
+                REDIS_VERSION.get('/uuid/' + VER_UUID,
+                    function (_, val) {
+                    var payload = JSON.parse(val);
+                    var keyData = payload.accesskeys[VER_KEY_ID];
+                    t.equal(keyData.scope, SCOPE_JSON,
+                        'scope from cachePush should survive' +
+                        ' (replicator write skipped)');
+                    t.ok(keyData.version > 500,
+                        'version should still be cachePush value');
+                    t.done();
+                });
+            });
+        });
+    });
+});
+
+test('replicator overwrites when existing version is older',
+    function (t) {
+    var OLD_KEY_ID = 'AKIAOLDVERSION00001';
+    var OLD_SECRET = 'oldVersionSecretKey1234567890abcdefghijk';
+    var OLD_UUID = 'bb0e8400-e29b-41d4-a716-446655440099';
+
+    var log = bunyan.createLogger({name: 'test', level: 'fatal'});
+
+    // Pre-populate with a low version
+    var userPayload = {
+        uuid: OLD_UUID,
+        accesskeys: {}
+    };
+    userPayload.accesskeys[OLD_KEY_ID] =
+        akFormat.buildPermanentKeyEntry(OLD_SECRET, null, 100);
+
+    var batch0 = REDIS_VERSION.multi();
+    batch0.set('/uuid/' + OLD_UUID, JSON.stringify(userPayload));
+    batch0.set('/accesskey/' + OLD_KEY_ID,
+        JSON.stringify(akFormat.buildPermanentKeyLookup(
+            OLD_KEY_ID, OLD_UUID, null, 100)));
+    batch0.exec(function () {
+
+        // Replicator writes with higher changenumber
+        var entry = {
+            dn: 'changenumber=200, cn=changelog',
+            controls: [],
+            targetdn: 'accesskeyid=' + OLD_KEY_ID +
+                ', uuid=' + OLD_UUID +
+                ', ou=users, o=smartdc',
+            changetype: 'add',
+            objectclass: 'changeLogEntry',
+            changetime: '2026-04-18T12:00:00.000Z',
+            changes: {
+                accesskeyid: [OLD_KEY_ID],
+                accesskeysecret: [OLD_SECRET],
+                accesskeyscope: [SCOPE_JSON],
+                created: ['1761762138761'],
+                status: ['Active'],
+                updated: ['1761762138761'],
+                objectclass: ['accesskey'],
+                _owner: [OLD_UUID],
+                _parent: ['uuid=' + OLD_UUID +
+                    ', ou=users, o=smartdc']
+            },
+            changenumber: '200'
+        };
+
+        transform.add({
+            changes: entry.changes,
+            entry: entry,
+            log: log,
+            redis: REDIS_VERSION
+        }, function (err, replicatorBatch) {
+            t.ifError(err, 'add should not error');
+            replicatorBatch.exec(function () {
+                REDIS_VERSION.get('/uuid/' + OLD_UUID,
+                    function (_, val) {
+                    var payload = JSON.parse(val);
+                    var keyData = payload.accesskeys[OLD_KEY_ID];
+                    t.equal(keyData.scope, SCOPE_JSON,
+                        'scope should be updated by replicator');
+                    t.equal(keyData.version, 200,
+                        'version should be replicator changenumber');
+                    t.done();
+                });
+            });
+        });
+    });
+});
+
+test('replicator writes when no existing version (backward compat)',
+    function (t) {
+    var NEW_KEY_ID = 'AKIANOVERSION000001';
+    var NEW_SECRET = 'noVersionSecretKey12345678901234567890ab';
+    var NEW_UUID = 'cc0e8400-e29b-41d4-a716-446655440099';
+
+    var log = bunyan.createLogger({name: 'test', level: 'fatal'});
+
+    // Pre-populate with old format (no version field)
+    var userPayload = {
+        uuid: NEW_UUID,
+        accesskeys: {}
+    };
+    // Old format: bare string (version absent = 0)
+    userPayload.accesskeys[NEW_KEY_ID] = NEW_SECRET;
+
+    REDIS_VERSION.set('/uuid/' + NEW_UUID,
+        JSON.stringify(userPayload), function () {
+
+        var entry = {
+            dn: 'changenumber=50, cn=changelog',
+            controls: [],
+            targetdn: 'accesskeyid=' + NEW_KEY_ID +
+                ', uuid=' + NEW_UUID +
+                ', ou=users, o=smartdc',
+            changetype: 'add',
+            objectclass: 'changeLogEntry',
+            changetime: '2026-04-18T12:00:00.000Z',
+            changes: {
+                accesskeyid: [NEW_KEY_ID],
+                accesskeysecret: [NEW_SECRET],
+                accesskeyscope: [SCOPE_JSON],
+                created: ['1761762138761'],
+                status: ['Active'],
+                updated: ['1761762138761'],
+                objectclass: ['accesskey'],
+                _owner: [NEW_UUID],
+                _parent: ['uuid=' + NEW_UUID +
+                    ', ou=users, o=smartdc']
+            },
+            changenumber: '50'
+        };
+
+        transform.add({
+            changes: entry.changes,
+            entry: entry,
+            log: log,
+            redis: REDIS_VERSION
+        }, function (err, replicatorBatch) {
+            t.ifError(err, 'add should not error');
+            replicatorBatch.exec(function () {
+                REDIS_VERSION.get('/uuid/' + NEW_UUID,
+                    function (_, val) {
+                    var payload = JSON.parse(val);
+                    var keyData = payload.accesskeys[NEW_KEY_ID];
+                    t.ok(typeof (keyData) === 'object',
+                        'key should be upgraded to object format');
+                    t.equal(keyData.scope, SCOPE_JSON,
+                        'scope should be written');
+                    t.equal(keyData.version, 50,
+                        'version should be changenumber');
+                    t.done();
+                });
+            });
+        });
+    });
 });
