@@ -2145,3 +2145,107 @@ test('replicator writes when no existing version (backward compat)',
         });
     });
 });
+
+/*
+ * Regression test for the vals[i] -> vals[0] fix in
+ * modify().  The original code indexed into vals with
+ * the outer loop variable (i), which read the wrong
+ * element when multiple changes were present.  The fix
+ * uses vals[0] since each change entry has exactly one
+ * value.
+ */
+test('modify - vals[0] regression: status extracted ' +
+    'correctly with multiple changes',
+    function (t) {
+    var log = this.log;
+
+    /* Pre-populate a key in Redis */
+    var addEntry = {
+        dn: 'changenumber=200, cn=changelog',
+        controls: [],
+        targetdn: 'accesskeyid=' + SCOPED_KEY_ID +
+            ', uuid=' + USER_UUID +
+            ', ou=users, o=smartdc',
+        changetype: 'add',
+        objectclass: 'changeLogEntry',
+        changetime: '2026-04-18T12:00:00.000Z',
+        changes: {
+            accesskeyid: [SCOPED_KEY_ID],
+            accesskeysecret: [SCOPED_SECRET],
+            accesskeyscope: [SCOPE_JSON],
+            created: ['1761762138761'],
+            status: ['Active'],
+            updated: ['1761762138761'],
+            objectclass: ['accesskey'],
+            _owner: [USER_UUID],
+            _parent: ['uuid=' + USER_UUID +
+                ', ou=users, o=smartdc']
+        },
+        changenumber: '200'
+    };
+
+    transform.add({
+        changes: addEntry.changes,
+        entry: addEntry,
+        log: log,
+        redis: REDIS
+    }, function (addErr, addRes) {
+        t.ok(!addErr, 'add should not error');
+        addRes.exec(function () {
+            /*
+             * Send a modify with status as the SECOND
+             * change (index 1).  With the old vals[i]
+             * bug, the code would read vals[1] which
+             * is undefined, and status would be null
+             * instead of 'Inactive'.
+             */
+            var modEntry = {
+                accesskeyid: [SCOPED_KEY_ID],
+                accesskeysecret: [SCOPED_SECRET],
+                accesskeyscope: [SCOPE_JSON],
+                created: ['1761762138761'],
+                objectclass: ['accesskey'],
+                status: ['Inactive'],
+                updated: ['1761762200000'],
+                _owner: [USER_UUID],
+                _parent: ['uuid=' + USER_UUID +
+                    ', ou=users, o=smartdc']
+            };
+
+            var changes = [
+                {
+                    operation: 'replace',
+                    modification: {
+                        type: 'updated',
+                        vals: ['1761762200000']
+                    }
+                },
+                {
+                    operation: 'replace',
+                    modification: {
+                        type: 'status',
+                        vals: ['Inactive']
+                    }
+                }
+            ];
+
+            transform.modify({
+                log: log,
+                redis: REDIS,
+                changes: changes,
+                modEntry: modEntry,
+                entry: { changenumber: '201' }
+            }, function (modErr, modRes) {
+                t.ok(!modErr, 'modify should not error');
+                /*
+                 * Status is Inactive, so the key should
+                 * be DELETED from Redis (3 ops: set user,
+                 * del reverse lookup, multi).
+                 */
+                t.ok(modRes.queue.length >= 2,
+                    'should delete key from Redis');
+                t.done();
+            });
+        });
+    });
+});
