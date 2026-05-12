@@ -1812,9 +1812,9 @@ test('tombstone prevents replicator modify()', function (t) {
  * Verifies that the version field is present in both the user
  * entry and the reverse-lookup row and that it defaults to 0
  * when not supplied. The replicator records each write's
- * UFDS changenumber here; the field is informational since
- * CHG-138 (no consumer compares it). These tests guard the
- * format from regressing.
+ * UFDS changenumber here; the field is informational only,
+ * since no consumer compares it. These tests guard the format
+ * from regressing.
  */
 
 test('buildPermanentKeyEntry includes version field', function (t) {
