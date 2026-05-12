@@ -1049,24 +1049,17 @@ test('UFDS fallback - unscoped temp credential returns null bucketScope',
 });
 
 /*
- * PART 6: Cross-path format compatibility
+ * PART 6: Replicator → sigv4 round-trip
  *
- * Verifies that scope JSON survives a full round-trip via each
- * write path — replicator transform.add() and direct cachePush
- * format — when read back by sigv4.verifySigV4().
- *
- * These tests guard against format divergence between the two
- * paths, which currently write identical Redis structures but
- * have no shared test.
+ * Verifies that scope JSON written by the replicator
+ * transform.add() survives unchanged when read back by
+ * sigv4.verifySigV4(). Guards against accidental format
+ * divergence between transform.add() and the sigv4 reader.
  */
 
 var RT_UUID_REPL = 'rt-replicator-test-uuid-001';
 var RT_KEY_REPL = 'AKIARTREPL000000001';
 var RT_SECRET_REPL = 'rtReplSecretForTesting1234567890abc';
-
-var RT_UUID_CACHE = 'rt-cachepush-test-uuid-001';
-var RT_KEY_CACHE = 'AKIARTCACHE000000001';
-var RT_SECRET_CACHE = 'rtCacheSecretForTesting123456789abc';
 
 var RT_SCOPE_JSON = JSON.stringify({
     version: 1,
@@ -1133,76 +1126,6 @@ test('cross-path: replicator transform.add() scope survives sigv4 round-trip',
                 t.ok(result, 'should return result');
                 t.equal(result.bucketScope, RT_SCOPE_JSON,
                     'scope must survive replicator → ' +
-                    'sigv4 round-trip unchanged');
-                t.done();
-            });
-        });
-    });
-});
-
-test('cross-path: cachePush format scope survives sigv4 round-trip',
-    function (t) {
-    var log = bunyan.createLogger({
-        name: 'rt-cache-test',
-        level: 'fatal'
-    });
-
-    var userKey = '/uuid/' + RT_UUID_CACHE;
-    var lookupKey = '/accesskey/' + RT_KEY_CACHE;
-
-    /* Write in the same format as cachePushHandler */
-    var userPayload = {
-        uuid: RT_UUID_CACHE,
-        login: 'cache-path-user',
-        accesskeys: {}
-    };
-    userPayload.accesskeys[RT_KEY_CACHE] = {
-        secret: RT_SECRET_CACHE,
-        scope: RT_SCOPE_JSON
-    };
-
-    var lookupData = JSON.stringify({
-        type: 'accesskey',
-        accessKeyId: RT_KEY_CACHE,
-        userUuid: RT_UUID_CACHE,
-        credentialType: 'permanent',
-        scope: RT_SCOPE_JSON
-    });
-
-    REDIS.set(userKey, JSON.stringify(userPayload),
-        function (setErr) {
-        t.ok(!setErr, 'redis set user should not error');
-
-        REDIS.set(lookupKey, lookupData,
-            function (set2Err) {
-            t.ok(!set2Err, 'redis set lookup should not error');
-
-            var headers = helper.createHeaders({
-                method: 'GET',
-                path: '/cross-path-test/obj.txt',
-                accessKey: RT_KEY_CACHE,
-                secret: RT_SECRET_CACHE
-            });
-            headers['x-amz-content-sha256'] =
-                crypto.createHash('sha256')
-                    .update('', 'utf8').digest('hex');
-
-            sigv4.verifySigV4({
-                req: {
-                    method: 'GET',
-                    url: '/cross-path-test/obj.txt',
-                    headers: headers,
-                    query: {}
-                },
-                log: log,
-                redis: REDIS
-            }, function (verErr, result) {
-                t.ok(!verErr,
-                    'sigv4 verify should not error: ' +
-                    (verErr ? verErr.message : ''));
-                t.ok(result, 'should return result');
-                t.equal(result.bucketScope, RT_SCOPE_JSON,
-                    'scope must survive cachePush format → ' +
                     'sigv4 round-trip unchanged');
                 t.done();
             });
@@ -1884,18 +1807,15 @@ test('tombstone prevents replicator modify()', function (t) {
 
 
 /*
- * PART 11: Write versioning — prevent stale replicator writes
+ * PART 11: Permanent-key schema — version field defaults
  *
- * Verifies that the version field in Redis entries prevents
- * stale replicator writes from overwriting newer cachePush data.
+ * Verifies that the version field is present in both the user
+ * entry and the reverse-lookup row and that it defaults to 0
+ * when not supplied. The replicator records each write's
+ * UFDS changenumber here; the field is informational since
+ * CHG-138 (no consumer compares it). These tests guard the
+ * format from regressing.
  */
-
-var REDIS_VERSION;
-
-test('setup - fresh redis for PART 11', function (t) {
-    REDIS_VERSION = redis.createClient('part11');
-    t.done();
-});
 
 test('buildPermanentKeyEntry includes version field', function (t) {
     var entry = akFormat.buildPermanentKeyEntry(
@@ -1933,218 +1853,6 @@ test('buildPermanentKeyLookup defaults version to 0', function (t) {
     t.done();
 });
 
-test('replicator skips write when existing version is newer',
-    function (t) {
-    var VER_KEY_ID = 'AKIAVERSION00000001';
-    var VER_SECRET = 'versionSecretKeyForTesting1234567890abcde';
-    var VER_UUID = 'aa0e8400-e29b-41d4-a716-446655440099';
-
-    var log = bunyan.createLogger({name: 'test', level: 'fatal'});
-
-    // Pre-populate with a high version (simulating cachePush)
-    var userPayload = {
-        uuid: VER_UUID,
-        accesskeys: {}
-    };
-    userPayload.accesskeys[VER_KEY_ID] =
-        akFormat.buildPermanentKeyEntry(VER_SECRET, SCOPE_JSON,
-            Date.now()); // cachePush version (~1.7 trillion)
-
-    var batch0 = REDIS_VERSION.multi();
-    batch0.set('/uuid/' + VER_UUID, JSON.stringify(userPayload));
-    batch0.set('/accesskey/' + VER_KEY_ID,
-        JSON.stringify(akFormat.buildPermanentKeyLookup(
-            VER_KEY_ID, VER_UUID, SCOPE_JSON, Date.now())));
-    batch0.exec(function () {
-
-        // Replicator tries to add with low changenumber
-        var entry = {
-            dn: 'changenumber=500, cn=changelog',
-            controls: [],
-            targetdn: 'accesskeyid=' + VER_KEY_ID +
-                ', uuid=' + VER_UUID +
-                ', ou=users, o=smartdc',
-            changetype: 'add',
-            objectclass: 'changeLogEntry',
-            changetime: '2026-04-18T12:00:00.000Z',
-            changes: {
-                accesskeyid: [VER_KEY_ID],
-                accesskeysecret: [VER_SECRET],
-                accesskeyscope: [null],  // replicator has null scope
-                created: ['1761762138761'],
-                status: ['Active'],
-                updated: ['1761762138761'],
-                objectclass: ['accesskey'],
-                _owner: [VER_UUID],
-                _parent: ['uuid=' + VER_UUID +
-                    ', ou=users, o=smartdc']
-            },
-            changenumber: '500'
-        };
-
-        transform.add({
-            changes: entry.changes,
-            entry: entry,
-            log: log,
-            redis: REDIS_VERSION
-        }, function (err, replicatorBatch) {
-            t.ifError(err, 'add should not error');
-            replicatorBatch.exec(function () {
-                // Verify the original scope (from cachePush) survives
-                REDIS_VERSION.get('/uuid/' + VER_UUID,
-                    function (_, val) {
-                    var payload = JSON.parse(val);
-                    var keyData = payload.accesskeys[VER_KEY_ID];
-                    t.equal(keyData.scope, SCOPE_JSON,
-                        'scope from cachePush should survive' +
-                        ' (replicator write skipped)');
-                    t.ok(keyData.version > 500,
-                        'version should still be cachePush value');
-                    t.done();
-                });
-            });
-        });
-    });
-});
-
-test('replicator overwrites when existing version is older',
-    function (t) {
-    var OLD_KEY_ID = 'AKIAOLDVERSION00001';
-    var OLD_SECRET = 'oldVersionSecretKey1234567890abcdefghijk';
-    var OLD_UUID = 'bb0e8400-e29b-41d4-a716-446655440099';
-
-    var log = bunyan.createLogger({name: 'test', level: 'fatal'});
-
-    // Pre-populate with a low version
-    var userPayload = {
-        uuid: OLD_UUID,
-        accesskeys: {}
-    };
-    userPayload.accesskeys[OLD_KEY_ID] =
-        akFormat.buildPermanentKeyEntry(OLD_SECRET, null, 100);
-
-    var batch0 = REDIS_VERSION.multi();
-    batch0.set('/uuid/' + OLD_UUID, JSON.stringify(userPayload));
-    batch0.set('/accesskey/' + OLD_KEY_ID,
-        JSON.stringify(akFormat.buildPermanentKeyLookup(
-            OLD_KEY_ID, OLD_UUID, null, 100)));
-    batch0.exec(function () {
-
-        // Replicator writes with higher changenumber
-        var entry = {
-            dn: 'changenumber=200, cn=changelog',
-            controls: [],
-            targetdn: 'accesskeyid=' + OLD_KEY_ID +
-                ', uuid=' + OLD_UUID +
-                ', ou=users, o=smartdc',
-            changetype: 'add',
-            objectclass: 'changeLogEntry',
-            changetime: '2026-04-18T12:00:00.000Z',
-            changes: {
-                accesskeyid: [OLD_KEY_ID],
-                accesskeysecret: [OLD_SECRET],
-                accesskeyscope: [SCOPE_JSON],
-                created: ['1761762138761'],
-                status: ['Active'],
-                updated: ['1761762138761'],
-                objectclass: ['accesskey'],
-                _owner: [OLD_UUID],
-                _parent: ['uuid=' + OLD_UUID +
-                    ', ou=users, o=smartdc']
-            },
-            changenumber: '200'
-        };
-
-        transform.add({
-            changes: entry.changes,
-            entry: entry,
-            log: log,
-            redis: REDIS_VERSION
-        }, function (err, replicatorBatch) {
-            t.ifError(err, 'add should not error');
-            replicatorBatch.exec(function () {
-                REDIS_VERSION.get('/uuid/' + OLD_UUID,
-                    function (_, val) {
-                    var payload = JSON.parse(val);
-                    var keyData = payload.accesskeys[OLD_KEY_ID];
-                    t.equal(keyData.scope, SCOPE_JSON,
-                        'scope should be updated by replicator');
-                    t.equal(keyData.version, 200,
-                        'version should be replicator changenumber');
-                    t.done();
-                });
-            });
-        });
-    });
-});
-
-test('replicator writes when no existing version (backward compat)',
-    function (t) {
-    var NEW_KEY_ID = 'AKIANOVERSION000001';
-    var NEW_SECRET = 'noVersionSecretKey12345678901234567890ab';
-    var NEW_UUID = 'cc0e8400-e29b-41d4-a716-446655440099';
-
-    var log = bunyan.createLogger({name: 'test', level: 'fatal'});
-
-    // Pre-populate with old format (no version field)
-    var userPayload = {
-        uuid: NEW_UUID,
-        accesskeys: {}
-    };
-    // Old format: bare string (version absent = 0)
-    userPayload.accesskeys[NEW_KEY_ID] = NEW_SECRET;
-
-    REDIS_VERSION.set('/uuid/' + NEW_UUID,
-        JSON.stringify(userPayload), function () {
-
-        var entry = {
-            dn: 'changenumber=50, cn=changelog',
-            controls: [],
-            targetdn: 'accesskeyid=' + NEW_KEY_ID +
-                ', uuid=' + NEW_UUID +
-                ', ou=users, o=smartdc',
-            changetype: 'add',
-            objectclass: 'changeLogEntry',
-            changetime: '2026-04-18T12:00:00.000Z',
-            changes: {
-                accesskeyid: [NEW_KEY_ID],
-                accesskeysecret: [NEW_SECRET],
-                accesskeyscope: [SCOPE_JSON],
-                created: ['1761762138761'],
-                status: ['Active'],
-                updated: ['1761762138761'],
-                objectclass: ['accesskey'],
-                _owner: [NEW_UUID],
-                _parent: ['uuid=' + NEW_UUID +
-                    ', ou=users, o=smartdc']
-            },
-            changenumber: '50'
-        };
-
-        transform.add({
-            changes: entry.changes,
-            entry: entry,
-            log: log,
-            redis: REDIS_VERSION
-        }, function (err, replicatorBatch) {
-            t.ifError(err, 'add should not error');
-            replicatorBatch.exec(function () {
-                REDIS_VERSION.get('/uuid/' + NEW_UUID,
-                    function (_, val) {
-                    var payload = JSON.parse(val);
-                    var keyData = payload.accesskeys[NEW_KEY_ID];
-                    t.ok(typeof (keyData) === 'object',
-                        'key should be upgraded to object format');
-                    t.equal(keyData.scope, SCOPE_JSON,
-                        'scope should be written');
-                    t.equal(keyData.version, 50,
-                        'version should be changenumber');
-                    t.done();
-                });
-            });
-        });
-    });
-});
 
 /*
  * Regression test for the vals[i] -> vals[0] fix in
